@@ -17,6 +17,7 @@ extern "C" {
 struct game_state frame_data_analyser::m_state;
 uint32_t frame_data_analyser::m_last_frame = 0;
 uint32_t frame_data_analyser::m_last_connection = 0;
+void (*frame_data_analyser::callback)(struct frame_data_point);
 
 bool frame_data_analyser::has_new_connection() {
     return m_state.game_frame - m_last_connection  != m_state.p1_frames_last_connection;
@@ -59,12 +60,20 @@ bool frame_data_analyser::loop() {
         int32_t move_frames = m_state.p1_frames_last_action - m_state.p1_frames_last_connection;
         int32_t frame_advantage = (m_state.p2_recovery_frames - m_state.p2_frames_last_action) -
                                   (m_state.p1_recovery_frames - m_state.p1_frames_last_action);
-        log_info("move frames: %d, frame advantage: %d", move_frames, frame_advantage);
+
+        struct frame_data_point data_point = {move_frames, frame_advantage};
+
+        callback(data_point);
     }
     return true;
 }
 
-bool frame_data_analyser::init() {
+bool frame_data_analyser::init(void (*callback)(struct frame_data_point)) {
+    if (callback == nullptr) {
+        return false;
+    }
+    frame_data_analyser::callback = callback;
+
     const int result = init_memory_reader();
     if (result != MR_INIT_OK) {
         return false;
@@ -81,8 +90,8 @@ bool frame_data_analyser::init() {
     return true;
 }
 
-bool frame_data_analyser::start() {
-    if (!init()) {
+bool frame_data_analyser::start(void (*callback)(struct frame_data_point)) {
+    if (!init(callback)) {
         return false;
     }
 

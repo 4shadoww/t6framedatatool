@@ -5,14 +5,22 @@ extern "C" {
 #include "memory_reader.h"
 }
 
+struct frame_data_point {
+    int move_frames;
+    int frame_advantage;
+};
+
 class frame_data_analyser {
 public:
     /*
     * Hook-up to game's memory and start analysing frames
+    *
+    * @param callback callback pointer
     */
-    static bool start();
+    static bool start(void (*callback)(struct frame_data_point));
 
 private:
+    static void (*callback)(struct frame_data_point);
     // Last updates game frame
     static uint32_t m_last_frame;
     // Last connection game frame
@@ -20,7 +28,7 @@ private:
 
     static struct game_state m_state;
 
-    static bool init();
+    static bool init(void (*callback)(struct frame_data_point));
     static bool loop();
 
     static bool has_new_connection();
