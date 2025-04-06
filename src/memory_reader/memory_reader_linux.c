@@ -1,7 +1,11 @@
 #define _GNU_SOURCE
 #include <stdio.h>
+#include <dirent.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include <sys/uio.h>
+#include <sys/types.h>
 
 #include "number_conversions.h"
 #include "logging.h"
@@ -16,6 +20,7 @@
 
 // Constants
 #define READ_BUFFER_LEN 4
+#define RPCS3_NAME "rpcs3"
 
 // Reader initialized
 static int g_initialized = 0;
@@ -41,13 +46,68 @@ static inline uint32_t read_4bytes(const long address) {
 
 }
 
+pid_t get_pid(char *name) {
+    static const char* directory = "/proc";
+    static const uint16_t buffer_size = 1024;
+
+    DIR* dir = opendir(directory);
+
+    if (dir == NULL) {
+        return -1;
+    }
+
+    struct dirent* de = 0;
+
+    while ((de = readdir(dir)) != 0) {
+        if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0) {
+            continue;
+        }
+
+        pid_t pid = -1;
+        int res = sscanf(de->d_name, "%d", &pid);
+
+        // PID valid
+        if (res != 1) {
+            continue;
+        }
+
+        // Check the process name from cmdline
+        char cmdline_file[1024] = {0};
+        sprintf(cmdline_file, "%s/%d/cmdline", directory, pid);
+
+        FILE* cmdline = fopen(cmdline_file, "r");
+
+        size_t bytes_read;
+        char* process_name = NULL;
+
+        if (getline(&process_name, &bytes_read, cmdline) <= 0) {
+            fclose(cmdline);
+            continue;
+        }
+
+        if (strstr(process_name, name) == 0) {
+            fclose(cmdline);
+            continue;
+        }
+
+        // Found PID close streams
+        fclose(cmdline);
+        closedir(dir);
+
+        return pid;
+    }
+
+    closedir(dir);
+
+    return -1;
+}
+
 int init_memory_reader() {
     if (g_initialized) {
         return MR_INIT_ALREADY_DONE;
     }
 
-    // TODO: find PID
-    g_pid = 613894;
+    g_pid =  get_pid(RPCS3_NAME);
 
     if (g_pid == -1) {
         return MR_INIT_ERROR;

@@ -101,6 +101,5 @@ bool frame_data_analyser::start() {
         }
     }
 
-
     return true;
 }
