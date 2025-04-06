@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(TARGET t6framedata)
-set(SRCS cli.cpp)
+set(TARGET print_frame_data)
+set(SRCS print_frame_data.cpp)
 
 add_executable(${TARGET} ${SRCS})
 target_link_libraries(${TARGET}
