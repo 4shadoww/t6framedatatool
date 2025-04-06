@@ -1,5 +1,6 @@
 #include <chrono>
 #include <cstdint>
+#include <thread>
 
 extern "C" {
 #include "logging.h"
@@ -11,7 +12,7 @@ extern "C" {
 // Constants
 
 // Run the tool twice as fast as the game to get accurate measurements
-#define TICK_LENGTH 8
+#define TICK_LENGTH 8333333
 
 struct game_state frame_data_analyser::m_state;
 uint32_t frame_data_analyser::m_last_frame = 0;
@@ -95,9 +96,14 @@ bool frame_data_analyser::start() {
             return false;
         }
 
-        // Wait
-        while (std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() < TICK_LENGTH) {
+        // Wait until next tick
+        auto delta = end - start;
+        while (std::chrono::duration_cast<std::chrono::nanoseconds>(delta).count() < TICK_LENGTH) {
+            // Sleep for a bit to save CPU time
+            std::this_thread::sleep_for (std::chrono::nanoseconds(delta / 2));
+
             end = std::chrono::high_resolution_clock::now();
+            delta = end - start;
         }
     }
 
