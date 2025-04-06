@@ -20,8 +20,11 @@ private:
 
     static struct game_state m_state;
 
-    static void loop();
-    static bool new_connection();
+    static bool init();
+    static bool loop();
+
+    static bool has_new_connection();
+    inline static void update_last_connection();
 };
 
 #endif
