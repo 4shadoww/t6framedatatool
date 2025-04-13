@@ -12,30 +12,36 @@ struct game_state {
     uint32_t game_frame;
 
     uint32_t p1_frames_last_action;
-    uint32_t p1_frames_last_connection;
     uint32_t p1_recovery_frames;
+    uint8_t p1_connection;
+    uint32_t p1_intent;
 
     uint32_t p2_frames_last_action;
-    uint32_t p2_frames_last_connection;
     uint32_t p2_recovery_frames;
+    uint8_t p2_connection;
+    uint32_t p2_intent;
 };
+
+#define READ_ERROR (uint32_t) -1
 
 /**
 * Finds T6 process ID and initializes the memory
 *
 * @return MR_INIT value
 */
-int init_memory_reader();
+int init_memory_reader(void);
 
-uint32_t p1_frames_last_action();
-uint32_t p1_frames_last_connection();
-uint32_t p1_recovery_frames();
+uint32_t p1_frames_last_action(void);
+uint32_t p1_connection(void);
+uint32_t p1_recovery_frames(void);
+uint32_t p1_intent(void);
 
-uint32_t p2_frames_last_action();
-uint32_t p2_frames_last_connection();
-uint32_t p2_recovery_frames();
+uint32_t p2_frames_last_action(void);
+uint32_t p2_connection(void);
+uint32_t p2_recovery_frames(void);
+uint32_t p2_intent(void);
 
-uint32_t current_game_frame();
+uint32_t current_game_frame(void);
 
 /*
 * Read game state to "state" struct

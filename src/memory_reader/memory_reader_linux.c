@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+#include <stdint.h>
 #include <stdio.h>
 #include <dirent.h>
 #include <string.h>
@@ -48,7 +49,6 @@ static inline uint32_t read_4bytes(const long address) {
 
 pid_t get_pid(char *name) {
     static const char* directory = "/proc";
-    static const uint16_t buffer_size = 1024;
 
     DIR* dir = opendir(directory);
 
@@ -102,7 +102,7 @@ pid_t get_pid(char *name) {
     return -1;
 }
 
-int init_memory_reader() {
+int init_memory_reader(void) {
     if (g_initialized) {
         return MR_INIT_ALREADY_DONE;
     }
@@ -121,84 +121,106 @@ int init_memory_reader() {
     return MR_INIT_OK;
 }
 
-uint32_t p1_frames_last_action() {
+uint32_t p1_frames_last_action(void) {
     return read_4bytes(P1_FRAMES_LAST_ACTION);
 }
 
-uint32_t p1_frames_last_connection() {
-    return read_4bytes(P1_FRAMES_LAST_CONNECTION);
+uint32_t p1_connection(void) {
+    return read_4bytes(P1_CONNECTION_BOOL);
 }
 
-uint32_t p1_recovery_frames() {
+uint32_t p1_recovery_frames(void) {
     return read_4bytes(P1_RECOVERY_FRAMES);
 }
 
-uint32_t p2_frames_last_action() {
+uint32_t p1_intent(void) {
+    return read_4bytes(P1_INTENT);
+}
+
+uint32_t p2_frames_last_action(void) {
     return read_4bytes(P2_FRAMES_LAST_ACTION);
 }
 
-uint32_t p2_frames_last_connection() {
-    return read_4bytes(P2_FRAMES_LAST_CONNECTION);
+uint32_t p2_connection(void) {
+    return read_4bytes(P2_CONNECTION_BOOL);
 }
 
-uint32_t p2_recovery_frames() {
+uint32_t p2_recovery_frames(void) {
     return read_4bytes(P2_RECOVERY_FRAMES);
 }
 
-uint32_t current_game_frame() {
+uint32_t p2_intent(void) {
+    return read_4bytes(P2_INTENT);
+}
+
+uint32_t current_game_frame(void) {
     return read_4bytes(CURRENT_GAME_FRAME);
 }
 
 int read_game_state(struct game_state *state) {
     uint32_t value = current_game_frame();
-    if (value == -1) {
+
+    if (value == READ_ERROR) {
         log_debug("readed invalid game frame number");
         return -1;
     }
     state->game_frame = value;
 
     value = p1_frames_last_action();
-    if (value == -1) {
+    if (value == READ_ERROR) {
         log_debug("readed invalid p1 last action frames");
         return -1;
     }
     state->p1_frames_last_action = value;
 
-    value = p1_frames_last_connection();
-    if (value == -1) {
+    value = p1_connection();
+    if (value == READ_ERROR) {
         log_debug("readed invalid p1 last connection frames");
         return -1;
     }
-    state->p1_frames_last_connection = value;
+    state->p1_connection = value;
 
     value = p1_recovery_frames();
-    if (value == -1) {
+    if (value == READ_ERROR) {
         log_debug("readed invalid p1 recovery frames");
         return -1;
     }
     state->p1_recovery_frames = value;
 
+    value = p1_intent();
+    if (value == READ_ERROR) {
+        log_debug("readed invalid p1 intent");
+        return -1;
+    }
+    state->p1_intent = value;
+
     value = p2_frames_last_action();
-    if (value == -1) {
+    if (value == READ_ERROR) {
         log_debug("readed invalid p2 last action frames");
         return -1;
     }
     state->p2_frames_last_action = value;
 
-    value = p2_frames_last_connection();
-    if (value == -1) {
+    value = p2_connection();
+    if (value == READ_ERROR) {
         log_debug("readed invalid p2 last connection frames");
         return -1;
     }
-    state->p2_frames_last_connection = value;
+    state->p2_connection = value;
 
     value = p2_recovery_frames();
-    if (value == -1) {
+    if (value == READ_ERROR) {
         log_debug("readed invalid p2 recovery frames");
         return -1;
     }
     state->p2_recovery_frames = value;
 
+    value = p2_intent();
+    if (value == READ_ERROR) {
+        log_debug("readed invalid p2 intent");
+        return -1;
+    }
+    state->p2_intent = value;
 
     return 0;
 }

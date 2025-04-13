@@ -7,7 +7,7 @@ extern "C" {
 #include "frame_data_analyser.hpp"
 
 void new_frame_data(struct frame_data_point data_point) {
-    std::cout << "move frames: " << data_point.move_frames << ", frame advantage: " <<
+    std::cout << "startup frames: " << data_point.move_frames << ", frame advantage: " <<
                  data_point.frame_advantage << std::endl;
 }
 

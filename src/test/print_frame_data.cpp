@@ -14,12 +14,12 @@ int main(const int argc, const char **argv) {
 
     // P1
     std::cout << "P1 last action: " << p1_frames_last_action() << std::endl;
-    std::cout << "P1 last connection: " << p1_frames_last_connection() << std::endl;
+    std::cout << "P1 connection: " << p1_connection() << std::endl;
     std::cout << "P1 recovery frames: " << p1_recovery_frames() << std::endl;
 
     // P2
     std::cout << "P2 last action: " << p2_frames_last_action() << std::endl;
-    std::cout << "P2 last connection: " << p2_frames_last_connection() << std::endl;
+    std::cout << "P2 connection: " << p2_connection() << std::endl;
     std::cout << "P2 recovery frames: " << p2_recovery_frames() << std::endl;
 
     // Game state
