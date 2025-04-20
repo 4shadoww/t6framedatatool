@@ -1,18 +1,26 @@
 #ifndef FRAME_DATA_ANALYSER_HPP
 #define FRAME_DATA_ANALYSER_HPP
 
+#include "ring_buffer.hpp"
+
 extern "C" {
 #include "memory_reader.h"
 }
 
 struct frame_data_point {
-    int move_frames;
+    int startup_frames;
     int frame_advantage;
 };
 
-struct player_attack_frames {
-    int p1_last_attack_frame;
-    int p2_last_attack_frame;
+struct start_frame {
+    size_t index;
+    uint32_t game_frame;
+};
+
+enum connection_event {
+    NO_CONNECTION,
+    P1_CONNECTION,
+    P2_CONNECTION
 };
 
 enum player_intents : int {
@@ -20,7 +28,7 @@ enum player_intents : int {
     ATTACK1 = 1,
     ATTACK3 = 3,
     ATTACK5 = 5,
-    ATTACK7 = 7,
+    ATTACK7 = 7, // Usually string
     INPUT_BUFFERING = 10,
     BLOCK = 11,
     WALK = 12,
@@ -34,27 +42,30 @@ enum player_intents : int {
 class frame_data_analyser {
 public:
     /*
-    * Hook-up to game's memory and start analysing frames
-    *
-    * @param callback callback pointer
-    */
+     * Hook-up to game's memory and start analysing frames
+     *
+     * @param callback callback pointer
+     */
     static bool start(void (*callback)(struct frame_data_point));
 
 private:
-    static struct game_state m_state;
-    static struct game_state m_previous_state;
-    static struct player_attack_frames m_attack_frames;
-
+    static ring_buffer<game_state> m_frame_buffer;
     static void (*callback)(struct frame_data_point);
+
+    // Analysis state
+    static ring_buffer<start_frame> m_p1_start_frames;
+    static ring_buffer<start_frame> m_p2_start_frames;
+
 
     static bool init(void (*callback)(struct frame_data_point));
     static bool loop();
 
-    static bool is_attack(const int action);
+    inline static bool is_attack(const int action);
 
-    static void update_attack_init_frames();
-    static bool has_new_connection();
-    inline static void update_last_connection();
+    static void analyse_start_frames();
+    static bool update_game_state();
+    static connection_event has_new_connection();
+    static void handle_connection();
 };
 
 #endif

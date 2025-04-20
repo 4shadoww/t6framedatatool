@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.10)
-
 set(TARGET utils)
 set(SRCS logging.c number_conversions.c)
 

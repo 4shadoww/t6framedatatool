@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.10)
-
 # Defines source directories based on the target type
 
 # Library targets

@@ -14,10 +14,14 @@ extern "C" {
 // Run the tool twice as fast as the game to get accurate measurements
 #define TICK_LENGTH 8333333
 
-// Static structs
-struct game_state frame_data_analyser::m_state = {};
-struct game_state frame_data_analyser::m_previous_state = {};
-struct player_attack_frames frame_data_analyser::m_attack_frames = {};
+// Five seconds of frames
+#define FRAME_BUFFER_SIZE 60 * 5
+#define PLAYER_ACTION_BUFFER_SIZE 5
+
+//// frame_data_analyser
+ring_buffer<game_state> frame_data_analyser::m_frame_buffer(FRAME_BUFFER_SIZE);
+ring_buffer<start_frame> frame_data_analyser::m_p1_start_frames(PLAYER_ACTION_BUFFER_SIZE);
+ring_buffer<start_frame> frame_data_analyser::m_p2_start_frames(PLAYER_ACTION_BUFFER_SIZE);
 
 void (*frame_data_analyser::callback)(struct frame_data_point);
 
@@ -46,36 +50,105 @@ bool frame_data_analyser::is_attack(const int intent) {
     }
 }
 
-void frame_data_analyser::update_attack_init_frames() {
+void frame_data_analyser::analyse_start_frames() {
+    game_state *current = m_frame_buffer.head();
+    game_state *previous = m_frame_buffer.get_from_head(1);
+
+    if (current == previous || previous == nullptr) {
+        return;
+    }
+
     // Check if P1 initiated attack
-    if (is_attack(m_state.p1_intent) &&
-        m_previous_state.p1_intent != m_state.p1_intent) {
-        m_attack_frames.p1_last_attack_frame = m_state.game_frame;
+    if (is_attack(current->p1_intent) &&
+        previous->p1_intent != current->p1_intent) {
+        m_p1_start_frames.push( {m_frame_buffer.head_index(), current->game_frame});
     }
 
     // Check if P2 initiated attack
-    if (is_attack(m_state.p2_intent) &&
-        m_previous_state.p2_intent != m_state.p2_intent) {
-        m_attack_frames.p2_last_attack_frame = m_state.game_frame;
+    if (is_attack(current->p2_intent) &&
+        previous->p2_intent != current->p2_intent) {
+        m_p2_start_frames.push( {m_frame_buffer.head_index(), current->game_frame});
     }
 }
 
-bool frame_data_analyser::has_new_connection() {
-    return (!m_previous_state.p1_connection && m_state.p1_connection) ||
-            (!m_previous_state.p2_connection && m_state.p2_connection);
+connection_event frame_data_analyser::has_new_connection() {
+    game_state *current = m_frame_buffer.head();
+    game_state *previous = m_frame_buffer.get_from_head(1);
 
+    if (current == previous || previous == nullptr) {
+        return NO_CONNECTION;
+    }
+
+    if (!previous->p1_connection && current->p1_connection) {
+        return P1_CONNECTION;
+    } else if (!previous->p2_connection && current->p2_connection) {
+        return P2_CONNECTION;
+    }
+
+    return NO_CONNECTION;
+}
+
+void frame_data_analyser::handle_connection() {
+    connection_event connection = has_new_connection();
+    if (connection == NO_CONNECTION) {
+        return;
+    }
+
+    start_frame start;
+
+    switch (connection) {
+    case NO_CONNECTION:
+        return;
+    case P1_CONNECTION:
+        m_p2_start_frames.clear();
+        start = m_p1_start_frames.pop();
+        break;
+    case P2_CONNECTION:
+        m_p1_start_frames.clear();
+        start = m_p2_start_frames.pop();
+        break;
+    }
+
+    if (start.game_frame == 0) {
+        log_error("Player start up buffer has invalid state");
+        return;
+    }
+
+    const game_state *current = m_frame_buffer.head();
+    const int32_t startup_frames = current->game_frame - start.game_frame;
+
+    const int32_t frame_advantage = startup_frames - (current->p1_recovery_frames - current->p2_recovery_frames);
+
+    struct frame_data_point data_point = {startup_frames, frame_advantage};
+
+    callback(data_point);
+}
+
+bool frame_data_analyser::update_game_state() {
+    // Read the game's state
+    game_state state;
+    if (read_game_state(&state) != 0) {
+        return false;
+    }
+
+    m_frame_buffer.push(state);
+
+    return true;
 }
 
 bool frame_data_analyser::loop() {
+    // Analyser timing
     uint32_t current_frame = current_game_frame();
     if (current_frame == READ_ERROR) {
         log_fatal("failed to read game's current frame number");
         return false;
     }
 
+    game_state *previous = m_frame_buffer.head();
+
     // Check if the analyser is in sync with the game
-    if (m_previous_state.game_frame != current_frame - 1 && m_previous_state.game_frame != 0) {
-        int64_t frames_off = (int64_t) m_previous_state.game_frame - (int64_t) current_frame;
+    if (previous->game_frame != current_frame - 1 && previous->game_frame != 0) {
+        int64_t frames_off = (int64_t) previous->game_frame - (int64_t) current_frame;
         // Analyser is ahead skip this tick
         if (frames_off == 0) {
             return true;
@@ -84,33 +157,15 @@ bool frame_data_analyser::loop() {
         log_warn("analyser is off by \"%lld\" frames", frames_off);
     }
 
-    // Read the game's state
-    if (read_game_state(&m_state) != 0) {
+    // Analysis logic
+    if (!update_game_state()) {
         log_fatal("failed to read game's state");
         return false;
     }
 
-    update_attack_init_frames();
+    analyse_start_frames();
+    handle_connection();
 
-    if (has_new_connection()) {
-        // P1 initiated attack
-        int32_t startup_frames;
-        if (m_attack_frames.p1_last_attack_frame > m_attack_frames.p2_last_attack_frame) {
-            startup_frames = m_state.game_frame - m_attack_frames.p1_last_attack_frame;
-        // P2 initiated attack
-        } else {
-            startup_frames = m_state.game_frame - m_attack_frames.p2_last_attack_frame;
-        }
-
-        const int32_t frame_advantage = startup_frames - (m_state.p1_recovery_frames - m_state.p2_recovery_frames);
-
-        struct frame_data_point data_point = {startup_frames, frame_advantage};
-
-        callback(data_point);
-    }
-
-    // Store last state
-    m_previous_state = m_state;
     return true;
 }
 
@@ -125,7 +180,8 @@ bool frame_data_analyser::init(void (*callback)(struct frame_data_point)) {
         return false;
     }
 
-    if (read_game_state(&m_state) != 0) {
+    // Analysis logic
+    if (!update_game_state()) {
         log_fatal("failed to read game's state");
         return false;
     }

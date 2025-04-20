@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 project(Tekken6FrameDataTool)
+
+option(UNIT_TESTING "Unit testing" OFF) # Build tests
 
 # Project level properties
 set(CMAKE_CXX_STANDARD 17)
@@ -12,4 +14,9 @@ set(UTILS_LIB_TYPE OBJECT)
 set(MEMORY_READER_LIB_TYPE OBJECT)
 set(COMMON_LIB_TYPE OBJECT)
 
-add_subdirectory(src)
+if(UNIT_TESTING)
+    enable_testing()
+    add_subdirectory(tests)
+else()
+    add_subdirectory(src)
+endif()

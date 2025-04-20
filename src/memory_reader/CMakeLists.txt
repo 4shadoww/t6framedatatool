@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.10)
-
 set(TARGET memoryreader)
 # TODO: multi-target
 set(SRCS memory_reader_linux.c)
