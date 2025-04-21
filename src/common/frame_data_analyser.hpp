@@ -3,9 +3,7 @@
 
 #include "ring_buffer.hpp"
 
-extern "C" {
 #include "memory_reader.h"
-}
 
 struct frame_data_point {
     int startup_frames;

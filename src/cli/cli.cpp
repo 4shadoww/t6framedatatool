@@ -1,8 +1,6 @@
 #include <iostream>
 
-extern "C" {
 #include "logging.h"
-}
 
 #include "frame_data_analyser.hpp"
 

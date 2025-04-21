@@ -1,6 +1,11 @@
 #ifndef MEMORY_READER_H
 #define MEMORY_READER_H
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include <stdint.h>
 
 // Memory reader init values
@@ -49,5 +54,9 @@ uint32_t current_game_frame(void);
 * @return 0 on success, -1 on error
 */
 int read_game_state(struct game_state *state);
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif

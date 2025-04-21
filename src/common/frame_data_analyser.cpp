@@ -3,10 +3,8 @@
 #include <cstdint>
 #include <thread>
 
-extern "C" {
 #include "logging.h"
 #include "memory_reader.h"
-}
 
 #include "frame_data_analyser.hpp"
 
@@ -245,21 +243,23 @@ bool frame_data_analyser::start(void (*callback)(struct frame_data_point)) {
     // Main loop
     while (true) {
         auto start = std::chrono::high_resolution_clock::now();
-        auto end = std::chrono::high_resolution_clock::now();
 
         if (!loop()) {
             // Unrecoverable error has occurred
             return false;
         }
+        auto end = std::chrono::high_resolution_clock::now();
 
         // Wait until next tick
         auto delta = end - start;
-        while (std::chrono::duration_cast<std::chrono::nanoseconds>(delta).count() < TICK_LENGTH) {
+        auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(delta).count();
+        while (nanos < TICK_LENGTH) {
             // Sleep for a bit to save CPU time
-            std::this_thread::sleep_for (std::chrono::nanoseconds(delta / 2));
+            std::this_thread::sleep_for (std::chrono::nanoseconds((TICK_LENGTH - nanos) / 2));
 
             end = std::chrono::high_resolution_clock::now();
             delta = end - start;
+            nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(delta).count();
         }
     }
 
