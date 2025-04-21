@@ -39,7 +39,7 @@ public:
      * @param index relative index from tail to head
      * @return T pointer
      */
-    T *get(const size_t index) {
+    T *get(const size_t index) const {
         size_t abs_index = (m_tail + index) % m_size;
 
         if (!bounds_check(abs_index)) {
@@ -55,7 +55,7 @@ public:
      * @param index absolute unchanging index
      * @return T pointer
      */
-    T *get_abs(const size_t index) {
+    T *get_abs(const size_t index) const {
         if (!bounds_check(index)) {
             return nullptr;
         }
@@ -69,7 +69,7 @@ public:
      * @param index index
      * @return T pointer
      */
-    T *get_from_head(const size_t index) {
+    T *get_from_head(const size_t index) const {
         size_t abs_index;
 
         if (m_item_count == 0) {
@@ -92,7 +92,7 @@ public:
      *
      * @return latest data
      */
-    inline T *head() {
+    inline T *head() const {
         if (m_item_count == 0) {
             return nullptr;
         }
@@ -106,7 +106,7 @@ public:
      * @return head absolute index
      *
      */
-    inline size_t head_index() {
+    inline size_t head_index() const {
         return m_head;
     }
 
@@ -115,7 +115,7 @@ public:
      *
      * @return oldest data
      */
-    inline T *tail() {
+    inline T *tail() const {
         if (m_item_count == 0) {
             return nullptr;
         }
@@ -128,7 +128,7 @@ public:
      * @return head absolute index
      *
      */
-    inline size_t tail_index() {
+    inline size_t tail_index() const {
         return m_tail;
     }
 
@@ -157,11 +157,11 @@ public:
         m_item_count = 0;
     }
 
-    inline size_t capacity() {
+    inline size_t capacity() const {
         return m_size;
     }
 
-    inline size_t item_count() {
+    inline size_t item_count() const {
         return m_item_count;
     }
 
@@ -175,7 +175,7 @@ private:
     size_t m_tail = 0;
     size_t m_item_count = 0;
 
-    inline bool bounds_check(size_t abs_index) {
+    inline bool bounds_check(size_t abs_index) const {
         if (m_item_count == 0) {
             return false;
         }

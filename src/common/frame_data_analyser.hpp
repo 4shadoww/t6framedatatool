@@ -14,6 +14,7 @@ struct frame_data_point {
 
 struct start_frame {
     size_t index;
+    uint32_t recovery_frames;
     uint32_t game_frame;
 };
 
@@ -61,6 +62,7 @@ private:
     static bool loop();
 
     inline static bool is_attack(const int action);
+    static start_frame get_startup_frame(const bool p2);
 
     static void analyse_start_frames();
     static bool update_game_state();

@@ -1,3 +1,4 @@
+#include "ring_buffer.hpp"
 #include <chrono>
 #include <cstdint>
 #include <thread>
@@ -17,6 +18,7 @@ extern "C" {
 // Five seconds of frames
 #define FRAME_BUFFER_SIZE 60 * 5
 #define PLAYER_ACTION_BUFFER_SIZE 5
+#define REVERSE_WALK_LIMIT 6
 
 //// frame_data_analyser
 ring_buffer<game_state> frame_data_analyser::m_frame_buffer(FRAME_BUFFER_SIZE);
@@ -51,8 +53,8 @@ bool frame_data_analyser::is_attack(const int intent) {
 }
 
 void frame_data_analyser::analyse_start_frames() {
-    game_state *current = m_frame_buffer.head();
-    game_state *previous = m_frame_buffer.get_from_head(1);
+    const game_state * const current = m_frame_buffer.head();
+    const game_state * const previous = m_frame_buffer.get_from_head(1);
 
     if (current == previous || previous == nullptr) {
         return;
@@ -61,19 +63,23 @@ void frame_data_analyser::analyse_start_frames() {
     // Check if P1 initiated attack
     if (is_attack(current->p1_intent) &&
         previous->p1_intent != current->p1_intent) {
-        m_p1_start_frames.push( {m_frame_buffer.head_index(), current->game_frame});
+        m_p1_start_frames.push({m_frame_buffer.head_index(),
+                                current->p1_recovery_frames,
+                                current->game_frame});
     }
 
     // Check if P2 initiated attack
     if (is_attack(current->p2_intent) &&
         previous->p2_intent != current->p2_intent) {
-        m_p2_start_frames.push( {m_frame_buffer.head_index(), current->game_frame});
+        m_p2_start_frames.push({m_frame_buffer.head_index(),
+                                current->p2_recovery_frames,
+                                current->game_frame});
     }
 }
 
 connection_event frame_data_analyser::has_new_connection() {
-    game_state *current = m_frame_buffer.head();
-    game_state *previous = m_frame_buffer.get_from_head(1);
+    const game_state * const current = m_frame_buffer.head();
+    const game_state * const previous = m_frame_buffer.get_from_head(1);
 
     if (current == previous || previous == nullptr) {
         return NO_CONNECTION;
@@ -88,24 +94,51 @@ connection_event frame_data_analyser::has_new_connection() {
     return NO_CONNECTION;
 }
 
+start_frame frame_data_analyser::get_startup_frame(const bool p2) {
+    ring_buffer<start_frame> *buffer = p2 ? &m_p2_start_frames : &m_p1_start_frames;
+
+    const size_t item_count = buffer->item_count();
+    for (size_t i = 0; i < item_count; i++) {
+        const start_frame start_frame = buffer->pop();
+        // Reverse walk frames
+        for (size_t j = 0; j < REVERSE_WALK_LIMIT; j++) {
+            game_state *frame = m_frame_buffer.get_from_head(j);
+            const uint32_t last_action = p2 ? frame->p2_frames_last_action : frame->p1_frames_last_action;
+
+            if (frame->game_frame - start_frame.game_frame + 1 == last_action) {
+                return start_frame;
+            }
+        }
+    }
+
+    log_fatal("plater startup frame not found");
+    return {};
+}
+
+
 void frame_data_analyser::handle_connection() {
-    connection_event connection = has_new_connection();
+    const connection_event connection = has_new_connection();
     if (connection == NO_CONNECTION) {
         return;
     }
 
+    const game_state * const current = m_frame_buffer.head();
+
     start_frame start;
+    uint32_t opponent_recovery_frames;
 
     switch (connection) {
     case NO_CONNECTION:
         return;
     case P1_CONNECTION:
         m_p2_start_frames.clear();
-        start = m_p1_start_frames.pop();
+        opponent_recovery_frames = current->p2_recovery_frames;
+        start = get_startup_frame(false);
         break;
     case P2_CONNECTION:
         m_p1_start_frames.clear();
-        start = m_p2_start_frames.pop();
+        opponent_recovery_frames = current->p1_recovery_frames;
+        start = get_startup_frame(true);
         break;
     }
 
@@ -114,10 +147,17 @@ void frame_data_analyser::handle_connection() {
         return;
     }
 
-    const game_state *current = m_frame_buffer.head();
-    const int32_t startup_frames = current->game_frame - start.game_frame;
+    int32_t startup_frames;
+    int32_t frame_advantage;
 
-    const int32_t frame_advantage = startup_frames - (current->p1_recovery_frames - current->p2_recovery_frames);
+    if (connection == P1_CONNECTION) {
+        startup_frames = current->game_frame - start.game_frame;
+        frame_advantage = startup_frames - (start.recovery_frames - opponent_recovery_frames);
+    } else {
+        startup_frames = current->game_frame - start.game_frame;
+        frame_advantage = (start.recovery_frames - opponent_recovery_frames) - startup_frames;
+        startup_frames = 0;
+    }
 
     struct frame_data_point data_point = {startup_frames, frame_advantage};
 
@@ -138,13 +178,13 @@ bool frame_data_analyser::update_game_state() {
 
 bool frame_data_analyser::loop() {
     // Analyser timing
-    uint32_t current_frame = current_game_frame();
+    const uint32_t current_frame = current_game_frame();
     if (current_frame == READ_ERROR) {
         log_fatal("failed to read game's current frame number");
         return false;
     }
 
-    game_state *previous = m_frame_buffer.head();
+    const game_state * const previous = m_frame_buffer.head();
 
     // Check if the analyser is in sync with the game
     if (previous->game_frame != current_frame - 1 && previous->game_frame != 0) {
@@ -161,6 +201,11 @@ bool frame_data_analyser::loop() {
     if (!update_game_state()) {
         log_fatal("failed to read game's state");
         return false;
+    }
+
+    // Collect frames before analysis
+    if (m_frame_buffer.item_count() < REVERSE_WALK_LIMIT) {
+        return true;
     }
 
     analyse_start_frames();

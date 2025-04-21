@@ -13,18 +13,26 @@ configure:
 	# Coopy compile commands db to root for lsp
 	cp build/compile_commands.json .
 
+configure_debug:
+	cmake -G "Ninja" -S. -B$(BUILD_DIR) -DDEBUG=ON
+	# Coopy compile commands db to root for lsp
+	cp build/compile_commands.json .
+
 configure_test:
 	cmake -G "Ninja" -S. -B$(BUILD_DIR) -DUNIT_TESTING=ON
 	# Coopy compile commands db to root for lsp
 	cp build/compile_commands.json .
 
-build: configure
+debug: configure_debug
 	cmake --build $(BUILD_DIR)
 
-build_test: configure_test
+release: configure
 	cmake --build $(BUILD_DIR)
 
-test: build_test
+test: configure_test
+	cmake --build $(BUILD_DIR)
+
+run_test: build_test
 	ctest --output-on-failure --test-dir $(BUILD_DIR)
 
 clean:
