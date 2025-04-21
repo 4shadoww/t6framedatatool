@@ -1,0 +1,45 @@
+Tekken 6 frame data tool
+========================
+
+
+Compiling
+---------
+
+Dependencies:
+- C and C++ compiler (Tested with GCC)
+- CMake
+- Make
+- Ninja
+
+For X11 GUI (optional):
+- xosd
+- Adobe Courier font family
+
+Make targets:
+
+```bash
+# Release build
+make cli_release
+
+# Clean
+make clean
+
+# Debug build
+make cli_debug
+
+# Run tests
+make run_test
+```
+
+Missing features
+----------------
+
+- Calculate distance between players
+- Active frames
+
+Known bugs
+----------
+
+- Frame data of moves which do damage at multiple points of the move are not calculated correctly.
+  For example Alisa Destroy Form.
+

@@ -5,8 +5,11 @@ add_subdirectory(utils) # C code
 add_subdirectory(memory_reader) # C code
 add_subdirectory(common) # C++ code
 
-# TODO: add flags to select if cli or gui is build (or just a library)
-add_subdirectory(cli)
+if(GUI)
+    add_subdirectory(gui)
+else()
+    add_subdirectory(cli)
+endif()
 
-# TODO: control building tests with a flag
+# TODO: remove
 add_subdirectory(test)

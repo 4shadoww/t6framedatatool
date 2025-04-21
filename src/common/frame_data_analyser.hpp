@@ -43,14 +43,22 @@ enum player_intents : int {
 
 class frame_data_analyser {
 public:
-    /*
+    frame_data_analyser() = delete;
+    ~frame_data_analyser() = delete;
+
+    /**
      * Hook-up to game's memory and start analysing frames
      *
      * @param callback callback pointer
      */
     static bool start(void (*callback)(struct frame_data_point));
+    /**
+     * Stop the analyser loop
+     */
+    static void stop();
 
 private:
+    static bool m_stop;
     static ring_buffer<game_state> m_frame_buffer;
     static void (*callback)(struct frame_data_point);
 

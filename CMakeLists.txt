@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.14)
 project(Tekken6FrameDataTool)
 
+option(DEBUG "Debug build" OFF)
 option(UNIT_TESTING "Unit testing" OFF) # Build tests
+option(GUI "Build GUI" OFF)
 
 # Project level properties
 set(CMAKE_CXX_STANDARD 17)

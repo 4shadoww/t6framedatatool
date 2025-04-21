@@ -19,6 +19,8 @@
 #define REVERSE_WALK_LIMIT 6
 
 //// frame_data_analyser
+///
+bool frame_data_analyser::m_stop = false;
 ring_buffer<game_state> frame_data_analyser::m_frame_buffer(FRAME_BUFFER_SIZE);
 ring_buffer<start_frame> frame_data_analyser::m_p1_start_frames(PLAYER_ACTION_BUFFER_SIZE);
 ring_buffer<start_frame> frame_data_analyser::m_p2_start_frames(PLAYER_ACTION_BUFFER_SIZE);
@@ -219,6 +221,7 @@ bool frame_data_analyser::init(void (*callback)(struct frame_data_point)) {
     if (callback == nullptr) {
         return false;
     }
+    frame_data_analyser::m_stop = false;
     frame_data_analyser::callback = callback;
 
     const int result = init_memory_reader();
@@ -241,7 +244,7 @@ bool frame_data_analyser::start(void (*callback)(struct frame_data_point)) {
     }
 
     // Main loop
-    while (true) {
+    while (!m_stop) {
         auto start = std::chrono::high_resolution_clock::now();
 
         if (!loop()) {
@@ -264,4 +267,8 @@ bool frame_data_analyser::start(void (*callback)(struct frame_data_point)) {
     }
 
     return true;
+}
+
+void frame_data_analyser::stop() {
+    m_stop = true;
 }

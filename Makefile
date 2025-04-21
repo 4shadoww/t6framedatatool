@@ -8,31 +8,39 @@ test_deps:
 	tar -xf googletest-1.16.0.tar.gz && \
 	mv googletest-1.16.0 googletest
 
-configure:
+configure_cli:
 	cmake -G "Ninja" -S. -B$(BUILD_DIR)
-	# Coopy compile commands db to root for lsp
+	# Copy compile commands db to root for lsp
+	cp build/compile_commands.json .
+
+configure_cli_debug:
+	cmake -G "Ninja" -S. -B$(BUILD_DIR) -DDEBUG=ON
+	# Copy compile commands db to root for lsp
 	cp build/compile_commands.json .
 
 configure_debug:
-	cmake -G "Ninja" -S. -B$(BUILD_DIR) -DDEBUG=ON
-	# Coopy compile commands db to root for lsp
+	cmake -G "Ninja" -S. -B$(BUILD_DIR) -DDEBUG=ON -DGUI=ON
+	# Copy compile commands db to root for lsp
 	cp build/compile_commands.json .
 
 configure_test:
-	cmake -G "Ninja" -S. -B$(BUILD_DIR) -DUNIT_TESTING=ON
-	# Coopy compile commands db to root for lsp
+	cmake -G "Ninja" -S. -B$(BUILD_DIR) -DDEBUG=ON -DUNIT_TESTING=ON
+	# Copy compile commands db to root for lsp
 	cp build/compile_commands.json .
 
-debug: configure_debug
+cli_debug: configure_cli_debug
 	cmake --build $(BUILD_DIR)
 
-release: configure
+cli_release: configure_cli
+	cmake --build $(BUILD_DIR)
+
+debug: configure_debug
 	cmake --build $(BUILD_DIR)
 
 test: configure_test
 	cmake --build $(BUILD_DIR)
 
-run_test: build_test
+run_test: test
 	ctest --output-on-failure --test-dir $(BUILD_DIR)
 
 clean:
