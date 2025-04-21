@@ -35,7 +35,10 @@ enum player_intents : int {
     WALK = 12,
     SIDE_STEP = 15,
     STASIS = 16,
+    WHIFF = 17,
     DOUBLE_SIDE_STEP = 28,
+    FALLING = 272, // While taking damage
+    LANDING = 528, // While taking damage
     GRAP_INIT = 65539,
     GRAP_CONNECT = 65546,
 };

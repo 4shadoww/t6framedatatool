@@ -41,7 +41,10 @@ bool frame_data_analyser::is_attack(const int intent) {
     case player_intents::WALK:
     case player_intents::SIDE_STEP:
     case player_intents::DOUBLE_SIDE_STEP:
+    case player_intents::FALLING:
+    case player_intents::LANDING:
     case player_intents::STASIS:
+    case player_intents::WHIFF:
     case player_intents::GRAP_INIT:
     case player_intents::GRAP_CONNECT:
         return false;

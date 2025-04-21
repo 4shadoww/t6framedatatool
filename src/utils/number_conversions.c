@@ -11,6 +11,12 @@ uint32_t big32_to_little(const char * const buf) {
     return value;
 }
 
+uint32_t big16_to_little(const char * const buf) {
+    uint32_t value = buf[1] & 0xff;
+    value |= (buf[0] << 8) & 0xff00;
+    return value;
+}
+
 uint64_t ps3_address_to_x64(const uint32_t address) {
     static const uint64_t base_address = 0x300000000;
     static const uint8_t offset = 104;

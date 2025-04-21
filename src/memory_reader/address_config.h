@@ -1,6 +1,8 @@
 #ifndef ADDRESS_CONFIG_H
 #define ADDRESS_CONFIG_H
 
+// TODO: connection boolean address may be dynamic (not confirmed)
+
 // Player 1 health
 #define GAME_BASE_ADDRESS 0x300B2C140
 // Player 1 frames since last action
@@ -8,7 +10,7 @@
 // Plater 1 animation recovery frames
 #define P1_RECOVERY_FRAMES GAME_BASE_ADDRESS + 392
 // Plater 1 connection boolean
-#define P1_CONNECTION_BOOL GAME_BASE_ADDRESS + 342380
+#define P1_CONNECTION_BOOL GAME_BASE_ADDRESS + 915132194
 // Player 1 intent
 #define P1_INTENT GAME_BASE_ADDRESS + 472
 
@@ -17,7 +19,7 @@
 // Plater 2 animation recovery frames
 #define P2_RECOVERY_FRAMES GAME_BASE_ADDRESS + 3528
 // Plater 2 connection boolean
-#define P2_CONNECTION_BOOL GAME_BASE_ADDRESS + 342504
+#define P2_CONNECTION_BOOL GAME_BASE_ADDRESS + 915132186
 // Player 2 intent
 #define P2_INTENT GAME_BASE_ADDRESS + 3608
 

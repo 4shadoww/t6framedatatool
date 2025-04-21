@@ -37,13 +37,27 @@ static inline void set_read_address(void *address) {
 }
 
 static inline uint32_t read_4bytes(const long address) {
+    g_local[0].iov_len = READ_BUFFER_LEN;
     set_read_address((void*) address);
+
     const size_t nread = process_vm_readv(g_pid, g_local, 1, g_remote, 1, 0);
     if (nread != 4) {
         log_error("failed to read memory: %zu", nread);
         return -1;
     }
     return big32_to_little(g_buf);
+}
+
+static inline uint32_t read_2bytes(const long address) {
+    g_local[0].iov_len = 2;
+    set_read_address((void*) address);
+
+    const size_t nread = process_vm_readv(g_pid, g_local, 1, g_remote, 1, 0);
+    if (nread != 2) {
+        log_error("failed to read memory: %zu", nread);
+        return -1;
+    }
+    return big16_to_little(g_buf);
 
 }
 
@@ -114,7 +128,6 @@ int init_memory_reader(void) {
     }
 
     g_local[0].iov_base = g_buf;
-    g_local[0].iov_len = READ_BUFFER_LEN;
     g_remote[0].iov_len = READ_BUFFER_LEN;
 
     g_initialized = 1;
@@ -126,7 +139,7 @@ uint32_t p1_frames_last_action(void) {
 }
 
 uint32_t p1_connection(void) {
-    return read_4bytes(P1_CONNECTION_BOOL);
+    return read_2bytes(P1_CONNECTION_BOOL);
 }
 
 uint32_t p1_recovery_frames(void) {
@@ -142,7 +155,7 @@ uint32_t p2_frames_last_action(void) {
 }
 
 uint32_t p2_connection(void) {
-    return read_4bytes(P2_CONNECTION_BOOL);
+    return read_2bytes(P2_CONNECTION_BOOL);
 }
 
 uint32_t p2_recovery_frames(void) {
