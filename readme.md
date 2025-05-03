@@ -34,8 +34,8 @@ make run_test
 Missing features
 ----------------
 
-- Calculate distance between players
 - Active frames
+- Display current player state
 
 Known bugs
 ----------
