@@ -13,6 +13,8 @@
 #define P1_CONNECTION_BOOL GAME_BASE_ADDRESS + 915132194
 // Player 1 intent
 #define P1_INTENT GAME_BASE_ADDRESS + 472
+// Player 1 coordinates
+#define P1_POSITION GAME_BASE_ADDRESS + 2192
 
 // Player 2 frames since last action
 #define P2_FRAMES_LAST_ACTION GAME_BASE_ADDRESS + 3260
@@ -22,6 +24,8 @@
 #define P2_CONNECTION_BOOL GAME_BASE_ADDRESS + 915132186
 // Player 2 intent
 #define P2_INTENT GAME_BASE_ADDRESS + 3608
+// Player 2 coordinates
+#define P2_POSITION GAME_BASE_ADDRESS + 5248
 
 // Current game frame
 #define CURRENT_GAME_FRAME GAME_BASE_ADDRESS + 270587472

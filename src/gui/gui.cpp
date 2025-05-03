@@ -13,14 +13,31 @@
 
 xosd *g_osd;
 struct frame_data_point g_data_point = {};
+float g_distance = 0;
+
+class listener : public event_listener {
+public:
+    void frame_data(const frame_data_point frame_data) override;
+    void distance(const float distance) override;
+};
+
+void listener::frame_data(const frame_data_point frame_data) {
+    g_data_point = frame_data;
+}
+
+void listener::distance(const float distance) {
+    g_distance = distance;
+}
 
 void new_frame_data(struct frame_data_point data_point) {
     std::cout << "startup frames: " << data_point.startup_frames << ", frame advantage: " <<
                  data_point.frame_advantage << std::endl;
 }
 
+listener g_listener;
+
 bool init_gui() {
-    g_osd = xosd_create(2);
+    g_osd = xosd_create(3);
     if (g_osd == nullptr) {
         log_fatal("failed to create window");
         return false;
@@ -51,7 +68,7 @@ void analyser_callback(struct frame_data_point data_point) {
 }
 
 void analyser_loop() {
-    frame_data_analyser::start(&analyser_callback);
+    frame_data_analyser::start(&g_listener);
 }
 
 void gui_loop() {
@@ -77,6 +94,12 @@ void gui_loop() {
 
         // Frame advantage
         if (xosd_display(g_osd, 1, XOSD_printf, "Frame Advantage %d", g_data_point.frame_advantage) == -1) {
+            log_fatal("failed to display");
+            return;
+        }
+
+        // Distance
+        if (xosd_display(g_osd, 2, XOSD_printf, "Distance %.2f", g_distance) == -1) {
             log_fatal("failed to display");
             return;
         }

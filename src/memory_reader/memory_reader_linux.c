@@ -20,7 +20,7 @@
  */
 
 // Constants
-#define READ_BUFFER_LEN 4
+#define READ_BUFFER_LEN 12
 #define RPCS3_NAME "rpcs3"
 
 // Reader initialized
@@ -36,13 +36,27 @@ static inline void set_read_address(void *address) {
     g_remote[0].iov_base = address;
 }
 
+static inline int read_bytes_raw(const long address, void *buf, const size_t size) {
+    g_local[0].iov_len = size;
+    set_read_address((void*) address);
+
+    const size_t nread = process_vm_readv(g_pid, g_local, 1, g_remote, 1, 0);
+    if (nread != size) {
+        log_error("failed to read %zu bytes (%zu)", size, nread);
+        return -1;
+    }
+
+    memcpy(buf, g_buf, size);
+    return nread;
+}
+
 static inline uint32_t read_4bytes(const long address) {
-    g_local[0].iov_len = READ_BUFFER_LEN;
+    g_local[0].iov_len = 4;
     set_read_address((void*) address);
 
     const size_t nread = process_vm_readv(g_pid, g_local, 1, g_remote, 1, 0);
     if (nread != 4) {
-        log_error("failed to read memory: %zu", nread);
+        log_error("failed to read 4 bytes (%zu)", nread);
         return -1;
     }
     return big32_to_little(g_buf);
@@ -54,7 +68,7 @@ static inline uint32_t read_2bytes(const long address) {
 
     const size_t nread = process_vm_readv(g_pid, g_local, 1, g_remote, 1, 0);
     if (nread != 2) {
-        log_error("failed to read memory: %zu", nread);
+        log_error("failed to read 2 bytes (%zu)", nread);
         return -1;
     }
     return big16_to_little(g_buf);
@@ -150,6 +164,20 @@ uint32_t p1_intent(void) {
     return read_4bytes(P1_INTENT);
 }
 
+struct player_coordinate p1_position(void) {
+    struct player_coordinate coords = {0};
+    int read = read_bytes_raw(P1_POSITION, &coords, sizeof(struct player_coordinate));
+    if (read == -1) {
+        return coords;
+    }
+
+    coords.x = big32_to_little_float((char*) &coords);
+    coords.y = big32_to_little_float(&((char*) &coords)[4]);
+    coords.z = big32_to_little_float(&((char*) &coords)[8]);
+
+    return coords;
+}
+
 uint32_t p2_frames_last_action(void) {
     return read_4bytes(P2_FRAMES_LAST_ACTION);
 }
@@ -164,6 +192,20 @@ uint32_t p2_recovery_frames(void) {
 
 uint32_t p2_intent(void) {
     return read_4bytes(P2_INTENT);
+}
+
+struct player_coordinate p2_position(void) {
+    struct player_coordinate coords = {0};
+    int read = read_bytes_raw(P2_POSITION, &coords, sizeof(struct player_coordinate));
+    if (read == -1) {
+        return coords;
+    }
+
+    coords.x = big32_to_little_float((char*) &coords);
+    coords.y = big32_to_little_float(&((char*) &coords)[4]);
+    coords.z = big32_to_little_float(&((char*) &coords)[8]);
+
+    return coords;
 }
 
 uint32_t current_game_frame(void) {
@@ -207,6 +249,8 @@ int read_game_state(struct game_state *state) {
     }
     state->p1_intent = value;
 
+    state->p1_position = p1_position();
+
     value = p2_frames_last_action();
     if (value == READ_ERROR) {
         log_debug("readed invalid p2 last action frames");
@@ -234,6 +278,8 @@ int read_game_state(struct game_state *state) {
         return -1;
     }
     state->p2_intent = value;
+
+    state->p2_position = p2_position();
 
     return 0;
 }

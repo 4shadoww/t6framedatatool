@@ -41,6 +41,12 @@ enum player_intents : int {
     GRAP_CONNECT = 65546,
 };
 
+class event_listener {
+public:
+    virtual void frame_data(frame_data_point frame_data) = 0;
+    virtual void distance(float distance) = 0;
+};
+
 class frame_data_analyser {
 public:
     frame_data_analyser() = delete;
@@ -51,7 +57,7 @@ public:
      *
      * @param callback callback pointer
      */
-    static bool start(void (*callback)(struct frame_data_point));
+    static bool start(event_listener *listener);
     /**
      * Stop the analyser loop
      */
@@ -60,14 +66,14 @@ public:
 private:
     static bool m_stop;
     static ring_buffer<game_state> m_frame_buffer;
-    static void (*callback)(struct frame_data_point);
+    static event_listener *m_listener;
 
     // Analysis state
     static ring_buffer<start_frame> m_p1_start_frames;
     static ring_buffer<start_frame> m_p2_start_frames;
 
 
-    static bool init(void (*callback)(struct frame_data_point));
+    static bool init(event_listener *listener);
     static bool loop();
 
     inline static bool is_attack(const int action);
@@ -77,6 +83,9 @@ private:
     static bool update_game_state();
     static connection_event has_new_connection();
     static void handle_connection();
+    static void handle_distance();
+
+    static float calculate_distance(const game_state * const state);
 };
 
 #endif

@@ -1,5 +1,6 @@
 #include "ring_buffer.hpp"
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <thread>
 
@@ -25,7 +26,7 @@ ring_buffer<game_state> frame_data_analyser::m_frame_buffer(FRAME_BUFFER_SIZE);
 ring_buffer<start_frame> frame_data_analyser::m_p1_start_frames(PLAYER_ACTION_BUFFER_SIZE);
 ring_buffer<start_frame> frame_data_analyser::m_p2_start_frames(PLAYER_ACTION_BUFFER_SIZE);
 
-void (*frame_data_analyser::callback)(struct frame_data_point);
+event_listener *frame_data_analyser::m_listener = nullptr;
 
 bool frame_data_analyser::is_attack(const int intent) {
     switch (intent) {
@@ -164,7 +165,21 @@ void frame_data_analyser::handle_connection() {
 
     struct frame_data_point data_point = {startup_frames, frame_advantage};
 
-    callback(data_point);
+    m_listener->frame_data(data_point);
+}
+
+float frame_data_analyser::calculate_distance(const game_state * const state) {
+    return std::sqrt(
+         std::pow(state->p1_position.x - state->p2_position.x, 2) +
+         std::pow(state->p1_position.z - state->p2_position.z, 2)
+    ) / 1000;
+}
+
+void frame_data_analyser::handle_distance() {
+    const game_state * const current = m_frame_buffer.head();
+    //log_info("TEST %f", current->p1_position.x);
+    const float distance = calculate_distance(current);
+    m_listener->distance(distance);
 }
 
 bool frame_data_analyser::update_game_state() {
@@ -213,16 +228,17 @@ bool frame_data_analyser::loop() {
 
     analyse_start_frames();
     handle_connection();
+    handle_distance();
 
     return true;
 }
 
-bool frame_data_analyser::init(void (*callback)(struct frame_data_point)) {
-    if (callback == nullptr) {
+bool frame_data_analyser::init(event_listener *listener) {
+    if (listener == nullptr) {
         return false;
     }
     frame_data_analyser::m_stop = false;
-    frame_data_analyser::callback = callback;
+    frame_data_analyser::m_listener = listener;
 
     const int result = init_memory_reader();
     if (result != MR_INIT_OK) {
@@ -238,8 +254,8 @@ bool frame_data_analyser::init(void (*callback)(struct frame_data_point)) {
     return true;
 }
 
-bool frame_data_analyser::start(void (*callback)(struct frame_data_point)) {
-    if (!init(callback)) {
+bool frame_data_analyser::start(event_listener *listener) {
+    if (!init(listener)) {
         return false;
     }
 
