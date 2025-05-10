@@ -28,32 +28,70 @@ ring_buffer<start_frame> frame_data_analyser::m_p2_start_frames(PLAYER_ACTION_BU
 
 event_listener *frame_data_analyser::m_listener = nullptr;
 
-bool frame_data_analyser::is_attack(const int intent) {
+bool frame_data_analyser::is_attack(const player_intent intent) {
     switch (intent) {
-    case player_intents::ATTACK1:
-    case player_intents::ATTACK3:
-    case player_intents::ATTACK5:
-    case player_intents::ATTACK7:
+    case player_intent::ATTACK1:
+    case player_intent::ATTACK3:
+    case player_intent::ATTACK5:
+    case player_intent::ATTACK7:
         return true;
 
-    case player_intents::IDLE:
-    case player_intents::INPUT_BUFFERING:
-    case player_intents::BLOCK:
-    case player_intents::WALK:
-    case player_intents::SIDE_STEP:
-    case player_intents::DOUBLE_SIDE_STEP:
-    case player_intents::FALLING:
-    case player_intents::LANDING:
-    case player_intents::STASIS:
-    case player_intents::WHIFF:
-    case player_intents::GRAP_INIT:
-    case player_intents::GRAP_CONNECT:
+    case player_intent::IDLE:
+    case player_intent::INPUT_BUFFERING:
+    case player_intent::BLOCK:
+    case player_intent::WALK:
+    case player_intent::SIDE_STEP:
+    case player_intent::DOUBLE_SIDE_STEP:
+    case player_intent::FALLING:
+    case player_intent::LANDING:
+    case player_intent::STASIS:
+    case player_intent::WHIFF:
+    case player_intent::GRAP_INIT:
+    case player_intent::GRAP_CONNECT:
         return false;
 
     default:
         log_warn("unknown player intent \"%i\"", intent);
         return false;
     }
+}
+
+const char *frame_data_analyser::player_status(const player_state state) {
+    static const char standing[] = "Standing";
+    static const char crouch[] = "Crouch";
+    static const char crouching[] = "Crouching";
+    static const char jumping[] = "Jumping";
+    static const char airborne[] = "Airborne";
+    static const char grounded[] = "Grounded";
+
+    switch (state) {
+    case player_state::STANDING:
+    case player_state::MOVE_BACKWARDS:
+    case player_state::MOVE_FORWARDS:
+    case player_state::DASH_BACKWARDS:
+    case player_state::MOVE:
+    case player_state::RECOVER1:
+    case player_state::RECOVER2:
+    case player_state::SIDE_STEPPING:
+        return standing;
+    case player_state::CROUCH:
+        return crouch;
+    case player_state::CROUCHING:
+    case player_state::CROUCHING_ATTACK:
+    case player_state::CROUCHING_BACKWARDS:
+    case player_state::CROUCHING_FORWARDS:
+        return crouching;
+    case player_state::JUMPING:
+    case player_state::JUMPING_FORWARDS:
+    case player_state::JUMPING_BACKWARDS:
+        return jumping;
+    case player_state::AIRBORNE:
+        return airborne;
+    case player_state::GROUNDED:
+        return grounded;
+    }
+
+    return nullptr;
 }
 
 void frame_data_analyser::analyse_start_frames() {
@@ -65,7 +103,7 @@ void frame_data_analyser::analyse_start_frames() {
     }
 
     // Check if P1 initiated attack
-    if (is_attack(current->p1_intent) &&
+    if (is_attack((player_intent) current->p1_intent) &&
         previous->p1_intent != current->p1_intent) {
         m_p1_start_frames.push({m_frame_buffer.head_index(),
                                 current->p1_recovery_frames,
@@ -73,7 +111,7 @@ void frame_data_analyser::analyse_start_frames() {
     }
 
     // Check if P2 initiated attack
-    if (is_attack(current->p2_intent) &&
+    if (is_attack((player_intent) current->p2_intent) &&
         previous->p2_intent != current->p2_intent) {
         m_p2_start_frames.push({m_frame_buffer.head_index(),
                                 current->p2_recovery_frames,
@@ -177,9 +215,13 @@ float frame_data_analyser::calculate_distance(const game_state * const state) {
 
 void frame_data_analyser::handle_distance() {
     const game_state * const current = m_frame_buffer.head();
-    //log_info("TEST %f", current->p1_position.x);
     const float distance = calculate_distance(current);
     m_listener->distance(distance);
+}
+
+void frame_data_analyser::handle_status() {
+    const game_state * const current = m_frame_buffer.head();
+    m_listener->status((player_state) current->p1_state);
 }
 
 bool frame_data_analyser::update_game_state() {
@@ -196,8 +238,9 @@ bool frame_data_analyser::update_game_state() {
 
 bool frame_data_analyser::loop() {
     // Analyser timing
-    const uint32_t current_frame = current_game_frame();
-    if (current_frame == READ_ERROR) {
+    uint32_t current_frame;
+    const int result = current_game_frame(&current_frame);
+    if (result == READ_ERROR) {
         log_fatal("failed to read game's current frame number");
         return false;
     }
@@ -229,6 +272,7 @@ bool frame_data_analyser::loop() {
     analyse_start_frames();
     handle_connection();
     handle_distance();
+    handle_status();
 
     return true;
 }

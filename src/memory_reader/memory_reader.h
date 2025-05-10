@@ -22,20 +22,23 @@ struct player_coordinate {
 struct game_state {
     uint32_t game_frame;
 
-    uint32_t p1_frames_last_action;
+    int32_t p1_frames_last_action;
     uint32_t p1_recovery_frames;
-    uint8_t p1_connection;
-    uint32_t p1_intent;
+    int8_t p1_connection;
+    int32_t p1_intent;
+    int32_t p1_state;
     struct player_coordinate p1_position;
 
-    uint32_t p2_frames_last_action;
+    int32_t p2_frames_last_action;
     uint32_t p2_recovery_frames;
-    uint8_t p2_connection;
-    uint32_t p2_intent;
+    int8_t p2_connection;
+    int32_t p2_intent;
+    int32_t p2_state;
     struct player_coordinate p2_position;
 };
 
-#define READ_ERROR (uint32_t) -1
+#define READ_ERROR -1
+#define READ_OK 0
 
 /**
 * Finds T6 process ID and initializes the memory
@@ -44,19 +47,21 @@ struct game_state {
 */
 int init_memory_reader(void);
 
-uint32_t p1_frames_last_action(void);
-uint32_t p1_connection(void);
-uint32_t p1_recovery_frames(void);
-uint32_t p1_intent(void);
-struct player_coordinate p1_position(void);
+int p1_frames_last_action(int32_t *value);
+int p1_connection(int16_t *value);
+int p1_recovery_frames(uint32_t *value);
+int p1_intent(int32_t *value);
+int p1_state(int32_t *value);
+int p1_position(struct player_coordinate *value);
 
-uint32_t p2_frames_last_action(void);
-uint32_t p2_connection(void);
-uint32_t p2_recovery_frames(void);
-uint32_t p2_intent(void);
-struct player_coordinate p2_position(void);
+int p2_frames_last_action(int32_t *value);
+int p2_connection(int16_t *value);
+int p2_recovery_frames(uint32_t *value);
+int p2_intent(int32_t *value);
+int p2_state(int32_t *value);
+int p2_position(struct player_coordinate *value);
 
-uint32_t current_game_frame(void);
+int current_game_frame(uint32_t *value);
 
 /*
 * Read game state to "state" struct

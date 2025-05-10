@@ -35,7 +35,7 @@ Missing features
 ----------------
 
 - Active frames
-- Display current player state
+- Detect player side
 
 Known bugs
 ----------

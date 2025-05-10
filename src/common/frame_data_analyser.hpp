@@ -22,7 +22,28 @@ enum connection_event {
     P2_CONNECTION
 };
 
-enum player_intents : int {
+enum class player_state : int {
+    STANDING = 6482,
+    CROUCH = 538921,
+    CROUCHING = 14633,
+    MOVE_BACKWARDS = 135250,
+    MOVE_FORWARDS = 67650,
+    RECOVER1 = 29698,
+    RECOVER2 = 4178,
+    SIDE_STEPPING = 2114,
+    JUMPING = 51266,
+    JUMPING_FORWARDS = 116802,
+    JUMPING_BACKWARDS = 182338,
+    AIRBORNE = 29702,
+    GROUNDED = 24708,
+    DASH_BACKWARDS = 133186,
+    MOVE = 526402,
+    CROUCHING_ATTACK = 10273,
+    CROUCHING_BACKWARDS = 143401,
+    CROUCHING_FORWARDS = 75809
+};
+
+enum class player_intent : int {
     IDLE = 0,
     ATTACK1 = 1,
     ATTACK3 = 3,
@@ -45,6 +66,7 @@ class event_listener {
 public:
     virtual void frame_data(frame_data_point frame_data) = 0;
     virtual void distance(float distance) = 0;
+    virtual void status(player_state status) = 0;
 };
 
 class frame_data_analyser {
@@ -63,6 +85,7 @@ public:
      */
     static void stop();
 
+    static const char *player_status(const player_state state);
 private:
     static bool m_stop;
     static ring_buffer<game_state> m_frame_buffer;
@@ -76,7 +99,7 @@ private:
     static bool init(event_listener *listener);
     static bool loop();
 
-    inline static bool is_attack(const int action);
+    inline static bool is_attack(const player_intent action);
     static start_frame get_startup_frame(const bool p2);
 
     static void analyse_start_frames();
@@ -84,6 +107,7 @@ private:
     static connection_event has_new_connection();
     static void handle_connection();
     static void handle_distance();
+    static void handle_status();
 
     static float calculate_distance(const game_state * const state);
 };

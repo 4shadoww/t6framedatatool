@@ -10,6 +10,3 @@ if(GUI)
 else()
     add_subdirectory(cli)
 endif()
-
-# TODO: remove
-add_subdirectory(test)

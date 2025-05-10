@@ -50,28 +50,30 @@ static inline int read_bytes_raw(const long address, void *buf, const size_t siz
     return nread;
 }
 
-static inline uint32_t read_4bytes(const long address) {
+static inline int read_4bytes(const long address, int32_t *value) {
     g_local[0].iov_len = 4;
     set_read_address((void*) address);
 
     const size_t nread = process_vm_readv(g_pid, g_local, 1, g_remote, 1, 0);
     if (nread != 4) {
         log_error("failed to read 4 bytes (%zu)", nread);
-        return -1;
+        return READ_ERROR;
     }
-    return big32_to_little(g_buf);
+    *value = big32_to_little(g_buf);
+    return READ_OK;
 }
 
-static inline uint32_t read_2bytes(const long address) {
+static inline int read_2bytes(const long address, int16_t *value) {
     g_local[0].iov_len = 2;
     set_read_address((void*) address);
 
     const size_t nread = process_vm_readv(g_pid, g_local, 1, g_remote, 1, 0);
     if (nread != 2) {
         log_error("failed to read 2 bytes (%zu)", nread);
-        return -1;
+        return READ_ERROR;
     }
-    return big16_to_little(g_buf);
+    *value = big16_to_little(g_buf);
+    return READ_OK;
 
 }
 
@@ -148,138 +150,175 @@ int init_memory_reader(void) {
     return MR_INIT_OK;
 }
 
-uint32_t p1_frames_last_action(void) {
-    return read_4bytes(P1_FRAMES_LAST_ACTION);
+int p1_frames_last_action(int32_t *value) {
+    return read_4bytes(P1_FRAMES_LAST_ACTION, value);
 }
 
-uint32_t p1_connection(void) {
-    return read_2bytes(P1_CONNECTION_BOOL);
+int p1_connection(int16_t *value) {
+    return read_2bytes(P1_CONNECTION_BOOL, value);
 }
 
-uint32_t p1_recovery_frames(void) {
-    return read_4bytes(P1_RECOVERY_FRAMES);
+int p1_recovery_frames(uint32_t *value) {
+    return read_4bytes(P1_RECOVERY_FRAMES, (int32_t*) value);
 }
 
-uint32_t p1_intent(void) {
-    return read_4bytes(P1_INTENT);
+int32_t p1_intent(int32_t *value) {
+    return read_4bytes(P1_INTENT, value);
 }
 
-struct player_coordinate p1_position(void) {
-    struct player_coordinate coords = {0};
-    int read = read_bytes_raw(P1_POSITION, &coords, sizeof(struct player_coordinate));
-    if (read == -1) {
-        return coords;
+int32_t p1_state(int32_t *value) {
+    return read_4bytes(P1_STATE,value);
+}
+
+int p1_position(struct player_coordinate *value) {
+    int read = read_bytes_raw(P1_POSITION, value, sizeof(struct player_coordinate));
+    if (read == READ_ERROR) {
+        return READ_ERROR;
     }
 
-    coords.x = big32_to_little_float((char*) &coords);
-    coords.y = big32_to_little_float(&((char*) &coords)[4]);
-    coords.z = big32_to_little_float(&((char*) &coords)[8]);
+    value->x = big32_to_little_float((char*) value);
+    value->y = big32_to_little_float(&((char*) value)[4]);
+    value->z = big32_to_little_float(&((char*) value)[8]);
 
-    return coords;
+    return READ_OK;
 }
 
-uint32_t p2_frames_last_action(void) {
-    return read_4bytes(P2_FRAMES_LAST_ACTION);
+int p2_frames_last_action(int32_t *value) {
+    return read_4bytes(P2_FRAMES_LAST_ACTION, value);
 }
 
-uint32_t p2_connection(void) {
-    return read_2bytes(P2_CONNECTION_BOOL);
+int p2_connection(int16_t *value) {
+    return read_2bytes(P2_CONNECTION_BOOL, value);
 }
 
-uint32_t p2_recovery_frames(void) {
-    return read_4bytes(P2_RECOVERY_FRAMES);
+int p2_recovery_frames(uint32_t *value) {
+    return read_4bytes(P2_RECOVERY_FRAMES, (int32_t*) value);
 }
 
-uint32_t p2_intent(void) {
-    return read_4bytes(P2_INTENT);
+int p2_intent(int32_t *value) {
+    return read_4bytes(P2_INTENT, value);
 }
 
-struct player_coordinate p2_position(void) {
-    struct player_coordinate coords = {0};
-    int read = read_bytes_raw(P2_POSITION, &coords, sizeof(struct player_coordinate));
-    if (read == -1) {
-        return coords;
+int p2_state(int32_t *value) {
+    return read_4bytes(P2_STATE, value);
+}
+
+int p2_position(struct player_coordinate *value) {
+    int read = read_bytes_raw(P2_POSITION, value, sizeof(struct player_coordinate));
+    if (read == READ_ERROR) {
+        return READ_ERROR;
     }
 
-    coords.x = big32_to_little_float((char*) &coords);
-    coords.y = big32_to_little_float(&((char*) &coords)[4]);
-    coords.z = big32_to_little_float(&((char*) &coords)[8]);
+    value->x = big32_to_little_float((char*) value);
+    value->y = big32_to_little_float(&((char*) value)[4]);
+    value->z = big32_to_little_float(&((char*) value)[8]);
 
-    return coords;
+    return READ_OK;
 }
 
-uint32_t current_game_frame(void) {
-    return read_4bytes(CURRENT_GAME_FRAME);
+int current_game_frame(uint32_t *value) {
+    return read_4bytes(CURRENT_GAME_FRAME, (int32_t*) value);
 }
 
 int read_game_state(struct game_state *state) {
-    uint32_t value = current_game_frame();
+    int32_t value;
+    struct player_coordinate coords = {0};
 
-    if (value == READ_ERROR) {
+    int result = current_game_frame((uint32_t*) &value);
+
+    if (result == READ_ERROR) {
         log_debug("readed invalid game frame number");
-        return -1;
+        return READ_ERROR;
     }
-    state->game_frame = value;
+    state->game_frame = (uint32_t) value;
 
-    value = p1_frames_last_action();
-    if (value == READ_ERROR) {
+    result = p1_frames_last_action(&value);
+    if (result == READ_ERROR) {
         log_debug("readed invalid p1 last action frames");
-        return -1;
+        return READ_ERROR;
     }
     state->p1_frames_last_action = value;
 
-    value = p1_connection();
-    if (value == READ_ERROR) {
+    result = p1_connection((int16_t*) &value);
+    if (result == READ_ERROR) {
         log_debug("readed invalid p1 last connection frames");
-        return -1;
+        return READ_ERROR;
     }
-    state->p1_connection = value;
+    state->p1_connection = (int16_t) value;
 
-    value = p1_recovery_frames();
-    if (value == READ_ERROR) {
+    result = p1_recovery_frames((uint32_t*) &value);
+    if (result == READ_ERROR) {
         log_debug("readed invalid p1 recovery frames");
-        return -1;
+        return READ_ERROR;
     }
-    state->p1_recovery_frames = value;
+    state->p1_recovery_frames = (uint32_t) value;
 
-    value = p1_intent();
-    if (value == READ_ERROR) {
+    result = p1_intent(&value);
+    if (result == READ_ERROR) {
         log_debug("readed invalid p1 intent");
-        return -1;
+        return READ_ERROR;
     }
     state->p1_intent = value;
 
-    state->p1_position = p1_position();
+    result = p1_state(&value);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p1 state");
+        return READ_ERROR;
+    }
+    state->p1_state = value;
 
-    value = p2_frames_last_action();
-    if (value == READ_ERROR) {
+
+    result = p1_position(&coords);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p1 state");
+        return READ_ERROR;
+    }
+    state->p1_position = coords;
+
+    result = p2_frames_last_action(&value);
+    if (result == READ_ERROR) {
         log_debug("readed invalid p2 last action frames");
-        return -1;
+        return READ_ERROR;
     }
     state->p2_frames_last_action = value;
 
-    value = p2_connection();
+    result = p2_connection((int16_t*) &value);
     if (value == READ_ERROR) {
         log_debug("readed invalid p2 last connection frames");
-        return -1;
+        return READ_ERROR;
     }
-    state->p2_connection = value;
+    state->p2_connection = (int16_t) value;
 
-    value = p2_recovery_frames();
-    if (value == READ_ERROR) {
+    result = p2_recovery_frames((uint32_t*) &value);
+    if (result == READ_ERROR) {
         log_debug("readed invalid p2 recovery frames");
-        return -1;
+        return READ_ERROR;
     }
     state->p2_recovery_frames = value;
 
-    value = p2_intent();
-    if (value == READ_ERROR) {
+    result = p2_intent(&value);
+    if (result == READ_ERROR) {
         log_debug("readed invalid p2 intent");
-        return -1;
+        return READ_ERROR;
     }
     state->p2_intent = value;
 
-    state->p2_position = p2_position();
+    result = p2_state(&value);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p2 state");
+        return READ_ERROR;
+    }
+    state->p2_state = value;
+
+    memset(&coords, 0, sizeof(coords));
+
+    result = p2_position(&coords);
+
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p1 state");
+        return READ_ERROR;
+    }
+    state->p2_position = coords;
 
     return 0;
 }

@@ -1,8 +1,6 @@
 #ifndef ADDRESS_CONFIG_H
 #define ADDRESS_CONFIG_H
 
-// TODO: connection boolean address may be dynamic (not confirmed)
-
 // Player 1 health
 #define GAME_BASE_ADDRESS 0x300B2C140
 // Player 1 frames since last action
@@ -13,6 +11,8 @@
 #define P1_CONNECTION_BOOL GAME_BASE_ADDRESS + 915132194
 // Player 1 intent
 #define P1_INTENT GAME_BASE_ADDRESS + 472
+// Player 1 state
+#define P1_STATE GAME_BASE_ADDRESS + 172
 // Player 1 coordinates
 #define P1_POSITION GAME_BASE_ADDRESS + 2192
 
@@ -24,6 +24,8 @@
 #define P2_CONNECTION_BOOL GAME_BASE_ADDRESS + 915132186
 // Player 2 intent
 #define P2_INTENT GAME_BASE_ADDRESS + 3608
+// Player 1 state
+#define P2_STATE GAME_BASE_ADDRESS + 3308
 // Player 2 coordinates
 #define P2_POSITION GAME_BASE_ADDRESS + 5248
 
