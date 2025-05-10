@@ -69,6 +69,7 @@ const char *frame_data_analyser::player_status(const player_state state) {
     case player_state::MOVE_BACKWARDS:
     case player_state::MOVE_FORWARDS:
     case player_state::DASH_BACKWARDS:
+    case player_state::DASH_FORWARDS:
     case player_state::MOVE:
     case player_state::RECOVER1:
     case player_state::RECOVER2:
@@ -87,7 +88,8 @@ const char *frame_data_analyser::player_status(const player_state state) {
         return jumping;
     case player_state::AIRBORNE:
         return airborne;
-    case player_state::GROUNDED:
+    case player_state::GROUNDED1:
+    case player_state::GROUNDED2:
         return grounded;
     }
 
