@@ -220,6 +220,10 @@ int current_game_frame(uint32_t *value) {
     return read_4bytes(CURRENT_GAME_FRAME, (int32_t*) value);
 }
 
+int player_side(int32_t *value) {
+    return read_4bytes(PLAYER_SIDE, value);
+}
+
 int read_game_state(struct game_state *state) {
     int32_t value;
     struct player_coordinate coords = {0};

@@ -62,6 +62,7 @@ int p2_state(int32_t *value);
 int p2_position(struct player_coordinate *value);
 
 int current_game_frame(uint32_t *value);
+int player_side(int32_t *value);
 
 /*
 * Read game state to "state" struct

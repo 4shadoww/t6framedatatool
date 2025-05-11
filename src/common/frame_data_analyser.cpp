@@ -226,10 +226,54 @@ void frame_data_analyser::handle_status() {
     m_listener->status((player_state) current->p1_state);
 }
 
+bool frame_data_analyser::flip_player_data(game_state &state) {
+    enum player_side side;
+    const int result = player_side((int32_t*) &side);
+
+    if (result == READ_ERROR) {
+        log_error("failed to read player side");
+        return false;
+    }
+
+    const game_state temp_state = state;
+
+    switch (side) {
+    case player_side::LEFT:
+        break;
+
+    case player_side::RIGHT:
+        state.p1_frames_last_action = temp_state.p2_frames_last_action;
+        state.p1_recovery_frames = temp_state.p2_recovery_frames;
+        state.p1_connection = temp_state.p2_connection;
+        state.p1_intent = temp_state.p2_intent;
+        state.p1_state = temp_state.p2_state;
+        state.p1_position = temp_state.p2_position;
+
+        state.p2_frames_last_action = temp_state.p1_frames_last_action;
+        state.p2_recovery_frames = temp_state.p1_recovery_frames;
+        state.p2_connection = temp_state.p1_connection;
+        state.p2_intent = temp_state.p1_intent;
+        state.p2_state = temp_state.p1_state;
+        state.p2_position = temp_state.p1_position;
+        break;
+
+    default:
+        log_error("unknown player side value %d", side);
+        return false;
+    }
+
+    return true;
+}
+
 bool frame_data_analyser::update_game_state() {
     // Read the game's state
     game_state state;
-    if (read_game_state(&state) != 0) {
+    if (read_game_state(&state) != READ_OK) {
+        return false;
+    }
+
+    // Flip player data according to player side
+    if (!flip_player_data(state)) {
         return false;
     }
 

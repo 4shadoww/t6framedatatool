@@ -31,6 +31,8 @@
 
 // Current game frame
 #define CURRENT_GAME_FRAME GAME_BASE_ADDRESS + 270587472
+// Player side
+#define PLAYER_SIDE GAME_BASE_ADDRESS + 258055536
 
 
 // Dynamic data section base pointer

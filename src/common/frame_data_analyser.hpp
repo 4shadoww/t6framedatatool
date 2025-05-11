@@ -64,6 +64,11 @@ enum class player_intent : int {
     GRAP_CONNECT = 65546,
 };
 
+enum class player_side : int {
+    RIGHT = 0,
+    LEFT = 1
+};
+
 class event_listener {
 public:
     virtual void frame_data(frame_data_point frame_data) = 0;
@@ -101,6 +106,7 @@ private:
     static bool init(event_listener *listener);
     static bool loop();
 
+    inline static bool flip_player_data(game_state &state);
     inline static bool is_attack(const player_intent action);
     static start_frame get_startup_frame(const bool p2);
 
