@@ -23,6 +23,11 @@ configure_debug:
 	# Copy compile commands db to root for lsp
 	cp build/compile_commands.json .
 
+configure_release:
+	cmake -G "Ninja" -S. -B$(BUILD_DIR) -DGUI=ON
+	# Copy compile commands db to root for lsp
+	cp build/compile_commands.json .
+
 configure_test:
 	cmake -G "Ninja" -S. -B$(BUILD_DIR) -DDEBUG=ON -DUNIT_TESTING=ON
 	# Copy compile commands db to root for lsp
@@ -35,6 +40,9 @@ cli_release: configure_cli
 	cmake --build $(BUILD_DIR)
 
 debug: configure_debug
+	cmake --build $(BUILD_DIR)
+
+release: configure_debug
 	cmake --build $(BUILD_DIR)
 
 test: configure_test

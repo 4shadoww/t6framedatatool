@@ -11,7 +11,6 @@ extern "C"
 // Memory reader init values
 #define MR_INIT_OK 0
 #define MR_INIT_ERROR -1
-#define MR_INIT_ALREADY_DONE -2
 
 struct player_coordinate {
     float x;

@@ -346,8 +346,11 @@ bool frame_data_analyser::init(event_listener *listener) {
 
 bool frame_data_analyser::start(event_listener *listener) {
     if (!init(listener)) {
+        log_error("failed to init analyser");
         return false;
     }
+
+    m_listener->game_hooked();
 
     // Main loop
     while (!m_stop) {

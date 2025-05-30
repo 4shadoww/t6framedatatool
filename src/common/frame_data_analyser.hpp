@@ -74,6 +74,7 @@ public:
     virtual void frame_data(frame_data_point frame_data) = 0;
     virtual void distance(float distance) = 0;
     virtual void status(player_state status) = 0;
+    virtual void game_hooked() = 0;
 };
 
 class frame_data_analyser {

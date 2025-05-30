@@ -23,9 +23,6 @@
 #define READ_BUFFER_LEN 12
 #define RPCS3_NAME "rpcs3"
 
-// Reader initialized
-static int g_initialized = 0;
-
 // UIO variables
 static pid_t g_pid = -1;
 static char g_buf[READ_BUFFER_LEN];
@@ -133,20 +130,16 @@ pid_t get_pid(char *name) {
 }
 
 int init_memory_reader(void) {
-    if (g_initialized) {
-        return MR_INIT_ALREADY_DONE;
-    }
-
-    g_pid =  get_pid(RPCS3_NAME);
+    g_pid = get_pid(RPCS3_NAME);
 
     if (g_pid == -1) {
+        log_error("cannot find the emulator process");
         return MR_INIT_ERROR;
     }
 
     g_local[0].iov_base = g_buf;
     g_remote[0].iov_len = READ_BUFFER_LEN;
 
-    g_initialized = 1;
     return MR_INIT_OK;
 }
 
