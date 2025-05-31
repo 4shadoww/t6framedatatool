@@ -17,12 +17,14 @@
 
 #include <X11/Xutil.h>
 #include <chrono>
+#include <cstring>
 #include <iostream>
 #include <thread>
 
 #include <X11/Xlib.h>
 #include <X11/extensions/shape.h>
 #include <X11/extensions/Xfixes.h>
+#include <X11/Xatom.h>
 
 #include "logging.h"
 
@@ -48,11 +50,18 @@
 #define STATUS "Status %s"
 #define DISTANCE "Distance %.2f"
 
+// RPSC3 Window properties
+#define RPSC3_CLASS "rpcs3"
+#define RPSC3_NAME "fps:"
+
 struct {
     Display *display;
     Screen *screen;
     int screen_num;
     Window window;
+
+    Window game_window;
+    bool found_game_window;
 
     GC text_gc;
     GC text_gc_red;
@@ -73,6 +82,103 @@ struct frame_data_point g_data_point = {};
 float g_distance = 0;
 player_state g_status = {};
 bool g_game_hooked = false;
+
+void recalculate_ui_position(const int game_x, const int game_y, const int game_height) {
+    g_x11_session.x = game_x;
+    g_x11_session.y = game_y + game_height - g_x11_session.total_height;
+
+    XMoveWindow(g_x11_session.display, g_x11_session.window, g_x11_session.x, g_x11_session.y);
+    XMapRaised(g_x11_session.display, g_x11_session.window);
+}
+
+Window *get_windows(unsigned long *len) {
+    Atom prop = XInternAtom(g_x11_session.display, "_NET_CLIENT_LIST", False);
+    Atom type;
+    int form;
+    unsigned long remain;
+    unsigned char *list;
+
+    if (XGetWindowProperty(g_x11_session.display, XDefaultRootWindow(g_x11_session.display),
+                           prop, 0, 1024, False, XA_WINDOW, &type, &form, len, &remain, &list) != Success) {
+        log_error("failed to get window list");
+        return nullptr;
+    }
+    return (Window*) list;
+}
+
+char *get_window_name(const Window window) {
+    Atom prop = XInternAtom(g_x11_session.display, "WM_NAME", False);
+    Atom type;
+    int form;
+    unsigned long remain, len;
+    unsigned char *list;
+
+    if (XGetWindowProperty(g_x11_session.display, window,
+                           prop, 0, 1024, False, XA_STRING, &type, &form, &len, &remain, &list) != Success) {
+        log_error("failed to read window name");
+        return nullptr;
+    }
+
+    return (char*) list;
+}
+
+char *get_window_class(const Window window) {
+    Atom prop = XInternAtom(g_x11_session.display, "WM_CLASS", False);
+    Atom type;
+    int form;
+    unsigned long remain, len;
+    unsigned char *list;
+
+    if (XGetWindowProperty(g_x11_session.display, window,
+                           prop, 0, 1024, False, XA_STRING, &type, &form, &len, &remain, &list) != Success) {
+        log_error("failed to read window class");
+        return nullptr;
+    }
+
+    return (char*) list;
+}
+
+bool window_match(const char* window_class, const char* window_name) {
+    if (strcasestr(window_class, RPSC3_CLASS) == nullptr) {
+        return false;
+    }
+
+    if (strcasestr(window_name, RPSC3_NAME) == nullptr) {
+        return false;
+    }
+
+    return true;
+}
+
+void find_game_window() {
+    unsigned long len;
+
+    const Window *windows = get_windows(&len);
+
+    if (windows == nullptr) {
+        return;
+    }
+
+    for (unsigned long i = 0; i < len; i++) {
+        const char *window_class = get_window_class(windows[i]);
+        const char *window_name = get_window_name(windows[i]);
+        if (window_match(window_class, window_name)) {
+            log_info("found game window %s, %s", window_class, window_name);
+            g_x11_session.game_window = windows[i];
+            g_x11_session.found_game_window = true;
+
+            // Subsribe window structure events
+            XSelectInput(g_x11_session.display, g_x11_session.game_window, StructureNotifyMask);
+
+            // Get current dimensions
+            XWindowAttributes xwa;
+            XGetWindowAttributes(g_x11_session.display, g_x11_session.game_window, &xwa);
+            recalculate_ui_position(xwa.x, xwa.y, xwa.height);
+            return;
+        }
+    }
+    log_error("no game window found");
+}
 
 class listener : public event_listener {
 public:
@@ -100,11 +206,11 @@ void new_frame_data(struct frame_data_point data_point) {
 }
 
 void listener::game_hooked() {
+    find_game_window();
     g_game_hooked = true;
 }
 
 listener g_listener;
-
 
 inline bool load_graphics() {
     // Allocate contexes
@@ -199,7 +305,7 @@ bool init_gui() {
     XMapRaised(g_x11_session.display, g_x11_session.window);
 
     // Set event mask
-    XSelectInput(g_x11_session.display, g_x11_session.window, ExposureMask | StructureNotifyMask);
+    XSelectInput(g_x11_session.display, g_x11_session.window, ExposureMask);
 
     mouse_passtrough();
 
@@ -214,6 +320,9 @@ bool init_gui() {
 }
 
 void gui_state_no_game() {
+    g_x11_session.found_game_window = false;
+
+    recalculate_ui_position(0, 0, g_x11_session.total_height);
     g_game_hooked = false;
 }
 
@@ -266,13 +375,20 @@ inline void draw_game_state() {
 }
 
 inline void draw() {
-    XEvent e;
-    XCheckMaskEvent(g_x11_session.display, ExposureMask | StructureNotifyMask, &e);
+    while (XPending(g_x11_session.display)) {
+        XEvent e;
+        XNextEvent(g_x11_session.display, &e);
+
+        if (e.type == ConfigureNotify) {
+            XConfigureEvent xce = e.xconfigure;
+            recalculate_ui_position(xce.x, xce.y, xce.height);
+        }
+    }
 
     XClearArea(g_x11_session.display,
                g_x11_session.window,
-               g_x11_session.x,
-               g_x11_session.y,
+               0,
+               0,
                g_x11_session.width,
                g_x11_session.height,
                True);
