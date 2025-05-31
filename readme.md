@@ -3,6 +3,8 @@ Tekken 6 frame data tool
 
 Tekken 6 frame data overlay for RPCS3.
 
+[![Tekken 6 frame data tool](t6framedata.png)](https://www.youtube.com/watch?v=juCl0Y5Rw4U)
+
 Compiling
 ---------
 

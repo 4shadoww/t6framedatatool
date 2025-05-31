@@ -41,12 +41,12 @@
 #define STAT_LINES 4
 
 // UI
-#define NO_STARTUP_FRAMES "Startup frames --- (No game hooked)"
+#define NO_STARTUP_FRAMES "Startup Frames --- (No game hooked)"
 #define NO_FRAME_ADVANTAGE "Frame Advantage ---"
 #define NO_STATUS "Status ---"
 #define NO_DISTANCE "Distance ---"
 
-#define STARTUP_FRAMES "Startup frames %d"
+#define STARTUP_FRAMES "Startup Frames %d"
 #define FRAME_ADVANTAGE "Frame Advantage %d"
 #define STATUS "Status %s"
 #define DISTANCE "Distance %.2f"
