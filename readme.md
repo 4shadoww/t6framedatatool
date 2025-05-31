@@ -48,3 +48,5 @@ Known bugs
   For example Alisa Destroy Form.
 
 - Minor GUI flickering and text unreadable on white backgrounds caused by the current way of rendering text. The GUI should probably be rewritten in GLFW.
+
+- Player side address might be dynamic so there are scenarios when the tool won't work as it's not able to get a valid reading.

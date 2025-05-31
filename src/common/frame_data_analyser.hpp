@@ -60,6 +60,7 @@ enum class player_state : int {
     CROUCHING_ATTACK = 10273,
     CROUCHING_BACKWARDS = 143401,
     CROUCHING_FORWARDS = 75809,
+    STANDING_HIT = 22562,
 };
 
 enum class player_intent : int {
@@ -72,6 +73,7 @@ enum class player_intent : int {
     BLOCK = 11,
     WALK = 12,
     SIDE_STEP = 15,
+    SIDE_ROLLING = 14,
     STASIS = 16,
     WHIFF = 17,
     DOUBLE_SIDE_STEP = 28,

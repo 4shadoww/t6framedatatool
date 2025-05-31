@@ -84,9 +84,14 @@ float g_distance = 0;
 player_state g_status = {};
 bool g_game_hooked = false;
 
-void recalculate_ui_position(const int game_x, const int game_y, const int game_height) {
-    g_x11_session.x = game_x + BORDER_MARGIN_X;
-    g_x11_session.y = game_y - BORDER_MARGIN_Y + game_height - g_x11_session.total_height;
+void recalculate_ui_position(const int game_x, const int game_y, const int game_height, const bool margin) {
+    if (margin) {
+        g_x11_session.x = game_x + BORDER_MARGIN_X;
+        g_x11_session.y = game_y - BORDER_MARGIN_Y + game_height - g_x11_session.total_height;
+    } else {
+        g_x11_session.x = game_x;
+        g_x11_session.y = game_y + game_height - g_x11_session.total_height;
+    }
 
     XMoveWindow(g_x11_session.display, g_x11_session.window, g_x11_session.x, g_x11_session.y);
     XMapRaised(g_x11_session.display, g_x11_session.window);
@@ -174,7 +179,7 @@ void find_game_window() {
             // Get current dimensions
             XWindowAttributes xwa;
             XGetWindowAttributes(g_x11_session.display, g_x11_session.game_window, &xwa);
-            recalculate_ui_position(xwa.x, xwa.y, xwa.height);
+            recalculate_ui_position(xwa.x, xwa.y, xwa.height, true);
             return;
         }
     }
@@ -319,7 +324,7 @@ bool init_gui() {
 void gui_state_no_game() {
     g_x11_session.found_game_window = false;
 
-    recalculate_ui_position(0, 0, g_x11_session.total_height);
+    recalculate_ui_position(0, 0, g_x11_session.total_height, false);
     g_game_hooked = false;
 }
 
@@ -378,7 +383,7 @@ inline void draw() {
 
         if (e.type == ConfigureNotify) {
             XConfigureEvent xce = e.xconfigure;
-            recalculate_ui_position(xce.x, xce.y, xce.height);
+            recalculate_ui_position(xce.x, xce.y, xce.height, true);
         }
     }
 

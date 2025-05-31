@@ -45,6 +45,9 @@ ring_buffer<start_frame> frame_data_analyser::m_p2_start_frames(PLAYER_ACTION_BU
 
 event_listener *frame_data_analyser::m_listener = nullptr;
 
+// Avoid log spam
+int last_player_intent = 0;
+
 bool frame_data_analyser::is_attack(const player_intent intent) {
     switch (intent) {
     case player_intent::ATTACK1:
@@ -65,6 +68,7 @@ bool frame_data_analyser::is_attack(const player_intent intent) {
     case player_intent::WHIFF:
     case player_intent::GRAP_INIT:
     case player_intent::GRAP_CONNECT:
+    case player_intent::SIDE_ROLLING:
         return false;
 
     default:
@@ -80,6 +84,7 @@ const char *frame_data_analyser::player_status(const player_state state) {
     static const char jumping[] = "Jumping";
     static const char airborne[] = "Airborne";
     static const char grounded[] = "Grounded";
+    static const char undeterminable[] = "Undeterminable";
 
     switch (state) {
     case player_state::STANDING:
@@ -91,6 +96,7 @@ const char *frame_data_analyser::player_status(const player_state state) {
     case player_state::RECOVER1:
     case player_state::RECOVER2:
     case player_state::SIDE_STEPPING:
+    case player_state::STANDING_HIT:
         return standing;
     case player_state::CROUCH:
         return crouch;
@@ -110,7 +116,12 @@ const char *frame_data_analyser::player_status(const player_state state) {
         return grounded;
     }
 
-    return nullptr;
+    if (last_player_intent != (int) state) {
+        log_debug("unknown player status %d", state);
+        last_player_intent = (int) state;
+    }
+
+    return undeterminable;
 }
 
 void frame_data_analyser::analyse_start_frames() {
