@@ -1,6 +1,7 @@
 Tekken 6 frame data tool
 ========================
 
+Tekken 6 frame data overlay for RPCS3.
 
 Compiling
 ---------
@@ -42,4 +43,4 @@ Known bugs
 - Frame data of moves which do damage at multiple points of the move are not calculated correctly.
   For example Alisa Destroy Form.
 
-- Minor GUI flickering caused by the current way of rendering text. The GUI should probably be rewritten in GLFW.
+- Minor GUI flickering and text unreadable on white backgrounds caused by the current way of rendering text. The GUI should probably be rewritten in GLFW.

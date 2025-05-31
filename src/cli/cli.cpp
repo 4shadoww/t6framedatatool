@@ -21,14 +21,36 @@
 
 #include "frame_data_analyser.hpp"
 
-void new_frame_data(struct frame_data_point data_point) {
-    std::cout << "startup frames: " << data_point.startup_frames << ", frame advantage: " <<
-                 data_point.frame_advantage << std::endl;
+class listener : public event_listener {
+public:
+    void frame_data(const frame_data_point frame_data) override;
+    void distance(const float distance) override;
+    void status(const player_state state) override;
+    void game_hooked() override;
+};
+
+void listener::frame_data(const frame_data_point frame_data) {
+    std::cout << "startup frames: " << frame_data.startup_frames << ", frame advantage: " <<
+                 frame_data.frame_advantage << std::endl;
 }
+
+void listener::distance(const float _) {
+    // NOP
+}
+
+void listener::status(const player_state _) {
+    // NOP
+}
+
+void listener::game_hooked() {
+    // NOP
+}
+
+listener g_listener;
 
 int main(const int argc, const char **argv) {
     log_set_level(LOG_TRACE);
-    frame_data_analyser::start(&new_frame_data);
+    frame_data_analyser::start(&g_listener);
 
     return 0;
 }

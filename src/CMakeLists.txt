@@ -7,6 +7,5 @@ add_subdirectory(common) # C++ code
 
 if(GUI)
     add_subdirectory(gui)
-else()
-    add_subdirectory(cli)
 endif()
+add_subdirectory(cli)

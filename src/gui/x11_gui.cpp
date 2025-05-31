@@ -18,7 +18,6 @@
 #include <X11/Xutil.h>
 #include <chrono>
 #include <cstring>
-#include <iostream>
 #include <thread>
 
 #include <X11/Xlib.h>
@@ -190,6 +189,7 @@ public:
 
 void listener::frame_data(const frame_data_point frame_data) {
     g_data_point = frame_data;
+    log_info("startup frames: %d, frame advantage: %d", frame_data.startup_frames, frame_data.frame_advantage);
 }
 
 void listener::distance(const float distance) {
@@ -198,11 +198,6 @@ void listener::distance(const float distance) {
 
 void listener::status(const player_state state) {
     g_status = state;
-}
-
-void new_frame_data(struct frame_data_point data_point) {
-    std::cout << "startup frames: " << data_point.startup_frames << ", frame advantage: " <<
-                 data_point.frame_advantage << std::endl;
 }
 
 void listener::game_hooked() {
