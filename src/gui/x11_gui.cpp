@@ -33,7 +33,9 @@
 #define ANALYSER_START_INTERVAL 1
 #define FONT "-adobe-courier-bold-r-normal-*-*-*-*-*-*-150-*-*"
 #define FONT_HEIGH 15
-#define MARGIN 5
+#define LINE_MARGIN 5
+#define BORDER_MARGIN_X 25
+#define BORDER_MARGIN_Y 15
 #define MAX_WIDTH 1000
 #define WINDOW_NAME "T6FDTOOL"
 #define STAT_LINES 4
@@ -83,8 +85,8 @@ player_state g_status = {};
 bool g_game_hooked = false;
 
 void recalculate_ui_position(const int game_x, const int game_y, const int game_height) {
-    g_x11_session.x = game_x;
-    g_x11_session.y = game_y + game_height - g_x11_session.total_height;
+    g_x11_session.x = game_x + BORDER_MARGIN_X;
+    g_x11_session.y = game_y - BORDER_MARGIN_Y + game_height - g_x11_session.total_height;
 
     XMoveWindow(g_x11_session.display, g_x11_session.window, g_x11_session.x, g_x11_session.y);
     XMapRaised(g_x11_session.display, g_x11_session.window);
@@ -265,7 +267,7 @@ bool init_gui() {
     g_x11_session.screen = XDefaultScreenOfDisplay(g_x11_session.display);
     g_x11_session.x = 0;
     g_x11_session.y = 0;
-    g_x11_session.line_height = FONT_HEIGH + MARGIN;
+    g_x11_session.line_height = FONT_HEIGH + LINE_MARGIN;
     g_x11_session.total_height = g_x11_session.line_height * STAT_LINES;
     g_x11_session.width = MAX_WIDTH;
     g_x11_session.height = g_x11_session.total_height;
