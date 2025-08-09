@@ -33,7 +33,7 @@ struct start_frame {
     uint32_t game_frame;
 };
 
-enum connection_event {
+enum connection_event : uint8_t {
     NO_CONNECTION,
     P1_CONNECTION,
     P2_CONNECTION
@@ -83,13 +83,20 @@ enum class player_intent : int {
     GRAP_CONNECT = 65546,
 };
 
-enum class player_side : int {
+enum class player_side : uint8_t {
     RIGHT = 0,
     LEFT = 1
 };
 
 class event_listener {
 public:
+    virtual ~event_listener() = default;
+    event_listener() = default;
+    event_listener(const event_listener &) = default;
+    event_listener(event_listener &&) = default;
+    event_listener &operator=(const event_listener &) = default;
+    event_listener &operator=(event_listener &&) = default;
+
     virtual void frame_data(frame_data_point frame_data) = 0;
     virtual void distance(float distance) = 0;
     virtual void status(player_state status) = 0;
@@ -100,6 +107,11 @@ class frame_data_analyser {
 public:
     frame_data_analyser() = delete;
     ~frame_data_analyser() = delete;
+
+    frame_data_analyser(const frame_data_analyser &) = default;
+    frame_data_analyser(frame_data_analyser &&) = delete;
+    frame_data_analyser &operator=(const frame_data_analyser &) = default;
+    frame_data_analyser &operator=(frame_data_analyser &&) = delete;
 
     /**
      * Hook-up to game's memory and start analysing frames
@@ -118,6 +130,7 @@ private:
     static bool m_stop;
     static ring_buffer<game_state> m_frame_buffer;
     static event_listener *m_listener;
+    static int last_player_intent;
 
     // Analysis state
     static ring_buffer<start_frame> m_p1_start_frames;
@@ -128,7 +141,7 @@ private:
     static bool loop();
 
     inline static bool flip_player_data(game_state &state);
-    inline static bool is_attack(const player_intent action);
+    inline static bool is_attack(const player_intent intent);
     static start_frame get_startup_frame(const bool p2);
 
     static void analyse_start_frames();

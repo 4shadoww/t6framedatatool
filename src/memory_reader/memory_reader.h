@@ -25,8 +25,8 @@ extern "C" {
 #include <stdint.h>
 
 // Memory reader init values
-#define MR_INIT_OK 0
-#define MR_INIT_ERROR -1
+#define MR_INIT_OK (0)
+#define MR_INIT_ERROR (-1)
 
 struct player_coordinate {
     float x;
@@ -52,8 +52,8 @@ struct game_state {
     struct player_coordinate p2_position;
 };
 
-#define READ_ERROR -1
-#define READ_OK 0
+#define READ_ERROR (-1)
+#define READ_OK (0)
 
 /**
  * Finds T6 process ID and initializes the memory

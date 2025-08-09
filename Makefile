@@ -55,7 +55,7 @@ run_test: test
 	ctest --output-on-failure --test-dir $(BUILD_DIR_TEST)
 
 lint:
-	run-clang-tidy
+	run-clang-tidy -j 8
 
 format:
 	bash -c "find src -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' | clang-format --style=file -i --files=/dev/stdin"

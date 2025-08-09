@@ -55,6 +55,8 @@
 #define RPSC3_CLASS "rpcs3"
 #define RPSC3_NAME "fps:"
 
+namespace {
+
 struct {
     Display *display;
     Screen *screen;
@@ -98,11 +100,11 @@ void recalculate_ui_position(const int game_x, const int game_y, const int game_
 }
 
 Window *get_windows(unsigned long *len) {
-    Atom prop = XInternAtom(g_x11_session.display, "_NET_CLIENT_LIST", False);
-    Atom type;
-    int form;
-    unsigned long remain;
-    unsigned char *list;
+    const Atom prop = XInternAtom(g_x11_session.display, "_NET_CLIENT_LIST", False);
+    Atom type = 0;
+    int form = 0;
+    unsigned long remain = 0;
+    unsigned char *list = nullptr;
 
     if (XGetWindowProperty(g_x11_session.display,
                            XDefaultRootWindow(g_x11_session.display),
@@ -119,15 +121,16 @@ Window *get_windows(unsigned long *len) {
         log_error("failed to get window list");
         return nullptr;
     }
-    return (Window *) list;
+    return (Window *) list; // NOLINT
 }
 
 char *get_window_name(const Window window) {
-    Atom prop = XInternAtom(g_x11_session.display, "WM_NAME", False);
-    Atom type;
-    int form;
-    unsigned long remain, len;
-    unsigned char *list;
+    const Atom prop = XInternAtom(g_x11_session.display, "WM_NAME", False);
+    Atom type = 0;
+    int form = 0;
+    unsigned long remain = 0;
+    unsigned long len = 0;
+    unsigned char *list = nullptr;
 
     if (XGetWindowProperty(g_x11_session.display,
                            window,
@@ -145,15 +148,16 @@ char *get_window_name(const Window window) {
         return nullptr;
     }
 
-    return (char *) list;
+    return (char *) list; // NOLINT
 }
 
 char *get_window_class(const Window window) {
-    Atom prop = XInternAtom(g_x11_session.display, "WM_CLASS", False);
-    Atom type;
-    int form;
-    unsigned long remain, len;
-    unsigned char *list;
+    const Atom prop = XInternAtom(g_x11_session.display, "WM_CLASS", False);
+    Atom type = 0;
+    int form = 0;
+    unsigned long remain = 0;
+    unsigned long len = 0;
+    unsigned char *list = nullptr;
 
     if (XGetWindowProperty(g_x11_session.display,
                            window,
@@ -171,7 +175,7 @@ char *get_window_class(const Window window) {
         return nullptr;
     }
 
-    return (char *) list;
+    return (char *) list; // NOLINT
 }
 
 bool window_match(const char *window_class, const char *window_name) {
@@ -187,7 +191,7 @@ bool window_match(const char *window_class, const char *window_name) {
 }
 
 void find_game_window() {
-    unsigned long len;
+    unsigned long len = 0;
 
     const Window *windows = get_windows(&len);
 
@@ -246,8 +250,8 @@ listener g_listener;
 
 inline bool load_graphics() {
     // Allocate contexes
-    g_x11_session.text_gc = XCreateGC(g_x11_session.display, g_x11_session.window, 0, NULL);
-    g_x11_session.text_gc_red = XCreateGC(g_x11_session.display, g_x11_session.window, 0, NULL);
+    g_x11_session.text_gc = XCreateGC(g_x11_session.display, g_x11_session.window, 0, nullptr);
+    g_x11_session.text_gc_red = XCreateGC(g_x11_session.display, g_x11_session.window, 0, nullptr);
 
     // Colors
     // Red
@@ -269,7 +273,7 @@ inline bool load_graphics() {
                 &g_x11_session.green);
 
     const XFontStruct *font_info = XLoadQueryFont(g_x11_session.display, FONT);
-    if (!font_info) {
+    if (font_info == nullptr) {
         log_error("failed to load font");
         return false;
     }
@@ -290,20 +294,20 @@ inline bool load_graphics() {
 
 inline void mouse_passtrough() {
     XRectangle rect;
-    XserverRegion region = XFixesCreateRegion(g_x11_session.display, &rect, 1);
+    const XserverRegion region = XFixesCreateRegion(g_x11_session.display, &rect, 1);
     XFixesSetWindowShapeRegion(g_x11_session.display, g_x11_session.window, ShapeInput, 0, 0, region);
     XFixesDestroyRegion(g_x11_session.display, region);
 }
 
 bool init_gui() {
-    g_x11_session.display = XOpenDisplay(NULL);
+    g_x11_session.display = XOpenDisplay(nullptr);
 
-    if (!g_x11_session.display) {
+    if (g_x11_session.display == nullptr) {
         log_error("cannot open display");
         return false;
     }
 
-    Window defaultroot = DefaultRootWindow(g_x11_session.display);
+    const Window defaultroot = DefaultRootWindow(g_x11_session.display);
 
     // Session variables
     g_x11_session.screen_num = DefaultScreen(g_x11_session.display);
@@ -379,7 +383,7 @@ void analyser_loop() {
     }
 }
 
-inline void draw_line(const unsigned int line_num, const char *text, const size_t text_len) {
+inline void draw_line(const int line_num, const char *text, const int text_len) {
     XDrawString(g_x11_session.display,
                 g_x11_session.window,
                 g_x11_session.text_gc,
@@ -389,7 +393,7 @@ inline void draw_line(const unsigned int line_num, const char *text, const size_
                 text_len);
 }
 
-inline void draw_line_red(const unsigned int line_num, const char *text, const size_t text_len) {
+inline void draw_line_red(const int line_num, const char *text, const int text_len) {
     XDrawString(g_x11_session.display,
                 g_x11_session.window,
                 g_x11_session.text_gc_red,
@@ -428,12 +432,12 @@ inline void draw_game_state() {
 }
 
 inline void draw() {
-    while (XPending(g_x11_session.display)) {
+    while (XPending(g_x11_session.display) != 0) {
         XEvent e;
         XNextEvent(g_x11_session.display, &e);
 
         if (e.type == ConfigureNotify) {
-            XConfigureEvent xce = e.xconfigure;
+            const XConfigureEvent xce = e.xconfigure;
             recalculate_ui_position(xce.x, xce.y, xce.height, true);
         }
     }
@@ -475,7 +479,9 @@ void start_gui() {
     analyser_thread.join();
 }
 
-int main(const int argc, const char **argv) {
+} // namespace
+
+int main() {
     log_set_level(LOG_TRACE);
 
     if (!init_gui()) {

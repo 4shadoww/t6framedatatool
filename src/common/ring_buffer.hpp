@@ -23,13 +23,16 @@
 template<typename T>
 class ring_buffer {
 public:
-    ring_buffer(const size_t size) : m_size(size) {
-        m_ring_buffer = new T[size];
-    }
+    explicit ring_buffer(const size_t size) : m_size(size), m_ring_buffer(new T[size]) {}
 
     ~ring_buffer() {
         delete[] m_ring_buffer;
     }
+
+    ring_buffer(const ring_buffer &) = delete;
+    ring_buffer(ring_buffer &&) = delete;
+    ring_buffer &operator=(const ring_buffer &) = delete;
+    ring_buffer &operator=(ring_buffer &&) = delete;
 
     /**
      * Push new data to buffer
@@ -87,7 +90,7 @@ public:
      * @return T pointer
      */
     T *get_from_head(const size_t index) const {
-        size_t abs_index;
+        size_t abs_index = 0;
 
         if (m_item_count == 0) {
             return nullptr;
@@ -109,7 +112,7 @@ public:
      *
      * @return latest data
      */
-    inline T *head() const {
+    T *head() const {
         if (m_item_count == 0) {
             return nullptr;
         }
@@ -123,7 +126,7 @@ public:
      * @return head absolute index
      *
      */
-    inline size_t head_index() const {
+    [[nodiscard]] size_t head_index() const {
         return m_head;
     }
 
@@ -132,7 +135,7 @@ public:
      *
      * @return oldest data
      */
-    inline T *tail() const {
+    T *tail() const {
         if (m_item_count == 0) {
             return nullptr;
         }
@@ -145,7 +148,7 @@ public:
      * @return head absolute index
      *
      */
-    inline size_t tail_index() const {
+    [[nodiscard]] size_t tail_index() const {
         return m_tail;
     }
 
@@ -153,7 +156,7 @@ public:
      * Remove data from tail
      *
      */
-    inline T pop() {
+    T pop() {
         if (m_item_count == 0) {
             return {};
         }
@@ -168,17 +171,17 @@ public:
     /**
      * Clear all items
      */
-    inline void clear() {
+    void clear() {
         m_head = 0;
         m_tail = 0;
         m_item_count = 0;
     }
 
-    inline size_t capacity() const {
+    [[nodiscard]] size_t capacity() const {
         return m_size;
     }
 
-    inline size_t item_count() const {
+    [[nodiscard]] size_t item_count() const {
         return m_item_count;
     }
 
@@ -192,7 +195,7 @@ private:
     size_t m_tail = 0;
     size_t m_item_count = 0;
 
-    inline bool bounds_check(size_t abs_index) const {
+    [[nodiscard]] bool bounds_check(size_t abs_index) const {
         if (m_item_count == 0) {
             return false;
         }

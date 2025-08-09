@@ -34,6 +34,18 @@ Checks: "*,
         -cppcoreguidelines-pro-type-union-access,
         -cppcoreguidelines-pro-type-vararg,
         -hicpp-vararg,
+        -cppcoreguidelines-avoid-non-const-global-variables,
+        -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+        -performance-avoid-endl,
+        -hicpp-avoid-c-arrays,
+        -cppcoreguidelines-avoid-c-arrays,
+        -modernize-avoid-c-arrays,
+        -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+        -hicpp-no-array-decay,
+        -cert-err58-cpp,
+        -cppcoreguidelines-macro-to-enum,
+        -modernize-macro-to-enum,
+        -cppcoreguidelines-macro-usage
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
@@ -62,8 +74,6 @@ CheckOptions:
     value: lower_case
   - key: readability-identifier-naming.StaticConstantCase
     value: UPPER_CASE
-  - key: readability-identifier-naming.StaticConstantPrefix
-    value: 'm_'
   - key: readability-identifier-naming.ClassConstantCase
     value: UPPER_CASE
   - key: readability-identifier-naming.ConstexprMethodCase

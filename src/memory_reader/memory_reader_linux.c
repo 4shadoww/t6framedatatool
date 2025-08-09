@@ -16,17 +16,17 @@
 */
 
 #define _GNU_SOURCE
+#include <dirent.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <dirent.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include <sys/uio.h>
 #include <sys/types.h>
+#include <sys/uio.h>
 
-#include "number_conversions.h"
 #include "logging.h"
+#include "number_conversions.h"
 
 #include "address_config.h"
 #include "memory_reader.h"
@@ -52,7 +52,7 @@ static inline void set_read_address(void *address) {
 
 static inline int read_bytes_raw(const long address, void *buf, const size_t size) {
     g_local[0].iov_len = size;
-    set_read_address((void*) address);
+    set_read_address((void *) address); // NOLINT
 
     const size_t nread = process_vm_readv(g_pid, g_local, 1, g_remote, 1, 0);
     if (nread != size) {
@@ -61,12 +61,12 @@ static inline int read_bytes_raw(const long address, void *buf, const size_t siz
     }
 
     memcpy(buf, g_buf, size);
-    return nread;
+    return (int) nread;
 }
 
 static inline int read_4bytes(const long address, int32_t *value) {
     g_local[0].iov_len = 4;
-    set_read_address((void*) address);
+    set_read_address((void *) address); // NOLINT
 
     const size_t nread = process_vm_readv(g_pid, g_local, 1, g_remote, 1, 0);
     if (nread != 4) {
@@ -79,7 +79,7 @@ static inline int read_4bytes(const long address, int32_t *value) {
 
 static inline int read_2bytes(const long address, int16_t *value) {
     g_local[0].iov_len = 2;
-    set_read_address((void*) address);
+    set_read_address((void *) address); // NOLINT
 
     const size_t nread = process_vm_readv(g_pid, g_local, 1, g_remote, 1, 0);
     if (nread != 2) {
@@ -88,27 +88,26 @@ static inline int read_2bytes(const long address, int16_t *value) {
     }
     *value = big16_to_little(g_buf);
     return READ_OK;
-
 }
 
 pid_t get_pid(char *name) {
-    static const char* directory = "/proc";
+    static const char *directory = "/proc";
 
-    DIR* dir = opendir(directory);
+    DIR *dir = opendir(directory);
 
     if (dir == NULL) {
         return -1;
     }
 
-    struct dirent* de = 0;
+    struct dirent *de = 0;
 
-    while ((de = readdir(dir)) != 0) {
+    while ((de = readdir(dir)) != 0) { // NOLINT: no thread safe warning
         if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0) {
             continue;
         }
 
         pid_t pid = -1;
-        int res = sscanf(de->d_name, "%d", &pid);
+        int res = sscanf(de->d_name, "%d", &pid); // NOLINT: warning nagging about using "strtol" as scanff iS NoT sAfE
 
         // PID valid
         if (res != 1) {
@@ -117,25 +116,25 @@ pid_t get_pid(char *name) {
 
         // Check the process name from cmdline
         char cmdline_file[1024] = {0};
-        sprintf(cmdline_file, "%s/%d/cmdline", directory, pid);
+        sprintf(cmdline_file, "%s/%d/cmdline", directory, pid); // NOLINT
 
-        FILE* cmdline = fopen(cmdline_file, "r");
+        FILE *cmdline = fopen(cmdline_file, "r");
 
-        size_t bytes_read;
-        char* process_name = NULL;
+        size_t bytes_read = 0;
+        char *process_name = NULL;
 
         if (getline(&process_name, &bytes_read, cmdline) <= 0) {
-            fclose(cmdline);
+            (void) fclose(cmdline);
             continue;
         }
 
         if (strstr(process_name, name) == 0) {
-            fclose(cmdline);
+            (void) fclose(cmdline);
             continue;
         }
 
         // Found PID close streams
-        fclose(cmdline);
+        (void) fclose(cmdline);
         closedir(dir);
 
         return pid;
@@ -169,7 +168,7 @@ int p1_connection(int16_t *value) {
 }
 
 int p1_recovery_frames(uint32_t *value) {
-    return read_4bytes(P1_RECOVERY_FRAMES, (int32_t*) value);
+    return read_4bytes(P1_RECOVERY_FRAMES, (int32_t *) value);
 }
 
 int32_t p1_intent(int32_t *value) {
@@ -177,7 +176,7 @@ int32_t p1_intent(int32_t *value) {
 }
 
 int32_t p1_state(int32_t *value) {
-    return read_4bytes(P1_STATE,value);
+    return read_4bytes(P1_STATE, value);
 }
 
 int p1_position(struct player_coordinate *value) {
@@ -186,9 +185,9 @@ int p1_position(struct player_coordinate *value) {
         return READ_ERROR;
     }
 
-    value->x = big32_to_little_float((char*) value);
-    value->y = big32_to_little_float(&((char*) value)[4]);
-    value->z = big32_to_little_float(&((char*) value)[8]);
+    value->x = big32_to_little_float((char *) value);
+    value->y = big32_to_little_float(&((char *) value)[4]);
+    value->z = big32_to_little_float(&((char *) value)[8]);
 
     return READ_OK;
 }
@@ -202,7 +201,7 @@ int p2_connection(int16_t *value) {
 }
 
 int p2_recovery_frames(uint32_t *value) {
-    return read_4bytes(P2_RECOVERY_FRAMES, (int32_t*) value);
+    return read_4bytes(P2_RECOVERY_FRAMES, (int32_t *) value);
 }
 
 int p2_intent(int32_t *value) {
@@ -219,15 +218,15 @@ int p2_position(struct player_coordinate *value) {
         return READ_ERROR;
     }
 
-    value->x = big32_to_little_float((char*) value);
-    value->y = big32_to_little_float(&((char*) value)[4]);
-    value->z = big32_to_little_float(&((char*) value)[8]);
+    value->x = big32_to_little_float((char *) value);
+    value->y = big32_to_little_float(&((char *) value)[4]);
+    value->z = big32_to_little_float(&((char *) value)[8]);
 
     return READ_OK;
 }
 
 int current_game_frame(uint32_t *value) {
-    return read_4bytes(CURRENT_GAME_FRAME, (int32_t*) value);
+    return read_4bytes(CURRENT_GAME_FRAME, (int32_t *) value);
 }
 
 int player_side(int32_t *value) {
@@ -235,10 +234,10 @@ int player_side(int32_t *value) {
 }
 
 int read_game_state(struct game_state *state) {
-    int32_t value;
+    int32_t value = 0;
     struct player_coordinate coords = {0};
 
-    int result = current_game_frame((uint32_t*) &value);
+    int result = current_game_frame((uint32_t *) &value);
 
     if (result == READ_ERROR) {
         log_debug("readed invalid game frame number");
@@ -253,14 +252,14 @@ int read_game_state(struct game_state *state) {
     }
     state->p1_frames_last_action = value;
 
-    result = p1_connection((int16_t*) &value);
+    result = p1_connection((int16_t *) &value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p1 last connection frames");
         return READ_ERROR;
     }
-    state->p1_connection = (int16_t) value;
+    state->p1_connection = (int16_t) value; // NOLINT
 
-    result = p1_recovery_frames((uint32_t*) &value);
+    result = p1_recovery_frames((uint32_t *) &value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p1 recovery frames");
         return READ_ERROR;
@@ -296,14 +295,14 @@ int read_game_state(struct game_state *state) {
     }
     state->p2_frames_last_action = value;
 
-    result = p2_connection((int16_t*) &value);
+    result = p2_connection((int16_t *) &value);
     if (value == READ_ERROR) {
         log_debug("readed invalid p2 last connection frames");
         return READ_ERROR;
     }
-    state->p2_connection = (int16_t) value;
+    state->p2_connection = (int16_t) value; // NOLINT
 
-    result = p2_recovery_frames((uint32_t*) &value);
+    result = p2_recovery_frames((uint32_t *) &value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p2 recovery frames");
         return READ_ERROR;
