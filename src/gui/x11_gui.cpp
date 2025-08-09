@@ -20,10 +20,10 @@
 #include <cstring>
 #include <thread>
 
-#include <X11/Xlib.h>
-#include <X11/extensions/shape.h>
-#include <X11/extensions/Xfixes.h>
 #include <X11/Xatom.h>
+#include <X11/Xlib.h>
+#include <X11/extensions/Xfixes.h>
+#include <X11/extensions/shape.h>
 
 #include "logging.h"
 
@@ -104,12 +104,22 @@ Window *get_windows(unsigned long *len) {
     unsigned long remain;
     unsigned char *list;
 
-    if (XGetWindowProperty(g_x11_session.display, XDefaultRootWindow(g_x11_session.display),
-                           prop, 0, 1024, False, XA_WINDOW, &type, &form, len, &remain, &list) != Success) {
+    if (XGetWindowProperty(g_x11_session.display,
+                           XDefaultRootWindow(g_x11_session.display),
+                           prop,
+                           0,
+                           1024,
+                           False,
+                           XA_WINDOW,
+                           &type,
+                           &form,
+                           len,
+                           &remain,
+                           &list) != Success) {
         log_error("failed to get window list");
         return nullptr;
     }
-    return (Window*) list;
+    return (Window *) list;
 }
 
 char *get_window_name(const Window window) {
@@ -119,13 +129,23 @@ char *get_window_name(const Window window) {
     unsigned long remain, len;
     unsigned char *list;
 
-    if (XGetWindowProperty(g_x11_session.display, window,
-                           prop, 0, 1024, False, XA_STRING, &type, &form, &len, &remain, &list) != Success) {
+    if (XGetWindowProperty(g_x11_session.display,
+                           window,
+                           prop,
+                           0,
+                           1024,
+                           False,
+                           XA_STRING,
+                           &type,
+                           &form,
+                           &len,
+                           &remain,
+                           &list) != Success) {
         log_error("failed to read window name");
         return nullptr;
     }
 
-    return (char*) list;
+    return (char *) list;
 }
 
 char *get_window_class(const Window window) {
@@ -135,16 +155,26 @@ char *get_window_class(const Window window) {
     unsigned long remain, len;
     unsigned char *list;
 
-    if (XGetWindowProperty(g_x11_session.display, window,
-                           prop, 0, 1024, False, XA_STRING, &type, &form, &len, &remain, &list) != Success) {
+    if (XGetWindowProperty(g_x11_session.display,
+                           window,
+                           prop,
+                           0,
+                           1024,
+                           False,
+                           XA_STRING,
+                           &type,
+                           &form,
+                           &len,
+                           &remain,
+                           &list) != Success) {
         log_error("failed to read window class");
         return nullptr;
     }
 
-    return (char*) list;
+    return (char *) list;
 }
 
-bool window_match(const char* window_class, const char* window_name) {
+bool window_match(const char *window_class, const char *window_name) {
     if (strcasestr(window_class, RPSC3_CLASS) == nullptr) {
         return false;
     }
@@ -225,16 +255,20 @@ inline bool load_graphics() {
     g_x11_session.red.green = 0;
     g_x11_session.red.blue = 0;
     g_x11_session.red.flags = DoRed | DoGreen | DoBlue;
-    XAllocColor(g_x11_session.display, DefaultColormap(g_x11_session.display, g_x11_session.screen_num), &g_x11_session.red);
+    XAllocColor(g_x11_session.display,
+                DefaultColormap(g_x11_session.display, g_x11_session.screen_num),
+                &g_x11_session.red);
 
     // Green
     g_x11_session.green.red = 0;
     g_x11_session.green.green = 65535;
     g_x11_session.green.blue = 0;
     g_x11_session.green.flags = DoRed | DoGreen | DoBlue;
-    XAllocColor(g_x11_session.display, DefaultColormap(g_x11_session.display, g_x11_session.screen_num), &g_x11_session.green);
+    XAllocColor(g_x11_session.display,
+                DefaultColormap(g_x11_session.display, g_x11_session.screen_num),
+                &g_x11_session.green);
 
-    const XFontStruct* font_info = XLoadQueryFont(g_x11_session.display, FONT);
+    const XFontStruct *font_info = XLoadQueryFont(g_x11_session.display, FONT);
     if (!font_info) {
         log_error("failed to load font");
         return false;
@@ -242,11 +276,15 @@ inline bool load_graphics() {
 
     XSetFont(g_x11_session.display, g_x11_session.text_gc, font_info->fid);
     XSetForeground(g_x11_session.display, g_x11_session.text_gc, g_x11_session.green.pixel);
-    XSetBackground(g_x11_session.display, g_x11_session.text_gc, BlackPixel(g_x11_session.display, g_x11_session.screen_num));
+    XSetBackground(g_x11_session.display,
+                   g_x11_session.text_gc,
+                   BlackPixel(g_x11_session.display, g_x11_session.screen_num));
 
     XSetFont(g_x11_session.display, g_x11_session.text_gc_red, font_info->fid);
     XSetForeground(g_x11_session.display, g_x11_session.text_gc_red, g_x11_session.red.pixel);
-    XSetBackground(g_x11_session.display, g_x11_session.text_gc_red, BlackPixel(g_x11_session.display, g_x11_session.screen_num));
+    XSetBackground(g_x11_session.display,
+                   g_x11_session.text_gc_red,
+                   BlackPixel(g_x11_session.display, g_x11_session.screen_num));
     return true;
 }
 
@@ -289,17 +327,18 @@ bool init_gui() {
     attr.background_pixel = 0;
 
     // Create window
-    g_x11_session.window = XCreateWindow(g_x11_session.display, defaultroot,
-                                     g_x11_session.x,
-                                     g_x11_session.y,
-                                     g_x11_session.width,
-                                     g_x11_session.height,
-                                     0,
-                                     vinfo.depth,
-                                     InputOutput,
-                                     vinfo.visual,
-                                     CWColormap | CWBorderPixel | CWBackPixel | CWOverrideRedirect,
-                                     &attr);
+    g_x11_session.window = XCreateWindow(g_x11_session.display,
+                                         defaultroot,
+                                         g_x11_session.x,
+                                         g_x11_session.y,
+                                         g_x11_session.width,
+                                         g_x11_session.height,
+                                         0,
+                                         vinfo.depth,
+                                         InputOutput,
+                                         vinfo.visual,
+                                         CWColormap | CWBorderPixel | CWBackPixel | CWOverrideRedirect,
+                                         &attr);
 
     XStoreName(g_x11_session.display, g_x11_session.window, WINDOW_NAME);
 
@@ -336,16 +375,28 @@ void analyser_loop() {
 
         log_debug("starting analyser again after timeout");
         gui_state_no_game();
-        std::this_thread::sleep_for (std::chrono::seconds(ANALYSER_START_INTERVAL));
+        std::this_thread::sleep_for(std::chrono::seconds(ANALYSER_START_INTERVAL));
     }
 }
 
 inline void draw_line(const unsigned int line_num, const char *text, const size_t text_len) {
-    XDrawString(g_x11_session.display, g_x11_session.window, g_x11_session.text_gc, 0, g_x11_session.line_height * line_num, text, text_len);
+    XDrawString(g_x11_session.display,
+                g_x11_session.window,
+                g_x11_session.text_gc,
+                0,
+                g_x11_session.line_height * line_num,
+                text,
+                text_len);
 }
 
 inline void draw_line_red(const unsigned int line_num, const char *text, const size_t text_len) {
-    XDrawString(g_x11_session.display, g_x11_session.window, g_x11_session.text_gc_red, 0, g_x11_session.line_height * line_num, text, text_len);
+    XDrawString(g_x11_session.display,
+                g_x11_session.window,
+                g_x11_session.text_gc_red,
+                0,
+                g_x11_session.line_height * line_num,
+                text,
+                text_len);
 }
 
 inline void draw_no_game() {
@@ -387,13 +438,7 @@ inline void draw() {
         }
     }
 
-    XClearArea(g_x11_session.display,
-               g_x11_session.window,
-               0,
-               0,
-               g_x11_session.width,
-               g_x11_session.height,
-               True);
+    XClearArea(g_x11_session.display, g_x11_session.window, 0, 0, g_x11_session.width, g_x11_session.height, True);
 
     XFlush(g_x11_session.display);
 
@@ -415,7 +460,7 @@ void gui_loop() {
         auto end = std::chrono::high_resolution_clock::now();
         auto delta = end - start;
         auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(delta).count();
-        std::this_thread::sleep_for (std::chrono::nanoseconds((TICK_LENGTH - millis)));
+        std::this_thread::sleep_for(std::chrono::nanoseconds((TICK_LENGTH - millis)));
     }
 }
 

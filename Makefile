@@ -54,6 +54,17 @@ test: configure_test
 run_test: test
 	ctest --output-on-failure --test-dir $(BUILD_DIR_TEST)
 
+lint:
+	run-clang-tidy
+
+format:
+	bash -c "find src -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' | clang-format --style=file -i --files=/dev/stdin"
+
+check-format:
+	bash -c "find src -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' | clang-format --style=file -i -n --Werror --files=/dev/stdin"
+
+check: check-format lint
+
 clean:
 	rm -r $(BUILD_DIR)
 

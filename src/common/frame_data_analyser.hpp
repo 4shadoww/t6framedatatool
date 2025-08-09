@@ -113,6 +113,7 @@ public:
     static void stop();
 
     static const char *player_status(const player_state state);
+
 private:
     static bool m_stop;
     static ring_buffer<game_state> m_frame_buffer;
@@ -137,7 +138,7 @@ private:
     static void handle_distance();
     static void handle_status();
 
-    static float calculate_distance(const game_state * const state);
+    static float calculate_distance(const game_state *const state);
 };
 
 #endif

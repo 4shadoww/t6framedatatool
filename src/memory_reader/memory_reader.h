@@ -19,8 +19,7 @@
 #define MEMORY_READER_H
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #include <stdint.h>
@@ -57,10 +56,10 @@ struct game_state {
 #define READ_OK 0
 
 /**
-* Finds T6 process ID and initializes the memory
-*
-* @return MR_INIT value
-*/
+ * Finds T6 process ID and initializes the memory
+ *
+ * @return MR_INIT value
+ */
 int init_memory_reader(void);
 
 int p1_frames_last_action(int32_t *value);
@@ -81,10 +80,10 @@ int current_game_frame(uint32_t *value);
 int player_side(int32_t *value);
 
 /*
-* Read game state to "state" struct
-* @param pointer to state struct
-* @return 0 on success, -1 on error
-*/
+ * Read game state to "state" struct
+ * @param pointer to state struct
+ * @return 0 on success, -1 on error
+ */
 int read_game_state(struct game_state *state);
 
 #ifdef __cplusplus

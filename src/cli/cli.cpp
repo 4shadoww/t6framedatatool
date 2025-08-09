@@ -30,8 +30,8 @@ public:
 };
 
 void listener::frame_data(const frame_data_point frame_data) {
-    std::cout << "startup frames: " << frame_data.startup_frames << ", frame advantage: " <<
-                 frame_data.frame_advantage << std::endl;
+    std::cout << "startup frames: " << frame_data.startup_frames << ", frame advantage: " << frame_data.frame_advantage
+              << std::endl;
 }
 
 void listener::distance(const float _) {

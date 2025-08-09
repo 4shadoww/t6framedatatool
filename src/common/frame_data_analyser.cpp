@@ -125,33 +125,27 @@ const char *frame_data_analyser::player_status(const player_state state) {
 }
 
 void frame_data_analyser::analyse_start_frames() {
-    const game_state * const current = m_frame_buffer.head();
-    const game_state * const previous = m_frame_buffer.get_from_head(1);
+    const game_state *const current = m_frame_buffer.head();
+    const game_state *const previous = m_frame_buffer.get_from_head(1);
 
     if (current == previous || previous == nullptr) {
         return;
     }
 
     // Check if P1 initiated attack
-    if (is_attack((player_intent) current->p1_intent) &&
-        previous->p1_intent != current->p1_intent) {
-        m_p1_start_frames.push({m_frame_buffer.head_index(),
-                                current->p1_recovery_frames,
-                                current->game_frame});
+    if (is_attack((player_intent) current->p1_intent) && previous->p1_intent != current->p1_intent) {
+        m_p1_start_frames.push({m_frame_buffer.head_index(), current->p1_recovery_frames, current->game_frame});
     }
 
     // Check if P2 initiated attack
-    if (is_attack((player_intent) current->p2_intent) &&
-        previous->p2_intent != current->p2_intent) {
-        m_p2_start_frames.push({m_frame_buffer.head_index(),
-                                current->p2_recovery_frames,
-                                current->game_frame});
+    if (is_attack((player_intent) current->p2_intent) && previous->p2_intent != current->p2_intent) {
+        m_p2_start_frames.push({m_frame_buffer.head_index(), current->p2_recovery_frames, current->game_frame});
     }
 }
 
 connection_event frame_data_analyser::has_new_connection() {
-    const game_state * const current = m_frame_buffer.head();
-    const game_state * const previous = m_frame_buffer.get_from_head(1);
+    const game_state *const current = m_frame_buffer.head();
+    const game_state *const previous = m_frame_buffer.get_from_head(1);
 
     if (current == previous || previous == nullptr) {
         return NO_CONNECTION;
@@ -194,7 +188,7 @@ void frame_data_analyser::handle_connection() {
         return;
     }
 
-    const game_state * const current = m_frame_buffer.head();
+    const game_state *const current = m_frame_buffer.head();
 
     start_frame start;
     uint32_t opponent_recovery_frames;
@@ -236,27 +230,26 @@ void frame_data_analyser::handle_connection() {
     m_listener->frame_data(data_point);
 }
 
-float frame_data_analyser::calculate_distance(const game_state * const state) {
-    return std::sqrt(
-         std::pow(state->p1_position.x - state->p2_position.x, 2) +
-         std::pow(state->p1_position.z - state->p2_position.z, 2)
-    ) / 1000;
+float frame_data_analyser::calculate_distance(const game_state *const state) {
+    return std::sqrt(std::pow(state->p1_position.x - state->p2_position.x, 2) +
+                     std::pow(state->p1_position.z - state->p2_position.z, 2)) /
+           1000;
 }
 
 void frame_data_analyser::handle_distance() {
-    const game_state * const current = m_frame_buffer.head();
+    const game_state *const current = m_frame_buffer.head();
     const float distance = calculate_distance(current);
     m_listener->distance(distance);
 }
 
 void frame_data_analyser::handle_status() {
-    const game_state * const current = m_frame_buffer.head();
+    const game_state *const current = m_frame_buffer.head();
     m_listener->status((player_state) current->p1_state);
 }
 
 bool frame_data_analyser::flip_player_data(game_state &state) {
     enum player_side side;
-    const int result = player_side((int32_t*) &side);
+    const int result = player_side((int32_t *) &side);
 
     if (result == READ_ERROR) {
         log_error("failed to read player side");
@@ -319,7 +312,7 @@ bool frame_data_analyser::loop() {
         return false;
     }
 
-    const game_state * const previous = m_frame_buffer.head();
+    const game_state *const previous = m_frame_buffer.head();
 
     // Check if the analyser is in sync with the game
     if (previous->game_frame != current_frame - 1 && previous->game_frame != 0) {
@@ -395,7 +388,7 @@ bool frame_data_analyser::start(event_listener *listener) {
         auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(delta).count();
         while (nanos < TICK_LENGTH) {
             // Sleep for a bit to save CPU time
-            std::this_thread::sleep_for (std::chrono::nanoseconds((TICK_LENGTH - nanos) / 2));
+            std::this_thread::sleep_for(std::chrono::nanoseconds((TICK_LENGTH - nanos) / 2));
 
             end = std::chrono::high_resolution_clock::now();
             delta = end - start;

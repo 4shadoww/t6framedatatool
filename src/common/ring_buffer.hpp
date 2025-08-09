@@ -23,7 +23,7 @@
 template<typename T>
 class ring_buffer {
 public:
-    ring_buffer(const size_t size): m_size(size) {
+    ring_buffer(const size_t size) : m_size(size) {
         m_ring_buffer = new T[size];
     }
 

@@ -53,8 +53,8 @@
 
 
 // Dynamic data section base pointer
-//#define GAME_DYN_DATA_PTR = 0x300C3F9E8
+// #define GAME_DYN_DATA_PTR = 0x300C3F9E8
 // Player 1 frames since last connection
-//#define P1_FRAMES_LAST_CONNECTION_PTR_OFFSET 913922468
+// #define P1_FRAMES_LAST_CONNECTION_PTR_OFFSET 913922468
 
 #endif
