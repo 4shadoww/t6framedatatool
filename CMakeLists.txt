@@ -8,13 +8,31 @@ option(GUI "Build GUI" OFF)
 # Project level properties
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic -Wno-error=unused-parameter")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror -Wall -Wextra -pedantic")
 
 # Lib types
 set(UTILS_LIB_TYPE OBJECT)
 set(MEMORY_READER_LIB_TYPE OBJECT)
 set(COMMON_LIB_TYPE OBJECT)
+
+# Set global variables
+set(3RDPARTY_LIBS ${PROJECT_SOURCE_DIR}/3rdparty)
+set(SRCS ${PROJECT_SOURCE_DIR}/src)
+
+# 3rdparty library imports
+if(GUI AND NOT X11)
+    # Glfw
+    add_subdirectory(${3RDPARTY_LIBS}/glfw glfw)
+
+    # GLAD
+    add_subdirectory("${3RDPARTY_LIBS}/glad/cmake" glad_cmake)
+    glad_add_library(glad_gl_core_33 REPRODUCIBLE API gl:core=3.3)
+
+    # FreeType
+    add_subdirectory("${3RDPARTY_LIBS}/freetype" freetype)
+
+    # Glm
+    add_subdirectory("${3RDPARTY_LIBS}/glm" glm)
+endif()
 
 if(DEBUG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")

@@ -28,6 +28,7 @@
 #include "logging.h"
 
 #include "frame_data_analyser.hpp"
+#include "gui_constants.hpp"
 
 #define TICK_LENGTH 200
 #define ANALYSER_START_INTERVAL 1
@@ -36,8 +37,6 @@
 #define LINE_MARGIN 5
 #define BORDER_MARGIN_X 25
 #define BORDER_MARGIN_Y 15
-#define MAX_WIDTH 1000
-#define WINDOW_NAME "T6FDTOOL"
 #define STAT_LINES 4
 
 // UI

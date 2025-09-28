@@ -1,0 +1,300 @@
+/*
+  Copyright (C) 2025 Noa-Emil Nissinen
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.    See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.    If not, see <https://www.gnu.org/licenses/>.
+*/
+
+// Based on text rendering example from: https://learnopengl.com
+
+#include <map>
+#include <string>
+
+#include <glad/gl.h> // NOLINT
+
+#include <ft2build.h> // NOLINT
+#include FT_FREETYPE_H
+
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "logging.h"
+
+#include "gui_constants.hpp"
+#include "shaders.hpp"
+#include "src/gui/gui_functions.hpp"
+
+namespace {
+
+struct font_char {
+    unsigned int texture_id; // ID handle of the glyph texture
+    glm::ivec2 size; // Size of glyph
+    glm::ivec2 bearing; // Offset from baseline to left/top of glyph
+    unsigned int advance; // Horizontal offset to advance to next glyph
+};
+
+std::map<GLchar, font_char> font_chars;
+unsigned int g_vao, g_vbo;
+unsigned int g_shader_program;
+
+
+void render_text(unsigned int shader, std::string text, float x, float y, float scale, glm::vec3 color) { // NOLINT
+    glUseProgram(shader);
+    glUniform3f(glGetUniformLocation(shader, "textColor"), color.x, color.y, color.z);
+    glActiveTexture(GL_TEXTURE0);
+    glBindVertexArray(g_vao);
+
+    // Iterate through all characters
+    std::string::const_iterator c;
+    for (c = text.begin(); c != text.end(); c++) {
+        const font_char ch = font_chars[*c];
+
+        const float xpos = x + ((float) ch.bearing.x * scale);
+        const float ypos = y - ((float) (ch.size.y - ch.bearing.y) * scale);
+
+        const float w = (float) ch.size.x * scale;
+        const float h = (float) ch.size.y * scale;
+
+        // Update VBO for each character
+        float vertices[6][4] = {{xpos, ypos + h, 0.0F, 0.0F},
+                                {xpos, ypos, 0.0F, 1.0F},
+                                {xpos + w, ypos, 1.0F, 1.0F},
+
+                                {xpos, ypos + h, 0.0F, 0.0F},
+                                {xpos + w, ypos, 1.0F, 1.0F},
+                                {xpos + w, ypos + h, 1.0F, 0.0F}};
+
+        // Render glyph to quad
+        glBindTexture(GL_TEXTURE_2D, ch.texture_id);
+
+        // Update VBO
+        glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        // Render quad
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        x += (float) (ch.advance >> (unsigned int) 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64)
+    }
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+GLFWwindow *create_window() {
+    GLFWwindow *window = nullptr;
+    if (glfwInit() == 0) {
+        return nullptr;
+    }
+
+    // Window hints
+    // OpenGL
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    // Overlay
+    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_MOUSE_PASSTHROUGH, GLFW_TRUE);
+    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
+    glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+
+    /* Create a windowed mode window and its OpenGL context */
+    window = glfwCreateWindow(MAX_WIDTH, 480, "Hello World", nullptr, nullptr);
+    if (window == nullptr) {
+        glfwTerminate();
+        return nullptr;
+    }
+
+    return window;
+}
+
+bool setup_shaders() {
+    g_shader_program = glCreateProgram();
+
+    const unsigned int vs = glCreateShader(GL_VERTEX_SHADER);
+    if (vs == 0) {
+        log_error("failed to create vertex shader");
+        return false;
+    }
+    glShaderSource(vs, 1, &VERTEX_SHADER_SOURCE, nullptr);
+    glCompileShader(vs);
+
+    const unsigned int fs = glCreateShader(GL_FRAGMENT_SHADER);
+    if (fs == 0) {
+        log_error("failed to create fragment shader");
+        return false;
+    }
+    glShaderSource(fs, 1, &FRAGMENT_SHADER_SOURCE, nullptr);
+    glCompileShader(fs);
+
+    glAttachShader(g_shader_program, vs);
+    glAttachShader(g_shader_program, fs);
+    glLinkProgram(g_shader_program);
+
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+
+    glm::mat4 projection = glm::ortho(0.0F, static_cast<float>(MAX_WIDTH), 0.0F, static_cast<float>(640));
+    glUseProgram(g_shader_program);
+    glUniformMatrix4fv(glGetUniformLocation(g_shader_program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+
+    // Configure VAO/VBO for texture quads
+    glGenVertexArrays(1, &g_vao);
+    glGenBuffers(1, &g_vbo);
+    glBindVertexArray(g_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    return true;
+}
+
+void set_blending() {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+bool load_font() {
+    FT_Library ft = nullptr;
+    if (FT_Init_FreeType(&ft) != 0) {
+        return false;
+    }
+
+    FT_Face face = nullptr;
+    // TODO: remove hardcoded path
+    if (FT_New_Face(ft, "/usr/share/fonts/TTF/DejaVuSans.ttf", 0, &face) != 0) {
+        log_error("font not found");
+        return false;
+    }
+
+    // Glyph size
+    FT_Set_Pixel_Sizes(face, 0, 48);
+
+    // Disable byte-alignment restriction, as FreeType glyphs aren't aligned to 4-bytes
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    // Load first 128 characters of ASCII set
+    for (unsigned char c = 0; c < 128; c++) {
+        // Load character glyph
+        if (FT_Load_Char(face, c, FT_LOAD_RENDER) != 0) { // NOLINT
+            continue;
+        }
+
+        // Generate texture
+        unsigned int texture = 0;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RED, // Use GL_RED for single-channel grayscale image
+                     (int) face->glyph->bitmap.width,
+                     (int) face->glyph->bitmap.rows,
+                     0,
+                     GL_RED,
+                     GL_UNSIGNED_BYTE,
+                     face->glyph->bitmap.buffer);
+
+        // Texture parameters
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        const font_char character = {.texture_id = texture,
+                                     .size = glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+                                     .bearing = glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+                                     .advance = static_cast<unsigned int>(face->glyph->advance.x)};
+
+        font_chars.insert(std::pair<char, font_char>(c, character));
+    }
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // Free FT resources
+    FT_Done_Face(face);
+    FT_Done_FreeType(ft);
+
+    return true;
+}
+
+bool setup_graphics() {
+    if (gladLoadGL(glfwGetProcAddress) == 0) {
+        log_error("failed to load glad GL");
+        return false;
+    }
+
+    if (!setup_shaders()) {
+        log_error("setting up shaders has failed");
+        return false;
+    }
+
+    set_blending();
+
+    if (!load_font()) {
+        log_error("loading font has failed");
+        return false;
+    }
+
+    return true;
+}
+} // namespace
+
+int main() {
+    log_set_level(LOG_TRACE);
+
+    GLFWwindow *window = create_window();
+    if (window == nullptr) {
+        log_error("failed to create a window");
+        return -1;
+    }
+
+    if (!platform_make_overlay(window)) {
+        log_error("failed to create tool overlay");
+        return -1;
+    }
+
+    glfwShowWindow(window);
+    glfwMakeContextCurrent(window);
+
+    if (!setup_graphics()) {
+        log_error("setting up graphics context failed");
+        return -1;
+    }
+
+    /* Loop until the user closes the window */
+    while (glfwWindowShouldClose(window) == 0) {
+        /* Render here */
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        render_text(g_shader_program, "OpenGL POC", 25.0F, 25.0F, 1.0F, glm::vec3(0.5, 0.8F, 0.2F));
+
+        /* Swap front and back buffers */
+        glfwSwapBuffers(window);
+
+        /* Poll for and process events */
+        glfwPollEvents();
+    }
+
+    glfwTerminate();
+    return 0;
+}
