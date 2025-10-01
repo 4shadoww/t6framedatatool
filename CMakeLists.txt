@@ -19,7 +19,7 @@ set(3RDPARTY_LIBS ${PROJECT_SOURCE_DIR}/3rdparty)
 set(SRCS ${PROJECT_SOURCE_DIR}/src)
 
 # 3rdparty library imports
-if(GUI AND NOT X11)
+if(GUI)
     # Glfw
     add_subdirectory(${3RDPARTY_LIBS}/glfw glfw)
 

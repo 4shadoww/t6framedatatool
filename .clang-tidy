@@ -45,7 +45,8 @@ Checks: "*,
         -cert-err58-cpp,
         -cppcoreguidelines-macro-to-enum,
         -modernize-macro-to-enum,
-        -cppcoreguidelines-macro-usage
+        -cppcoreguidelines-macro-usage,
+        -bugprone-easily-swappable-parameters
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: ''

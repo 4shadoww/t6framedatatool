@@ -14,11 +14,14 @@
   You should have received a copy of the GNU General Public License
   along with this program.    If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef GUI_FUNCTIONS_LINUX_HPP
-#define GUI_FUNCTIONS_LINUX_HPP
+#ifndef PLATFORM_GUI_HPP
+#define PLATFORM_GUI_HPP
 
 struct GLFWwindow;
 
 bool platform_make_overlay(GLFWwindow *window);
+void platform_update_ui_position(const int game_x, const int game_y, const int game_height, const bool margin);
+void platform_find_game_window();
+void platform_update();
 
 #endif

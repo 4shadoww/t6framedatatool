@@ -19,6 +19,7 @@
 
 #include <map>
 #include <string>
+#include <thread>
 
 #include <glad/gl.h> // NOLINT
 
@@ -29,14 +30,26 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <utility>
 
 #include "logging.h"
 
+#include "frame_data_analyser.hpp"
 #include "gui_constants.hpp"
 #include "shaders.hpp"
-#include "src/gui/gui_functions.hpp"
+#include "src/gui/platform_gui.hpp"
 
 namespace {
+
+// Constants
+#define TEXT_COLOR_GREEN glm::vec3(0.5, 0.8F, 0.2F)
+#define TEXT_COLOR_RED glm::vec3(0.8, 0.2F, 0.2F)
+
+// Global variables
+struct frame_data_point g_data_point = {};
+float g_distance = 0;
+player_state g_status = {};
+bool g_game_hooked = false;
 
 struct font_char {
     unsigned int texture_id; // ID handle of the glyph texture
@@ -49,6 +62,33 @@ std::map<GLchar, font_char> font_chars;
 unsigned int g_vao, g_vbo;
 unsigned int g_shader_program;
 
+class listener : public event_listener {
+public:
+    void frame_data(const frame_data_point frame_data) override;
+    void distance(const float distance) override;
+    void status(const player_state state) override;
+    void game_hooked() override;
+};
+
+void listener::frame_data(const frame_data_point frame_data) {
+    g_data_point = frame_data;
+    log_info("startup frames: %d, frame advantage: %d", frame_data.startup_frames, frame_data.frame_advantage);
+}
+
+void listener::distance(const float distance) {
+    g_distance = distance;
+}
+
+void listener::status(const player_state state) {
+    g_status = state;
+}
+
+void listener::game_hooked() {
+    g_game_hooked = true;
+    platform_find_game_window();
+}
+
+listener g_listener;
 
 void render_text(unsigned int shader, std::string text, float x, float y, float scale, glm::vec3 color) { // NOLINT
     glUseProgram(shader);
@@ -92,6 +132,10 @@ void render_text(unsigned int shader, std::string text, float x, float y, float 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void render_line(std::string text, int line, glm::vec3 color) {
+    render_text(g_shader_program, std::move(text), 0, (float) ((FONT_SIZE * line) + TEXT_MARGIN), 1, color);
+}
+
 GLFWwindow *create_window() {
     GLFWwindow *window = nullptr;
     if (glfwInit() == 0) {
@@ -114,7 +158,7 @@ GLFWwindow *create_window() {
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(MAX_WIDTH, 480, "Hello World", nullptr, nullptr);
+    window = glfwCreateWindow(MAX_WIDTH, MAX_HEIGTH, WINDOW_NAME, nullptr, nullptr);
     if (window == nullptr) {
         glfwTerminate();
         return nullptr;
@@ -149,7 +193,7 @@ bool setup_shaders() {
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    glm::mat4 projection = glm::ortho(0.0F, static_cast<float>(MAX_WIDTH), 0.0F, static_cast<float>(640));
+    glm::mat4 projection = glm::ortho(0.0F, (float) MAX_WIDTH, 0.0F, (float) MAX_HEIGTH);
     glUseProgram(g_shader_program);
     glUniformMatrix4fv(glGetUniformLocation(g_shader_program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -188,7 +232,7 @@ bool load_font() {
     }
 
     // Glyph size
-    FT_Set_Pixel_Sizes(face, 0, 48);
+    FT_Set_Pixel_Sizes(face, 0, FONT_SIZE);
 
     // Disable byte-alignment restriction, as FreeType glyphs aren't aligned to 4-bytes
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -256,37 +300,89 @@ bool setup_graphics() {
 
     return true;
 }
-} // namespace
 
-int main() {
-    log_set_level(LOG_TRACE);
-
+GLFWwindow *setup_gui() {
     GLFWwindow *window = create_window();
     if (window == nullptr) {
         log_error("failed to create a window");
-        return -1;
+        return nullptr;
     }
 
     if (!platform_make_overlay(window)) {
         log_error("failed to create tool overlay");
-        return -1;
+        return nullptr;
     }
 
+    glfwSetWindowPos(window, 0, 0);
     glfwShowWindow(window);
     glfwMakeContextCurrent(window);
 
     if (!setup_graphics()) {
         log_error("setting up graphics context failed");
-        return -1;
+        return nullptr;
     }
 
+    return window;
+}
+
+void gui_state_no_game() {
+    platform_update_ui_position(0, 0, MAX_HEIGTH, false);
+    g_game_hooked = false;
+}
+
+void analyser_loop() {
+    while (true) {
+        if (frame_data_analyser::start(&g_listener)) {
+            break;
+        }
+
+        log_debug("starting analyser again after timeout");
+        gui_state_no_game();
+        std::this_thread::sleep_for(std::chrono::seconds(ANALYSER_START_INTERVAL));
+    }
+}
+
+void draw_game_state() {
+    char buffer[50];
+
+    (void) sprintf(buffer, STATUS, frame_data_analyser::player_status(g_status));
+    render_line(buffer, 0, TEXT_COLOR_GREEN);
+
+    (void) sprintf(buffer, DISTANCE, g_distance);
+    render_line(buffer, 1, TEXT_COLOR_GREEN);
+
+    (void) sprintf(buffer, FRAME_ADVANTAGE, g_data_point.frame_advantage);
+    if (g_data_point.frame_advantage < 0) {
+        render_line(buffer, 2, TEXT_COLOR_RED);
+    } else {
+        render_line(buffer, 2, TEXT_COLOR_GREEN);
+    }
+
+    (void) sprintf(buffer, STARTUP_FRAMES, g_data_point.startup_frames);
+    render_line(buffer, 3, TEXT_COLOR_GREEN);
+}
+
+void draw_no_game() {
+    render_line(NO_DISTANCE, 0, TEXT_COLOR_GREEN);
+    render_line(NO_STATUS, 1, TEXT_COLOR_GREEN);
+    render_line(NO_FRAME_ADVANTAGE, 2, TEXT_COLOR_GREEN);
+    render_line(NO_STARTUP_FRAMES, 3, TEXT_COLOR_GREEN);
+}
+
+void gui_loop(GLFWwindow *window) {
     /* Loop until the user closes the window */
     while (glfwWindowShouldClose(window) == 0) {
+        // Tick platform functions
+        platform_update();
+
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        render_text(g_shader_program, "OpenGL POC", 25.0F, 25.0F, 1.0F, glm::vec3(0.5, 0.8F, 0.2F));
+        if (g_game_hooked) {
+            draw_game_state();
+        } else {
+            draw_no_game();
+        }
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -296,5 +392,29 @@ int main() {
     }
 
     glfwTerminate();
+}
+
+void start_gui(GLFWwindow *window) {
+    std::thread analyser_thread(&analyser_loop);
+
+    gui_loop(window);
+
+    // GUI has exited
+    frame_data_analyser::stop();
+    analyser_thread.join();
+}
+
+} // namespace
+
+int main() {
+    log_set_level(LOG_TRACE);
+
+    GLFWwindow *window = setup_gui();
+    if (window == nullptr) {
+        return -1;
+    }
+
+    start_gui(window);
+
     return 0;
 }
