@@ -15,7 +15,7 @@
   along with this program.    If not, see <https://www.gnu.org/licenses/>.
 */
 
-#define _GNU_SOURCE
+#define _GNU_SOURCE // NOLINT
 #include <dirent.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -60,7 +60,7 @@ static inline int read_bytes_raw(const long address, void *buf, const size_t siz
         return -1;
     }
 
-    memcpy(buf, g_buf, size);
+    memcpy(buf, g_buf, size); // NOLINT
     return (int) nread;
 }
 
@@ -123,8 +123,8 @@ pid_t get_pid(char *name) {
         size_t bytes_read = 0;
         char *process_name = NULL;
 
-        if (getline(&process_name, &bytes_read, cmdline) <= 0) {
-            (void) fclose(cmdline);
+        if (getline(&process_name, &bytes_read, cmdline) <= 0) { // NOLINT
+            (void) fclose(cmdline); // NOLINT
             continue;
         }
 
@@ -296,7 +296,7 @@ int read_game_state(struct game_state *state) {
     state->p2_frames_last_action = value;
 
     result = p2_connection((int16_t *) &value);
-    if (value == READ_ERROR) {
+    if (result == READ_ERROR) {
         log_debug("readed invalid p2 last connection frames");
         return READ_ERROR;
     }
@@ -323,7 +323,7 @@ int read_game_state(struct game_state *state) {
     }
     state->p2_state = value;
 
-    memset(&coords, 0, sizeof(coords));
+    memset(&coords, 0, sizeof(coords)); // NOLINT
 
     result = p2_position(&coords);
 
