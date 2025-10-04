@@ -15,6 +15,7 @@ ignore_3rdparty:
 
 ignore_build:
 	mkdir -p $(3RDPARTY_DIR)
+	mkdir -p $(BUILD_DIR)
 	echo "Checks: '-*'" > $(BUILD_DIR)/.clang-tidy
 
 test_deps:
@@ -23,7 +24,7 @@ test_deps:
 	tar -xf googletest-1.16.0.tar.gz && \
 	mv googletest-1.16.0 googletest
 
-3rdparty:
+3rdparty: ignore_build
 	cd $(3RDPARTY_DIR) && \
 	wget https://github.com/glfw/glfw/releases/download/3.4/glfw-3.4.zip && \
 	rm -rf glfw-3.4 glfw && \
@@ -112,7 +113,7 @@ check: check-format lint
 clean_generated:
 	rm -rf $(GENERATED_SRC_DIR)
 
-clean: clean_fonts
+clean: clean_generated
 	rm -rf $(BUILD_DIR)
 
 clean_3rdaprty:
