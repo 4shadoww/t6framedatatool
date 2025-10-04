@@ -14,3 +14,7 @@ target_link_libraries(${TARGET}
     PRIVATE common
     PRIVATE ${LIBS}
 )
+
+target_include_directories(${TARGET}
+   INTERFACE ${GENERATED_SRCS}
+)

@@ -3,6 +3,8 @@ BUILD_DIR=build
 BUILD_DIR_RELEASE=$(BUILD_DIR)/release
 BUILD_DIR_DEBUG=$(BUILD_DIR)/debug
 BUILD_DIR_TEST=$(BUILD_DIR)/test
+GENERATED_SRC_DIR=generated-src
+FONT_SOURCE=$(GENERATED_SRC_DIR)/fonts.h
 .DEFAULT_GOAL := all
 
 .PHONY: test_deps 3rdparty
@@ -45,32 +47,22 @@ test_deps:
 	rm -rf glm && \
 	unzip glm-1.0.1-light.zip
 
-configure_cli:
+configure_cli: fonts
 	cmake -G "Ninja" -S. -B$(BUILD_DIR_RELEASE)
 	# Copy compile commands db to root for lsp
 	cp $(BUILD_DIR_RELEASE)/compile_commands.json .
 
-configure_cli_debug:
+configure_cli_debug: fonts
 	cmake -G "Ninja" -S. -B$(BUILD_DIR_DEBUG) -DDEBUG=ON
 	# Copy compile commands db to root for lsp
 	cp $(BUILD_DIR_DEBUG)/compile_commands.json .
 
-configure_x11:
-	cmake -G "Ninja" -S. -B$(BUILD_DIR_RELEASE) -DGUI=ON -DX11=ON
-	# Copy compile commands db to root for lsp
-	cp $(BUILD_DIR_RELEASE)/compile_commands.json .
-
-configure_x11_debug:
-	cmake -G "Ninja" -S. -B$(BUILD_DIR_DEBUG) -DDEBUG=ON -DGUI=ON -DX11=ON
-	# Copy compile commands db to root for lsp
-	cp $(BUILD_DIR_DEBUG)/compile_commands.json .
-
-configure_debug:
+configure_debug: fonts
 	cmake -G "Ninja" -S. -B$(BUILD_DIR_DEBUG) -DDEBUG=ON -DGUI=ON
 	# Copy compile commands db to root for lsp
 	cp $(BUILD_DIR_DEBUG)/compile_commands.json .
 
-configure_release:
+configure_release: fonts
 	cmake -G "Ninja" -S. -B$(BUILD_DIR_RELEASE) -DGUI=ON
 	# Copy compile commands db to root for lsp
 	cp $(BUILD_DIR_RELEASE)/compile_commands.json .
@@ -86,11 +78,13 @@ cli_debug: configure_cli_debug ignore_build
 cli_release: configure_cli ignore_build
 	cmake --build $(BUILD_DIR_RELEASE)
 
-x11_debug: configure_x11_debug ignore_build
-	cmake --build $(BUILD_DIR_DEBUG)
+$(GENERATED_SRC_DIR):
+	mkdir -p $(GENERATED_SRC_DIR)
 
-x11_release: configure_x11 ignore_build
-	cmake --build $(BUILD_DIR_RELEASE)
+$(FONT_SOURCE): $(GENERATED_SRC_DIR)
+	xxd -i fonts/DejaVuSansMono.ttf > $(FONT_SOURCE)
+
+fonts: $(FONT_SOURCE)
 
 debug: configure_debug ignore_build
 	cmake --build $(BUILD_DIR_DEBUG)
@@ -115,7 +109,10 @@ check-format:
 
 check: check-format lint
 
-clean:
+clean_generated:
+	rm -rf $(GENERATED_SRC_DIR)
+
+clean: clean_fonts
 	rm -rf $(BUILD_DIR)
 
 clean_3rdaprty:

@@ -17,6 +17,7 @@ set(COMMON_LIB_TYPE OBJECT)
 # Set global variables
 set(3RDPARTY_LIBS ${PROJECT_SOURCE_DIR}/3rdparty)
 set(SRCS ${PROJECT_SOURCE_DIR}/src)
+set(GENERATED_SRCS ${PROJECT_SOURCE_DIR}/generated-srcs)
 
 # 3rdparty library imports
 if(GUI)

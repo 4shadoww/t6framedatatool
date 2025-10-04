@@ -39,11 +39,13 @@
 #include "shaders.hpp"
 #include "src/gui/platform_gui.hpp"
 
+#include "generated-src/fonts.h"
+
 namespace {
 
 // Constants
-#define TEXT_COLOR_GREEN glm::vec3(0.5, 0.8F, 0.2F)
-#define TEXT_COLOR_RED glm::vec3(0.8, 0.2F, 0.2F)
+#define TEXT_COLOR_GREEN glm::vec3(0.5, 1.0F, 0.2F)
+#define TEXT_COLOR_RED glm::vec3(1.0, 0.2F, 0.2F)
 
 // Global variables
 struct frame_data_point g_data_point = {};
@@ -225,8 +227,7 @@ bool load_font() {
     }
 
     FT_Face face = nullptr;
-    // TODO: remove hardcoded path
-    if (FT_New_Face(ft, "/usr/share/fonts/TTF/DejaVuSans.ttf", 0, &face) != 0) {
+    if (FT_New_Memory_Face(ft, fonts_DejaVuSansMono_ttf, fonts_DejaVuSansMono_ttf_len, 0, &face) != 0) {
         log_error("font not found");
         return false;
     }
@@ -345,10 +346,10 @@ void analyser_loop() {
 void draw_game_state() {
     char buffer[50];
 
-    (void) sprintf(buffer, STATUS, frame_data_analyser::player_status(g_status));
+    (void) sprintf(buffer, DISTANCE, g_distance);
     render_line(buffer, 0, TEXT_COLOR_GREEN);
 
-    (void) sprintf(buffer, DISTANCE, g_distance);
+    (void) sprintf(buffer, STATUS, frame_data_analyser::player_status(g_status));
     render_line(buffer, 1, TEXT_COLOR_GREEN);
 
     (void) sprintf(buffer, FRAME_ADVANTAGE, g_data_point.frame_advantage);
