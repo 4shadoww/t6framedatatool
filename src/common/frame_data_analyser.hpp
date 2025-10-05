@@ -20,7 +20,7 @@
 
 #include "ring_buffer.hpp"
 
-#include "memory_reader.h"
+#include "game_state_reader.h"
 
 struct frame_data_point {
     int startup_frames;

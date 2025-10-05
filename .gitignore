@@ -3,3 +3,6 @@ compile_commands.json
 .cache
 3rdparty
 generated-src
+__cmake_systeminformation
+.clangd
+run-clang-tidy.py

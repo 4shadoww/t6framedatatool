@@ -16,13 +16,15 @@
 */
 
 #include "ring_buffer.hpp"
+
 #include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <thread>
 
+#include "game_state_reader.h"
 #include "logging.h"
-#include "memory_reader.h"
+#include "memory_reader_types.h"
 
 #include "frame_data_analyser.hpp"
 
@@ -172,7 +174,7 @@ start_frame frame_data_analyser::get_startup_frame(const bool p2) {
         const start_frame start_frame = buffer->pop();
         // Reverse walk frames
         for (size_t j = 0; j < REVERSE_WALK_LIMIT; j++) {
-            game_state *frame = m_frame_buffer.get_from_head(j);
+            const game_state *frame = m_frame_buffer.get_from_head(j);
             const uint32_t last_action = p2 ? frame->p2_frames_last_action : frame->p1_frames_last_action;
 
             if (frame->game_frame - start_frame.game_frame + 1 == last_action) {
@@ -181,7 +183,7 @@ start_frame frame_data_analyser::get_startup_frame(const bool p2) {
         }
     }
 
-    log_fatal("plater startup frame not found");
+    log_fatal("player startup frame not found");
     return {};
 }
 

@@ -15,20 +15,10 @@
   along with this program.    If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef MEMORY_READER_H
-#define MEMORY_READER_H
+// Memory reader init values
+#define MR_INIT_OK (0)
+#define MR_INIT_ERROR (-1)
 
-#include <stdint.h>
+#define READ_ERROR (-1)
+#define READ_OK (0)
 
-/**
- * Finds T6 process ID and initializes the memory
- *
- * @return MR_INIT value
- */
-int platform_init_memory_reader(void);
-
-int read_bytes_raw(const long long address, void *buf, const size_t size);
-int read_4bytes(const long long address, int32_t *value);
-int read_2bytes(const long long address, int16_t *value);
-
-#endif

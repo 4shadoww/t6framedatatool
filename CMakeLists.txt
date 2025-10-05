@@ -41,9 +41,9 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -s")
 endif()
 
+add_subdirectory(src)
+
 if(UNIT_TESTING)
     enable_testing()
     add_subdirectory(tests)
-else()
-    add_subdirectory(src)
 endif()
