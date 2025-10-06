@@ -18,6 +18,7 @@
 #ifndef MEMORY_READER_H
 #define MEMORY_READER_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 /**

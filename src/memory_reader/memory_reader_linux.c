@@ -29,6 +29,7 @@
 #include "number_conversions.h"
 
 #include "memory_reader.h"
+#include "memory_reader_types.h"
 
 /*
  * Memory reader for linux platforms
@@ -49,7 +50,7 @@ static inline void set_read_address(void *address) {
     g_remote[0].iov_base = address;
 }
 
-static inline int read_bytes_raw(const long address, void *buf, const size_t size) {
+int read_bytes_raw(const long long address, void *buf, const size_t size) {
     g_local[0].iov_len = size;
     set_read_address((void *) address); // NOLINT
 
@@ -63,7 +64,7 @@ static inline int read_bytes_raw(const long address, void *buf, const size_t siz
     return (int) nread;
 }
 
-static inline int read_4bytes(const long address, int32_t *value) {
+int read_4bytes(const long long address, int32_t *value) {
     g_local[0].iov_len = 4;
     set_read_address((void *) address); // NOLINT
 
@@ -76,7 +77,7 @@ static inline int read_4bytes(const long address, int32_t *value) {
     return READ_OK;
 }
 
-static inline int read_2bytes(const long address, int16_t *value) {
+int read_2bytes(const long long address, int16_t *value) {
     g_local[0].iov_len = 2;
     set_read_address((void *) address); // NOLINT
 
