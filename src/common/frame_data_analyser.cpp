@@ -254,14 +254,15 @@ void frame_data_analyser::handle_status() {
 }
 
 bool frame_data_analyser::flip_player_data(game_state &state) {
-    enum player_side side = {};
-    const int result = player_side((int32_t *) &side); // NOLINT
+    int32_t side_val = 0;
+    const int result = player_side(&side_val);
 
     if (result == READ_ERROR) {
         log_error("failed to read player side");
         return false;
     }
 
+    const enum player_side side = (enum player_side)side_val;
     const game_state temp_state = state;
 
     switch (side) {

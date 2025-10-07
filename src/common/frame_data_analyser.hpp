@@ -127,7 +127,7 @@ public:
     static const char *player_status(const player_state state);
 
 private:
-    static bool m_stop;
+    static volatile bool m_stop;
     static ring_buffer<game_state> m_frame_buffer;
     static event_listener *m_listener;
     static int last_player_intent;
