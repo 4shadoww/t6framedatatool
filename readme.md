@@ -47,4 +47,4 @@ Known bugs
 - Frame data of moves which do damage at multiple points of the move are not calculated correctly.
   For example Alisa Destroy Form.
 
-- Player side address might be dynamic so there are scenarios when the tool won't work as it's not able to get a valid reading.
+- Player side address is dynamic so there are scenarios when the tool won't work as it's not able to get a valid reading.
