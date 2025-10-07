@@ -9,7 +9,6 @@ else()
 endif()
 
 add_library(${TARGET} ${MEMORY_READER_LIB_TYPE} ${SRCS})
-add_compile_options("-m64")
 set_property(TARGET ${TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_include_directories(${TARGET} PUBLIC .)
 target_link_libraries(${TARGET}

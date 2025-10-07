@@ -9,6 +9,10 @@ FONT_SOURCE=$(GENERATED_SRC_DIR)/fonts.h
 
 .PHONY: test_deps 3rdparty
 
+# Use GCC
+export CC=gcc
+export CXX=g++
+
 ignore_3rdparty:
 	mkdir -p $(3RDPARTY_DIR)
 	echo "Checks: '-*'" > $(3RDPARTY_DIR)/.clang-tidy
@@ -103,10 +107,10 @@ lint:
 	run-clang-tidy -j 8 -allow-no-checks
 
 format:
-	find src -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' | clang-format --style=file -i --files=/dev/stdin
+	find src -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' | clang-format --style=file --files=/dev/stdin
 
 check-format:
-	find src -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' | clang-format --style=file -i -n --Werror --files=/dev/stdin
+	find src -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' | clang-format --style=file -n --Werror --files=/dev/stdin
 
 check: check-format lint
 

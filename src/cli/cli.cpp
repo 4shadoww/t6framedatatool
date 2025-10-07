@@ -24,8 +24,8 @@
 class listener : public event_listener {
 public:
     void frame_data(frame_data_point frame_data) override;
-    void distance(float _) override;
-    void status(player_state _) override;
+    void distance(float  /*distance*/) override;
+    void status(player_state  /*status*/) override;
     void game_hooked() override;
 };
 
@@ -34,11 +34,11 @@ void listener::frame_data(const frame_data_point frame_data) {
               << std::endl;
 }
 
-void listener::distance(const float _) {
+void listener::distance(const float /*distance*/) {
     // NOP
 }
 
-void listener::status(const player_state _) {
+void listener::status(const player_state /*status*/) {
     // NOP
 }
 

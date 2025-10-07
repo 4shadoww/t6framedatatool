@@ -32,7 +32,7 @@ if(GUI)
     add_subdirectory("${3RDPARTY_LIBS}/freetype" freetype)
 
     # Glm
-    add_subdirectory("${3RDPARTY_LIBS}/glm" glm)
+    add_subdirectory("${3RDPARTY_LIBS}/glm")
 endif()
 
 if(DEBUG)
