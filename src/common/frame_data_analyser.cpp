@@ -40,7 +40,7 @@
 
 //// frame_data_analyser
 ///
-bool frame_data_analyser::m_stop = false;
+volatile bool frame_data_analyser::m_stop = false;
 ring_buffer<game_state> frame_data_analyser::m_frame_buffer(FRAME_BUFFER_SIZE);
 ring_buffer<start_frame> frame_data_analyser::m_p1_start_frames(PLAYER_ACTION_BUFFER_SIZE);
 ring_buffer<start_frame> frame_data_analyser::m_p2_start_frames(PLAYER_ACTION_BUFFER_SIZE);
