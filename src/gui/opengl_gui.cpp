@@ -337,6 +337,11 @@ void analyser_loop() {
             break;
         }
 
+        if (frame_data_analyser::should_stop()) {
+            log_debug("shutting down analyser");
+            return;
+        }
+
         log_debug("starting analyser again after timeout");
         gui_state_no_game();
         std::this_thread::sleep_for(std::chrono::seconds(ANALYSER_START_INTERVAL));

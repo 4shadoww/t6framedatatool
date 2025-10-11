@@ -355,7 +355,6 @@ bool frame_data_analyser::init(event_listener *listener) {
     if (listener == nullptr) {
         return false;
     }
-    frame_data_analyser::m_stop = false;
     frame_data_analyser::m_listener = listener;
 
     const int result = init_memory_reader();
@@ -408,4 +407,8 @@ bool frame_data_analyser::start(event_listener *listener) {
 
 void frame_data_analyser::stop() {
     m_stop = true;
+}
+
+bool frame_data_analyser::should_stop() {
+    return m_stop;
 }

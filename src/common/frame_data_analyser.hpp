@@ -123,6 +123,7 @@ public:
      * Stop the analyser loop
      */
     static void stop();
+    static bool should_stop();
 
     static const char *player_status(const player_state state);
 
