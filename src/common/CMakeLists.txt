@@ -3,7 +3,7 @@ set(TARGET common)
 set(SRCS frame_data_analyser.cpp)
 
 if(WIN32)
-    #set(SRCS )
+    set(SRCS ${SRCS} platform_threading_windows.cpp)
 elseif(UNIX)
     set(SRCS ${SRCS} platform_threading_linux.cpp)
 endif()
