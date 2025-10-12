@@ -24,8 +24,8 @@
 class listener : public event_listener {
 public:
     void frame_data(frame_data_point frame_data) override;
-    void distance(float  /*distance*/) override;
-    void status(player_state  /*status*/) override;
+    void distance(float /*distance*/) override;
+    void status(player_state /*status*/) override;
     void game_hooked() override;
 };
 

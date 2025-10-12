@@ -262,7 +262,7 @@ bool frame_data_analyser::flip_player_data(game_state &state) {
         return false;
     }
 
-    const enum player_side side = (enum player_side)side_val;
+    const auto side = (enum player_side) side_val;
     const game_state temp_state = state;
 
     switch (side) {
