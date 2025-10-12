@@ -58,6 +58,7 @@ int main() {
     int side = 0;
     (void) player_side(&side);
     std::cout << "player side: " << side << std::endl;
+    std::cout << "player side address: " << std::hex << player_side_address() << std::endl;
 
     return 0;
 }

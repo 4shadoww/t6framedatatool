@@ -116,6 +116,9 @@ int platform_init_memory_reader(void) {
         return MR_INIT_ERROR;
     }
 
+    if (g_h_process != NULL) {
+        CloseHandle(g_h_process);
+    }
     // Open the process with read access rights
     g_h_process = OpenProcess(PROCESS_VM_READ, FALSE, pid);
     if (g_h_process == NULL) {
@@ -126,12 +129,4 @@ int platform_init_memory_reader(void) {
 
     log_info("Successfully attached to process %s (PID: %lu)", RPCS3_NAME, pid);
     return MR_INIT_OK;
-}
-
-// --- Helper function to close the handle on exit ---
-void cleanup_memory_reader(void) {
-    if (g_h_process != NULL) {
-        CloseHandle(g_h_process);
-        g_h_process = NULL;
-    }
 }

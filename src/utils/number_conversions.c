@@ -47,9 +47,7 @@ int16_t big16_to_little(const char *const buf) {
 
 uint64_t ps3_address_to_x64(const uint32_t address) {
     static const uint64_t BASE_ADDRESS = 0x300000000;
-    static const uint8_t OFFSET = 104;
-
-    return address + BASE_ADDRESS + OFFSET;
+    return address + BASE_ADDRESS;
 }
 
 float big32_to_little_float(const char *const buf) {

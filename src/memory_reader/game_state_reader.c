@@ -26,8 +26,21 @@
 #include "memory_reader_types.h"
 #include "number_conversions.h"
 
+static uint64_t g_player_side_address = 0;
+
 int init_memory_reader(void) {
-    return platform_init_memory_reader();
+    if (platform_init_memory_reader() == MR_INIT_ERROR) {
+        return MR_INIT_ERROR;
+    }
+    int32_t value = 0;
+    if (read_4bytes(PLAYER_SIDE_PTR, &value) == READ_ERROR) {
+        return MR_INIT_ERROR;
+    }
+
+    value += PLAYER_SIDE_OFFSET;
+    g_player_side_address = ps3_address_to_x64((uint32_t) value);
+
+    return MR_INIT_OK;
 }
 
 int p1_frames_last_action(int32_t *value) {
@@ -101,7 +114,11 @@ int current_game_frame(uint32_t *value) {
 }
 
 int player_side(int32_t *value) {
-    return read_4bytes(PLAYER_SIDE, value);
+    return read_4bytes((long long) g_player_side_address, value);
+}
+
+uint64_t player_side_address(void) {
+    return g_player_side_address;
 }
 
 int read_game_state(struct game_state *state) {
