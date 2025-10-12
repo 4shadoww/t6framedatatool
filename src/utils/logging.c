@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2020 rxi
  *
+ * Modified by Noa-Emil Nissinen
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
  * deal in the Software without restriction, including without limitation the
@@ -28,15 +30,15 @@ typedef struct {
     log_LogFn fn;
     void *udata;
     int level;
-} Callback;
+} callback;
 
 static struct {
     void *udata;
     log_LockFn lock;
     int level;
     bool quiet;
-    Callback callbacks[MAX_CALLBACKS];
-} L;
+    callback callbacks[MAX_CALLBACKS];
+} lock_struct;
 
 
 static const char *level_strings[] = {
@@ -51,6 +53,7 @@ static const char *level_colors[] = {
 
 
 static void stdout_callback(log_Event *ev) {
+    // NOLINTBEGIN
     char buf[16];
     buf[strftime(buf, sizeof(buf), "%H:%M:%S", ev->time)] = '\0';
 #ifdef LOG_USE_COLOR
@@ -59,35 +62,38 @@ static void stdout_callback(log_Event *ev) {
         buf, level_colors[ev->level], level_strings[ev->level],
         ev->file, ev->line);
 #else
-    fprintf(
+    (void) fprintf(
         ev->udata, "%s %-5s %s:%d: ",
         buf, level_strings[ev->level], ev->file, ev->line);
 #endif
-    vfprintf(ev->udata, ev->fmt, ev->ap);
-    fprintf(ev->udata, "\n");
-    fflush(ev->udata);
+    (void) vfprintf(ev->udata, ev->fmt, ev->ap);
+    (void) fprintf(ev->udata, "\n");
+    (void) fflush(ev->udata);
+    // NOLINTEND
 }
 
 
 static void file_callback(log_Event *ev) {
+    // NOLINTBEGIN
     char buf[64];
     buf[strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", ev->time)] = '\0';
-    fprintf(
+    (void) fprintf(
         ev->udata, "%s %-5s %s:%d: ",
         buf, level_strings[ev->level], ev->file, ev->line);
-    vfprintf(ev->udata, ev->fmt, ev->ap);
-    fprintf(ev->udata, "\n");
-    fflush(ev->udata);
+    (void) vfprintf(ev->udata, ev->fmt, ev->ap);
+    (void) fprintf(ev->udata, "\n");
+    (void) fflush(ev->udata);
+    // NOLINTEND
 }
 
 
 static void lock(void)     {
-    if (L.lock) { L.lock(true, L.udata); }
+    if (lock_struct.lock) { lock_struct.lock(true, lock_struct.udata); }
 }
 
 
 static void unlock(void) {
-    if (L.lock) { L.lock(false, L.udata); }
+    if (lock_struct.lock) { lock_struct.lock(false, lock_struct.udata); }
 }
 
 
@@ -97,25 +103,25 @@ const char* log_level_string(int level) {
 
 
 void log_set_lock(log_LockFn fn, void *udata) {
-    L.lock = fn;
-    L.udata = udata;
+    lock_struct.lock = fn;
+    lock_struct.udata = udata;
 }
 
 
 void log_set_level(int level) {
-    L.level = level;
+    lock_struct.level = level;
 }
 
 
 void log_set_quiet(bool enable) {
-    L.quiet = enable;
+    lock_struct.quiet = enable;
 }
 
 
 int log_add_callback(log_LogFn fn, void *udata, int level) {
     for (int i = 0; i < MAX_CALLBACKS; i++) {
-        if (!L.callbacks[i].fn) {
-            L.callbacks[i] = (Callback) { fn, udata, level };
+        if (!lock_struct.callbacks[i].fn) {
+            lock_struct.callbacks[i] = (callback) { fn, udata, level };
             return 0;
         }
     }
@@ -131,7 +137,7 @@ int log_add_fp(FILE *fp, int level) {
 static void init_event(log_Event *ev, void *udata) {
     if (!ev->time) {
         time_t t = time(NULL);
-        ev->time = localtime(&t);
+        ev->time = localtime(&t); // NOLINT protected by mutex
     }
     ev->udata = udata;
 }
@@ -147,15 +153,15 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
 
     lock();
 
-    if (!L.quiet && level >= L.level) {
+    if (!lock_struct.quiet && level >= lock_struct.level) {
         init_event(&ev, stderr);
         va_start(ev.ap, fmt);
         stdout_callback(&ev);
         va_end(ev.ap);
     }
 
-    for (int i = 0; i < MAX_CALLBACKS && L.callbacks[i].fn; i++) {
-        Callback *cb = &L.callbacks[i];
+    for (int i = 0; i < MAX_CALLBACKS && lock_struct.callbacks[i].fn; i++) {
+        callback *cb = &lock_struct.callbacks[i];
         if (level >= cb->level) {
             init_event(&ev, cb->udata);
             va_start(ev.ap, fmt);
