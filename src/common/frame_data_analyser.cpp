@@ -33,8 +33,8 @@
 // Run the tool twice as fast as the game to get accurate measurements
 #define TICK_LENGTH 8333333
 
-// Five seconds of frames
-#define FRAME_BUFFER_SIZE (size_t) (60 * 5)
+// Ten seconds of frames
+#define FRAME_BUFFER_SIZE (size_t) (60 * 10)
 #define PLAYER_ACTION_BUFFER_SIZE 5
 #define REVERSE_WALK_LIMIT 6
 

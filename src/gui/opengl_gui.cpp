@@ -36,6 +36,7 @@
 
 #include "frame_data_analyser.hpp"
 #include "gui_constants.hpp"
+#include "platform_threading.hpp"
 #include "shaders.hpp"
 #include "src/gui/platform_gui.hpp"
 
@@ -402,6 +403,7 @@ void gui_loop(GLFWwindow *window) {
 
 void start_gui(GLFWwindow *window) {
     std::thread analyser_thread(&analyser_loop);
+    set_realtime_prio(analyser_thread);
 
     gui_loop(window);
 
