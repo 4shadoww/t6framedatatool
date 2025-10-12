@@ -21,4 +21,5 @@ Release 0.3 (UPCOMING)
 - Windows port
 - Release build fixed
 - Player side reading fixed
+- Threading priority
 - Bug fixes
