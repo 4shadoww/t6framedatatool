@@ -36,9 +36,10 @@
 
 #include "frame_data_analyser.hpp"
 #include "gui_constants.hpp"
+#include "platform_gui.hpp"
 #include "platform_threading.hpp"
 #include "shaders.hpp"
-#include "src/gui/platform_gui.hpp"
+#include "version.hpp"
 
 #include "generated-src/fonts.h"
 
@@ -416,6 +417,7 @@ void start_gui(GLFWwindow *window) {
 
 int main() {
     log_set_level(LOG_TRACE);
+    log_info("%s %s", PROGRAM_NAME, VERSION);
 
     GLFWwindow *window = setup_gui();
     if (window == nullptr) {

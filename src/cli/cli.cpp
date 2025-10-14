@@ -20,6 +20,7 @@
 #include "logging.h"
 
 #include "frame_data_analyser.hpp"
+#include "version.hpp"
 
 class listener : public event_listener {
 public:
@@ -48,6 +49,8 @@ void listener::game_hooked() {
 
 int main() {
     log_set_level(LOG_TRACE);
+
+    log_info("%s %s", PROGRAM_NAME, VERSION);
 
     listener listener;
     frame_data_analyser::start(&listener);
