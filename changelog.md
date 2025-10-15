@@ -15,7 +15,7 @@ Release 0.2
 - Minor bug fixes
 - Added clang-format and clang-tidy for enforcing coding standards
 
-Release 0.3 (UPCOMING)
+Release 0.3
 ----------------------
 
 - Windows port
