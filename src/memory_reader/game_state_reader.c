@@ -59,6 +59,10 @@ int32_t p1_intent(int32_t *value) {
     return read_4bytes(P1_INTENT, value);
 }
 
+int32_t p1_move(int32_t *value) {
+    return read_4bytes(P1_MOVE, value);
+}
+
 int32_t p1_state(int32_t *value) {
     return read_4bytes(P1_STATE, value);
 }
@@ -90,6 +94,10 @@ int p2_recovery_frames(uint32_t *value) {
 
 int p2_intent(int32_t *value) {
     return read_4bytes(P2_INTENT, value);
+}
+
+int p2_move(int32_t *value) {
+    return read_4bytes(P2_MOVE, value);
 }
 
 int p2_state(int32_t *value) {
@@ -161,6 +169,13 @@ int read_game_state(struct game_state *state) {
     }
     state->p1_intent = value;
 
+    result = p1_move(&value);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p1 move");
+        return READ_ERROR;
+    }
+    state->p1_move = value;
+
     result = p1_state(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p1 state");
@@ -203,6 +218,13 @@ int read_game_state(struct game_state *state) {
         return READ_ERROR;
     }
     state->p2_intent = value;
+
+    result = p2_move(&value);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p2 move");
+        return READ_ERROR;
+    }
+    state->p2_move = value;
 
     result = p2_state(&value);
     if (result == READ_ERROR) {

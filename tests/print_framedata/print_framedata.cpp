@@ -41,6 +41,7 @@ int main() {
     std::cout << "P1 recovery frames: " << state.p1_recovery_frames << std::endl;
     std::cout << "P1 connection: " << (bool) state.p1_connection << std::endl;
     std::cout << "P1 intent: " << state.p1_intent << std::endl;
+    std::cout << "P1 move: " << state.p1_move << std::endl;
     std::cout << "P1 state: " << state.p1_state << std::endl;
     std::cout << "P1 position: " << state.p1_position.x << ", " << state.p1_position.y << ", " << state.p1_position.z << std::endl;
 
@@ -49,6 +50,7 @@ int main() {
     std::cout << "P2 recovery frames: " << state.p2_recovery_frames << std::endl;
     std::cout << "P2 connection: " << (bool) state.p2_connection << std::endl;
     std::cout << "P2 intent: " << state.p2_intent << std::endl;
+    std::cout << "P2 move: " << state.p2_move << std::endl;
     std::cout << "P2 state: " << state.p2_state << std::endl;
     std::cout << "P2 position: " << state.p2_position.x << ", " << state.p2_position.y << ", " << state.p2_position.z << std::endl;
 

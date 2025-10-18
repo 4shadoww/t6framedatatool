@@ -88,6 +88,10 @@ enum class player_side : uint8_t {
     LEFT = 1
 };
 
+enum class player_move : uint8_t {
+    IDLE = 0
+};
+
 class event_listener {
 public:
     virtual ~event_listener() = default;

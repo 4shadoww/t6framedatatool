@@ -37,6 +37,7 @@ struct game_state {
     uint32_t p1_recovery_frames;
     int8_t p1_connection;
     int32_t p1_intent;
+    int32_t p1_move;
     int32_t p1_state;
     struct player_coordinate p1_position;
 
@@ -44,6 +45,7 @@ struct game_state {
     uint32_t p2_recovery_frames;
     int8_t p2_connection;
     int32_t p2_intent;
+    int32_t p2_move;
     int32_t p2_state;
     struct player_coordinate p2_position;
 };
@@ -54,6 +56,7 @@ int p1_frames_last_action(int32_t *value);
 int p1_connection(int16_t *value);
 int p1_recovery_frames(uint32_t *value);
 int p1_intent(int32_t *value);
+int p1_move(int32_t *value);
 int p1_state(int32_t *value);
 int p1_position(struct player_coordinate *value);
 
@@ -61,6 +64,7 @@ int p2_frames_last_action(int32_t *value);
 int p2_connection(int16_t *value);
 int p2_recovery_frames(uint32_t *value);
 int p2_intent(int32_t *value);
+int p2_move(int32_t *value);
 int p2_state(int32_t *value);
 int p2_position(struct player_coordinate *value);
 

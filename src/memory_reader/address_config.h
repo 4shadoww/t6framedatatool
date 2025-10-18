@@ -28,6 +28,8 @@
 #define P1_CONNECTION_BOOL GAME_BASE_ADDRESS + 915132194
 // Player 1 intent
 #define P1_INTENT GAME_BASE_ADDRESS + 472
+// Player 1 move
+#define P1_MOVE GAME_BASE_ADDRESS + 332
 // Player 1 state
 #define P1_STATE GAME_BASE_ADDRESS + 172
 // Player 1 coordinates
@@ -41,6 +43,8 @@
 #define P2_CONNECTION_BOOL GAME_BASE_ADDRESS + 915132186
 // Player 2 intent
 #define P2_INTENT GAME_BASE_ADDRESS + 3608
+// Player 2 move
+#define P2_MOVE GAME_BASE_ADDRESS + 3468
 // Player 1 state
 #define P2_STATE GAME_BASE_ADDRESS + 3308
 // Player 2 coordinates

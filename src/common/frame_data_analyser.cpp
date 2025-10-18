@@ -135,14 +135,14 @@ void frame_data_analyser::analyse_start_frames() {
     }
 
     // Check if P1 initiated attack
-    if (is_attack((player_intent) current->p1_intent) && previous->p1_intent != current->p1_intent) {
+    if ((player_move) current->p1_move != player_move::IDLE && previous->p1_move != current->p1_move) {
         m_p1_start_frames.push({.index = m_frame_buffer.head_index(),
                                 .recovery_frames = current->p1_recovery_frames,
                                 .game_frame = current->game_frame});
     }
 
     // Check if P2 initiated attack
-    if (is_attack((player_intent) current->p2_intent) && previous->p2_intent != current->p2_intent) {
+    if ((player_move) current->p2_move != player_move::IDLE && previous->p2_move != current->p2_move) {
         m_p2_start_frames.push({.index = m_frame_buffer.head_index(),
                                 .recovery_frames = current->p2_recovery_frames,
                                 .game_frame = current->game_frame});
