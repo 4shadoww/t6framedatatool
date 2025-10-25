@@ -61,6 +61,7 @@ enum class player_state : int {
     CROUCHING_BACKWARDS = 143401,
     CROUCHING_FORWARDS = 75809,
     STANDING_HIT = 22562,
+    CROUCH_DASH_JUMP = 575554,
 };
 
 enum class player_intent : int {
@@ -130,12 +131,14 @@ public:
     static bool should_stop();
 
     static const char *player_status(const player_state state);
+    static void set_logging(const bool enabled);
 
 private:
     static volatile bool m_stop;
     static ring_buffer<game_state> m_frame_buffer;
     static event_listener *m_listener;
-    static int last_player_intent;
+    static int m_last_player_intent;
+    static bool m_logging;
 
     // Analysis state
     static ring_buffer<start_frame> m_p1_start_frames;
@@ -145,10 +148,15 @@ private:
     static bool init(event_listener *listener);
     static bool loop();
 
+    inline static void log_frame();
     inline static bool flip_player_data(game_state &state);
-    inline static bool is_attack(const player_intent intent);
+    inline static bool is_attack(const player_intent &intent);
+    inline static bool p1_recovery_reset(const game_state *const previous, const game_state *const current);
+    inline static bool p2_recovery_reset(const game_state *const previous, const game_state *const current);
     static start_frame get_startup_frame(const bool p2);
 
+    inline static bool p1_initiated_attack(const game_state *previous, const game_state *current);
+    inline static bool p2_initiated_attack(const game_state *previous, const game_state *current);
     static void analyse_start_frames();
     static bool update_game_state();
     static connection_event has_new_connection();

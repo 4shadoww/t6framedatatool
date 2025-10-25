@@ -16,10 +16,17 @@ Release 0.2
 - Added clang-format and clang-tidy for enforcing coding standards
 
 Release 0.3
-----------------------
+-----------
 
 - Windows port
 - Release build fixed
 - Player side reading fixed
 - Threading priority
 - Bug fixes
+
+Release 0.4 (UPCOMING)
+----------------------
+
+- Fixes for frame advantage calculation
+- Added missing states to analyser
+- More accurate frame analyser loop

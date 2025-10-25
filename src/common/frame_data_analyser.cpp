@@ -20,6 +20,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <sstream>
 #include <thread>
 
 #include "game_state_reader.h"
@@ -36,7 +37,7 @@
 // Ten seconds of frames
 #define FRAME_BUFFER_SIZE (size_t) (60 * 10)
 #define PLAYER_ACTION_BUFFER_SIZE 5
-#define REVERSE_WALK_LIMIT 6
+#define REVERSE_WALK_LIMIT 30
 
 //// frame_data_analyser
 ///
@@ -48,9 +49,33 @@ ring_buffer<start_frame> frame_data_analyser::m_p2_start_frames(PLAYER_ACTION_BU
 event_listener *frame_data_analyser::m_listener = nullptr;
 
 // Avoid log spam
-int frame_data_analyser::last_player_intent = 0;
+int frame_data_analyser::m_last_player_intent = 0;
+bool frame_data_analyser::m_logging = false;
 
-bool frame_data_analyser::is_attack(const player_intent intent) {
+void frame_data_analyser::log_frame() {
+    const game_state *const state = m_frame_buffer.head();
+    std::stringstream stream;
+    stream << "FRAME: " << state->game_frame << std::endl
+           << "P1 last action: " << state->p1_frames_last_action << std::endl
+           << "P1 recovery frames: " << state->p1_recovery_frames << std::endl
+           << "P1 connection: " << (bool) state->p1_connection << std::endl
+           << "P1 intent: " << state->p1_intent << std::endl
+           << "P1 move: " << state->p1_move << std::endl
+           << "P1 state: " << state->p1_state << std::endl
+           << "P1 position: " << state->p1_position.x << ", " << state->p1_position.y << ", " << state->p1_position.z
+           << std::endl
+           << "P2 last action: " << state->p2_frames_last_action << std::endl
+           << "P2 recovery frames: " << state->p2_recovery_frames << std::endl
+           << "P2 connection: " << (bool) state->p2_connection << std::endl
+           << "P2 intent: " << state->p2_intent << std::endl
+           << "P2 move: " << state->p2_move << std::endl
+           << "P2 state: " << state->p2_state << std::endl
+           << "P2 position: " << state->p2_position.x << ", " << state->p2_position.y << ", " << state->p2_position.z;
+
+    log_info(stream.str().c_str());
+}
+
+bool frame_data_analyser::is_attack(const player_intent &intent) {
     switch (intent) {
     case player_intent::ATTACK1:
     case player_intent::ATTACK3:
@@ -79,6 +104,14 @@ bool frame_data_analyser::is_attack(const player_intent intent) {
     }
 }
 
+bool frame_data_analyser::p1_recovery_reset(const game_state *const previous, const game_state *const current) {
+    return previous->p1_move != current->p1_move;
+}
+
+bool frame_data_analyser::p2_recovery_reset(const game_state *const previous, const game_state *const current) {
+    return previous->p2_move != current->p2_move;
+}
+
 const char *frame_data_analyser::player_status(const player_state state) {
     static const char STANDING[] = "Standing";
     static const char CROUCH[] = "Crouch";
@@ -99,6 +132,7 @@ const char *frame_data_analyser::player_status(const player_state state) {
     case player_state::RECOVER2:
     case player_state::SIDE_STEPPING:
     case player_state::STANDING_HIT:
+    case player_state::CROUCH_DASH_JUMP:
         return STANDING;
     case player_state::CROUCH:
         return CROUCH;
@@ -118,12 +152,20 @@ const char *frame_data_analyser::player_status(const player_state state) {
         return GROUNDED;
     }
 
-    if (last_player_intent != (int) state) {
+    if (m_last_player_intent != (int) state) {
         log_debug("unknown player status %d", state);
-        last_player_intent = (int) state;
+        m_last_player_intent = (int) state;
     }
 
     return UNDETERMINABLE;
+}
+
+bool frame_data_analyser::p1_initiated_attack(const game_state *previous, const game_state *current) {
+    return ((player_move) current->p1_move != player_move::IDLE && previous->p1_move != current->p1_move);
+}
+
+bool frame_data_analyser::p2_initiated_attack(const game_state *previous, const game_state *current) {
+    return ((player_move) current->p2_move != player_move::IDLE && previous->p2_move != current->p2_move);
 }
 
 void frame_data_analyser::analyse_start_frames() {
@@ -135,17 +177,23 @@ void frame_data_analyser::analyse_start_frames() {
     }
 
     // Check if P1 initiated attack
-    if ((player_move) current->p1_move != player_move::IDLE && previous->p1_move != current->p1_move) {
+    if (p1_initiated_attack(previous, current)) {
         m_p1_start_frames.push({.index = m_frame_buffer.head_index(),
                                 .recovery_frames = current->p1_recovery_frames,
                                 .game_frame = current->game_frame});
+        if (m_logging) {
+            log_info("MARK STARTUP P1: %i", current->game_frame);
+        }
     }
 
     // Check if P2 initiated attack
-    if ((player_move) current->p2_move != player_move::IDLE && previous->p2_move != current->p2_move) {
+    if (p2_initiated_attack(previous, current)) {
         m_p2_start_frames.push({.index = m_frame_buffer.head_index(),
                                 .recovery_frames = current->p2_recovery_frames,
                                 .game_frame = current->game_frame});
+        if (m_logging) {
+            log_info("MARK STARTUP P2: %i", current->game_frame);
+        }
     }
 }
 
@@ -177,6 +225,7 @@ start_frame frame_data_analyser::get_startup_frame(const bool p2) {
             const game_state *frame = m_frame_buffer.get_from_head(j);
             const uint32_t last_action = p2 ? frame->p2_frames_last_action : frame->p1_frames_last_action;
 
+            // Try to validate if the frame buffer has valid state
             if (frame->game_frame - start_frame.game_frame + 1 == last_action) {
                 return start_frame;
             }
@@ -187,7 +236,6 @@ start_frame frame_data_analyser::get_startup_frame(const bool p2) {
     return {};
 }
 
-
 void frame_data_analyser::handle_connection() {
     const connection_event connection = has_new_connection();
     if (connection == connection_event::NO_CONNECTION) {
@@ -195,20 +243,29 @@ void frame_data_analyser::handle_connection() {
     }
 
     const game_state *const current = m_frame_buffer.head();
+    const game_state *const previous = m_frame_buffer.get_from_head(1);
+
+    if (m_logging) {
+        log_info("MARK CONNECTION P%i: %i", connection, current->game_frame);
+    }
 
     start_frame start{};
     uint32_t opponent_recovery_frames = 0;
+    // Value in current frame
+    uint32_t player_recovery_frames = 0;
 
     switch (connection) {
     case connection_event::NO_CONNECTION:
         return;
     case connection_event::P1_CONNECTION:
         m_p2_start_frames.clear();
+        player_recovery_frames = current->p1_recovery_frames;
         opponent_recovery_frames = current->p2_recovery_frames;
         start = get_startup_frame(false);
         break;
     case connection_event::P2_CONNECTION:
         m_p1_start_frames.clear();
+        player_recovery_frames = current->p2_recovery_frames;
         opponent_recovery_frames = current->p1_recovery_frames;
         start = get_startup_frame(true);
         break;
@@ -224,10 +281,20 @@ void frame_data_analyser::handle_connection() {
 
     if (connection == connection_event::P1_CONNECTION) {
         startup_frames = (int) (current->game_frame - start.game_frame);
-        frame_advantage = (int) (startup_frames - (start.recovery_frames - opponent_recovery_frames));
+        // Don't base recovery time on startup frame if new recovery has begun
+        if (p1_recovery_reset(previous, current)) {
+            frame_advantage = (int) (opponent_recovery_frames - player_recovery_frames);
+        } else {
+            frame_advantage = (int) (startup_frames - (start.recovery_frames - opponent_recovery_frames));
+        }
     } else {
         startup_frames = (int) (current->game_frame - start.game_frame);
-        frame_advantage = (int) ((start.recovery_frames - opponent_recovery_frames) - startup_frames);
+        // Don't base recovery time on startup frame if new recovery has begun
+        if (p2_recovery_reset(previous, current)) {
+            frame_advantage = (int) (opponent_recovery_frames - player_recovery_frames);
+        } else {
+            frame_advantage = (int) ((start.recovery_frames - opponent_recovery_frames) - startup_frames);
+        }
         startup_frames = 0;
     }
 
@@ -348,6 +415,10 @@ bool frame_data_analyser::loop() {
     handle_distance();
     handle_status();
 
+    if (m_logging) {
+        log_frame();
+    }
+
     return true;
 }
 
@@ -411,4 +482,8 @@ void frame_data_analyser::stop() {
 
 bool frame_data_analyser::should_stop() {
     return m_stop;
+}
+
+void frame_data_analyser::set_logging(const bool enabled) {
+    m_logging = enabled;
 }
