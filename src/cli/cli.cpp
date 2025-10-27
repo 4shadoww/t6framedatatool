@@ -22,28 +22,28 @@
 #include "frame_data_analyser.hpp"
 #include "version.hpp"
 
-class listener : public event_listener {
+class Listener : public EventListener {
 public:
-    void frame_data(frame_data_point frame_data) override;
+    void frame_data(FrameDataPoint frame_data) override;
     void distance(float /*distance*/) override;
-    void status(player_state /*status*/) override;
+    void status(PlayerState /*status*/) override;
     void game_hooked() override;
 };
 
-void listener::frame_data(const frame_data_point frame_data) {
+void Listener::frame_data(const FrameDataPoint frame_data) {
     std::cout << "startup frames: " << frame_data.startup_frames << ", frame advantage: " << frame_data.frame_advantage
               << std::endl;
 }
 
-void listener::distance(const float /*distance*/) {
+void Listener::distance(const float /*distance*/) {
     // NOP
 }
 
-void listener::status(const player_state /*status*/) {
+void Listener::status(const PlayerState /*status*/) {
     // NOP
 }
 
-void listener::game_hooked() {
+void Listener::game_hooked() {
     // NOP
 }
 
@@ -52,8 +52,8 @@ int main() {
 
     log_info("%s %s", PROGRAM_NAME, VERSION);
 
-    listener listener;
-    frame_data_analyser::start(&listener);
+    Listener listener;
+    FrameDataAnalyser::start(&listener);
 
     return 0;
 }

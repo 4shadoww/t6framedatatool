@@ -22,24 +22,24 @@
 
 #include "game_state_reader.h"
 
-struct frame_data_point {
+struct FrameDataPoint {
     int startup_frames;
     int frame_advantage;
 };
 
-struct start_frame {
+struct StartFrame {
     size_t index;
     uint32_t recovery_frames;
     uint32_t game_frame;
 };
 
-enum connection_event : uint8_t {
+enum ConnectionEvent : uint8_t {
     NO_CONNECTION,
     P1_CONNECTION,
     P2_CONNECTION
 };
 
-enum class player_state : int {
+enum class PlayerState : int {
     STANDING = 6482,
     CROUCH = 538921,
     CROUCHING = 14633,
@@ -64,7 +64,7 @@ enum class player_state : int {
     CROUCH_DASH_JUMP = 575554,
 };
 
-enum class player_intent : int {
+enum class PlayerIntent : int {
     IDLE = 0,
     ATTACK1 = 1,
     ATTACK3 = 3,
@@ -84,82 +84,82 @@ enum class player_intent : int {
     GRAP_CONNECT = 65546,
 };
 
-enum class player_side : uint8_t {
+enum class PlayerSide : uint8_t {
     RIGHT = 0,
     LEFT = 1
 };
 
-enum class player_move : uint8_t {
+enum class PlayerMove : uint8_t {
     IDLE = 0
 };
 
-class event_listener {
+class EventListener {
 public:
-    virtual ~event_listener() = default;
-    event_listener() = default;
-    event_listener(const event_listener &) = default;
-    event_listener(event_listener &&) = default;
-    event_listener &operator=(const event_listener &) = default;
-    event_listener &operator=(event_listener &&) = default;
+    virtual ~EventListener() = default;
+    EventListener() = default;
+    EventListener(const EventListener &) = default;
+    EventListener(EventListener &&) = default;
+    EventListener &operator=(const EventListener &) = default;
+    EventListener &operator=(EventListener &&) = default;
 
-    virtual void frame_data(frame_data_point frame_data) = 0;
+    virtual void frame_data(FrameDataPoint frame_data) = 0;
     virtual void distance(float distance) = 0;
-    virtual void status(player_state status) = 0;
+    virtual void status(PlayerState status) = 0;
     virtual void game_hooked() = 0;
 };
 
-class frame_data_analyser {
+class FrameDataAnalyser {
 public:
-    frame_data_analyser() = delete;
-    ~frame_data_analyser() = delete;
+    FrameDataAnalyser() = delete;
+    ~FrameDataAnalyser() = delete;
 
-    frame_data_analyser(const frame_data_analyser &) = default;
-    frame_data_analyser(frame_data_analyser &&) = delete;
-    frame_data_analyser &operator=(const frame_data_analyser &) = default;
-    frame_data_analyser &operator=(frame_data_analyser &&) = delete;
+    FrameDataAnalyser(const FrameDataAnalyser &) = default;
+    FrameDataAnalyser(FrameDataAnalyser &&) = delete;
+    FrameDataAnalyser &operator=(const FrameDataAnalyser &) = default;
+    FrameDataAnalyser &operator=(FrameDataAnalyser &&) = delete;
 
     /**
      * Hook-up to game's memory and start analysing frames
      *
      * @param callback callback pointer
      */
-    static bool start(event_listener *listener);
+    static bool start(EventListener *listener);
     /**
      * Stop the analyser loop
      */
     static void stop();
     static bool should_stop();
 
-    static const char *player_status(const player_state state);
+    static const char *player_status(const PlayerState state);
     static void set_logging(const bool enabled);
 
 private:
     static volatile bool m_stop;
-    static ring_buffer<game_state> m_frame_buffer;
-    static event_listener *m_listener;
+    static RingBuffer<game_state> m_frame_buffer;
+    static EventListener *m_listener;
     static int m_last_player_intent;
     static bool m_logging;
 
     // Analysis state
-    static ring_buffer<start_frame> m_p1_start_frames;
-    static ring_buffer<start_frame> m_p2_start_frames;
+    static RingBuffer<StartFrame> m_p1_start_frames;
+    static RingBuffer<StartFrame> m_p2_start_frames;
 
 
-    static bool init(event_listener *listener);
+    static bool init(EventListener *listener);
     static bool loop();
 
     inline static void log_frame();
     inline static bool flip_player_data(game_state &state);
-    inline static bool is_attack(const player_intent &intent);
+    inline static bool is_attack(const PlayerIntent &intent);
     inline static bool p1_recovery_reset(const game_state *const previous, const game_state *const current);
     inline static bool p2_recovery_reset(const game_state *const previous, const game_state *const current);
-    static start_frame get_startup_frame(const bool p2);
+    static StartFrame get_startup_frame(const bool p2);
 
     inline static bool p1_initiated_attack(const game_state *previous, const game_state *current);
     inline static bool p2_initiated_attack(const game_state *previous, const game_state *current);
     static void analyse_start_frames();
     static bool update_game_state();
-    static connection_event has_new_connection();
+    static ConnectionEvent has_new_connection();
     static void handle_connection();
     static void handle_distance();
     static void handle_status();

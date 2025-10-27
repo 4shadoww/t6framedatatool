@@ -21,18 +21,18 @@
 #include <cstdlib>
 
 template<typename T>
-class ring_buffer {
+class RingBuffer {
 public:
-    explicit ring_buffer(const size_t size) : m_size(size), m_ring_buffer(new T[size]) {}
+    explicit RingBuffer(const size_t size) : m_size(size), m_ring_buffer(new T[size]) {}
 
-    ~ring_buffer() {
+    ~RingBuffer() {
         delete[] m_ring_buffer;
     }
 
-    ring_buffer(const ring_buffer &) = delete;
-    ring_buffer(ring_buffer &&) = delete;
-    ring_buffer &operator=(const ring_buffer &) = delete;
-    ring_buffer &operator=(ring_buffer &&) = delete;
+    RingBuffer(const RingBuffer &) = delete;
+    RingBuffer(RingBuffer &&) = delete;
+    RingBuffer &operator=(const RingBuffer &) = delete;
+    RingBuffer &operator=(RingBuffer &&) = delete;
 
     /**
      * Push new data to buffer

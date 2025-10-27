@@ -50,49 +50,49 @@ namespace {
 #define TEXT_COLOR_RED glm::vec3(1.0, 0.2F, 0.2F)
 
 // Global variables
-struct frame_data_point g_data_point = {};
+struct FrameDataPoint g_data_point = {};
 float g_distance = 0;
-player_state g_status = {};
+PlayerState g_status = {};
 bool g_game_hooked = false;
 
-struct font_char {
+struct FontChar {
     unsigned int texture_id; // ID handle of the glyph texture
     glm::ivec2 size; // Size of glyph
     glm::ivec2 bearing; // Offset from baseline to left/top of glyph
     unsigned int advance; // Horizontal offset to advance to next glyph
 };
 
-std::map<GLchar, font_char> font_chars;
+std::map<GLchar, FontChar> font_chars;
 unsigned int g_vao, g_vbo;
 unsigned int g_shader_program;
 
-class listener : public event_listener {
+class Listener : public EventListener {
 public:
-    void frame_data(const frame_data_point frame_data) override;
+    void frame_data(const FrameDataPoint frame_data) override;
     void distance(const float distance) override;
-    void status(const player_state state) override;
+    void status(const PlayerState state) override;
     void game_hooked() override;
 };
 
-void listener::frame_data(const frame_data_point frame_data) {
+void Listener::frame_data(const FrameDataPoint frame_data) {
     g_data_point = frame_data;
     log_info("startup frames: %d, frame advantage: %d", frame_data.startup_frames, frame_data.frame_advantage);
 }
 
-void listener::distance(const float distance) {
+void Listener::distance(const float distance) {
     g_distance = distance;
 }
 
-void listener::status(const player_state state) {
+void Listener::status(const PlayerState state) {
     g_status = state;
 }
 
-void listener::game_hooked() {
+void Listener::game_hooked() {
     g_game_hooked = true;
     platform_find_game_window();
 }
 
-listener g_listener;
+Listener g_listener;
 
 void render_text(unsigned int shader, std::string text, float x, float y, float scale, glm::vec3 color) { // NOLINT
     glUseProgram(shader);
@@ -103,7 +103,7 @@ void render_text(unsigned int shader, std::string text, float x, float y, float 
     // Iterate through all characters
     std::string::const_iterator c;
     for (c = text.begin(); c != text.end(); c++) {
-        const font_char ch = font_chars[*c];
+        const FontChar ch = font_chars[*c];
 
         const float xpos = x + ((float) ch.bearing.x * scale);
         const float ypos = y - ((float) (ch.size.y - ch.bearing.y) * scale);
@@ -267,12 +267,12 @@ bool load_font() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        const font_char character = {.texture_id = texture,
-                                     .size = glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-                                     .bearing = glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-                                     .advance = static_cast<unsigned int>(face->glyph->advance.x)};
+        const FontChar character = {.texture_id = texture,
+                                    .size = glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+                                    .bearing = glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+                                    .advance = static_cast<unsigned int>(face->glyph->advance.x)};
 
-        font_chars.insert(std::pair<char, font_char>(c, character));
+        font_chars.insert(std::pair<char, FontChar>(c, character));
     }
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -335,11 +335,11 @@ void gui_state_no_game() {
 
 void analyser_loop() {
     while (true) {
-        if (frame_data_analyser::start(&g_listener)) {
+        if (FrameDataAnalyser::start(&g_listener)) {
             break;
         }
 
-        if (frame_data_analyser::should_stop()) {
+        if (FrameDataAnalyser::should_stop()) {
             log_debug("shutting down analyser");
             return;
         }
@@ -356,7 +356,7 @@ void draw_game_state() {
     (void) sprintf(buffer, DISTANCE, g_distance);
     render_line(buffer, 0, TEXT_COLOR_GREEN);
 
-    (void) sprintf(buffer, STATUS, frame_data_analyser::player_status(g_status));
+    (void) sprintf(buffer, STATUS, FrameDataAnalyser::player_status(g_status));
     render_line(buffer, 1, TEXT_COLOR_GREEN);
 
     (void) sprintf(buffer, FRAME_ADVANTAGE, g_data_point.frame_advantage);
@@ -409,7 +409,7 @@ void start_gui(GLFWwindow *window) {
     gui_loop(window);
 
     // GUI has exited
-    frame_data_analyser::stop();
+    FrameDataAnalyser::stop();
     analyser_thread.join();
 }
 
