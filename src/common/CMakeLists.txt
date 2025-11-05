@@ -1,6 +1,6 @@
 set(TARGET common)
 
-set(SRCS frame_data_analyser.cpp)
+set(SRCS frame_data_analyser.cpp arg_parser.cpp)
 
 if(WIN32)
     set(SRCS ${SRCS} platform_threading_windows.cpp)

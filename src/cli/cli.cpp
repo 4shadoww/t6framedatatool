@@ -17,6 +17,7 @@
 
 #include <iostream>
 
+#include "arg_parser.hpp"
 #include "logging.h"
 
 #include "frame_data_analyser.hpp"
@@ -47,8 +48,23 @@ void Listener::game_hooked() {
     // NOP
 }
 
-int main() {
-    log_set_level(LOG_TRACE);
+namespace {
+void apply_config(Configuration &config) {
+    log_set_level(config.log_level);
+    FrameDataAnalyser::set_logging(config.frame_data_logging);
+}
+} // namespace
+
+int main(const int argc, const char **argv) {
+    Configuration config = ArgParser::create_default_config();
+    const int result = ArgParser::parse_arguments(argc, argv, &config);
+    if (result == 1) {
+        return 1;
+    } else if (result == -1) {
+        // Early exit
+        return 0;
+    }
+    apply_config(config);
 
     log_info("%s %s", PROGRAM_NAME, VERSION);
 

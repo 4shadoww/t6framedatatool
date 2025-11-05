@@ -23,14 +23,14 @@
 
 class test_ring_buffer : public testing::Test {
 protected:
-    ring_buffer<int> *m_ring_buffer;
+    RingBuffer<int> *m_ring_buffer;
 
-    test_ring_buffer(){}
+    test_ring_buffer() {}
 
     ~test_ring_buffer() override {}
 
     void SetUp() override {
-        m_ring_buffer = new ring_buffer<int>(BUFFER_SIZE);
+        m_ring_buffer = new RingBuffer<int>(BUFFER_SIZE);
     }
 
     void TearDown() override {
