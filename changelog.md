@@ -30,3 +30,4 @@ Release 0.4 (UPCOMING)
 - Fixes for frame advantage calculation
 - Added missing states to analyser
 - More accurate frame analyser loop
+- Added CLI options
