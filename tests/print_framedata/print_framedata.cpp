@@ -44,6 +44,7 @@ int main() {
     std::cout << "P1 move: " << state.p1_move << std::endl;
     std::cout << "P1 state: " << state.p1_state << std::endl;
     std::cout << "P1 position: " << state.p1_position.x << ", " << state.p1_position.y << ", " << state.p1_position.z << std::endl;
+    std::cout << "P1 seq: " << state.p1_attack_seq << std::endl;
 
     // P2
     std::cout << "P2 last action: " << state.p2_frames_last_action << std::endl;
@@ -53,6 +54,7 @@ int main() {
     std::cout << "P2 move: " << state.p2_move << std::endl;
     std::cout << "P2 state: " << state.p2_state << std::endl;
     std::cout << "P2 position: " << state.p2_position.x << ", " << state.p2_position.y << ", " << state.p2_position.z << std::endl;
+    std::cout << "P2 seq: " << state.p2_attack_seq << std::endl;
 
     // Game state
     std::cout << "current game frame: " << state.game_frame << std::endl;

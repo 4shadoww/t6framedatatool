@@ -80,6 +80,10 @@ int p1_position(struct player_coordinate *value) {
     return READ_OK;
 }
 
+int32_t p1_attack_seq(int32_t *value) {
+    return read_4bytes(P1_ATTACK_SEQ, value);
+}
+
 int p2_frames_last_action(int32_t *value) {
     return read_4bytes(P2_FRAMES_LAST_ACTION, value);
 }
@@ -115,6 +119,10 @@ int p2_position(struct player_coordinate *value) {
     value->z = big32_to_little_float(&((char *) value)[8]);
 
     return READ_OK;
+}
+
+int32_t p2_attack_seq(int32_t *value) {
+    return read_4bytes(P2_ATTACK_SEQ, value);
 }
 
 int current_game_frame(uint32_t *value) {
@@ -183,13 +191,20 @@ int read_game_state(struct game_state *state) {
     }
     state->p1_state = value;
 
-
     result = p1_position(&coords);
     if (result == READ_ERROR) {
         log_debug("readed invalid p1 state");
         return READ_ERROR;
     }
     state->p1_position = coords;
+
+    result = p1_attack_seq(&value);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p1 attack seq");
+        return READ_ERROR;
+    }
+    state->p1_attack_seq = value;
+
 
     result = p2_frames_last_action(&value);
     if (result == READ_ERROR) {
@@ -242,6 +257,13 @@ int read_game_state(struct game_state *state) {
         return READ_ERROR;
     }
     state->p2_position = coords;
+
+    result = p2_attack_seq(&value);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p2 attack seq");
+        return READ_ERROR;
+    }
+    state->p2_attack_seq = value;
 
     return 0;
 }

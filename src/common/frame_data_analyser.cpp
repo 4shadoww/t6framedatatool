@@ -37,7 +37,6 @@
 // Ten seconds of frames
 #define FRAME_BUFFER_SIZE (size_t) (60 * 10)
 #define PLAYER_ACTION_BUFFER_SIZE 5
-#define REVERSE_WALK_LIMIT 30
 
 //// frame_data_analyser
 ///
@@ -64,13 +63,16 @@ void FrameDataAnalyser::log_frame() {
            << "P1 state: " << state->p1_state << std::endl
            << "P1 position: " << state->p1_position.x << ", " << state->p1_position.y << ", " << state->p1_position.z
            << std::endl
+           << "P1 attack seq: " << state->p1_attack_seq << std::endl
            << "P2 last action: " << state->p2_frames_last_action << std::endl
            << "P2 recovery frames: " << state->p2_recovery_frames << std::endl
            << "P2 connection: " << (bool) state->p2_connection << std::endl
            << "P2 intent: " << state->p2_intent << std::endl
            << "P2 move: " << state->p2_move << std::endl
            << "P2 state: " << state->p2_state << std::endl
-           << "P2 position: " << state->p2_position.x << ", " << state->p2_position.y << ", " << state->p2_position.z;
+           << "P2 position: " << state->p2_position.x << ", " << state->p2_position.y << ", " << state->p2_position.z
+           << std::endl
+           << "P2 attack seq: " << state->p2_attack_seq;
 
     log_info(stream.str().c_str());
 }
@@ -161,11 +163,14 @@ const char *FrameDataAnalyser::player_status(const PlayerState state) {
 }
 
 bool FrameDataAnalyser::p1_initiated_attack(const game_state *previous, const game_state *current) {
-    return ((PlayerMove) current->p1_move != PlayerMove::IDLE && previous->p1_move != current->p1_move);
+    return ((PlayerMove) current->p1_move != PlayerMove::IDLE && previous->p1_move != current->p1_move) ||
+           (previous->p1_attack_seq != current->p1_attack_seq);
 }
 
 bool FrameDataAnalyser::p2_initiated_attack(const game_state *previous, const game_state *current) {
-    return ((PlayerMove) current->p2_move != PlayerMove::IDLE && previous->p2_move != current->p2_move);
+    return ((PlayerMove) current->p2_move != PlayerMove::IDLE && previous->p2_move != current->p2_move) ||
+           (previous->p2_attack_seq != current->p2_attack_seq);
+    ;
 }
 
 void FrameDataAnalyser::analyse_start_frames() {
@@ -180,7 +185,8 @@ void FrameDataAnalyser::analyse_start_frames() {
     if (p1_initiated_attack(previous, current)) {
         m_p1_start_frames.push({.index = m_frame_buffer.head_index(),
                                 .recovery_frames = current->p1_recovery_frames,
-                                .game_frame = current->game_frame});
+                                .game_frame = current->game_frame,
+                                .attack_seq = current->p1_attack_seq});
         if (m_logging) {
             log_info("MARK STARTUP P1: %i", current->game_frame);
         }
@@ -190,7 +196,8 @@ void FrameDataAnalyser::analyse_start_frames() {
     if (p2_initiated_attack(previous, current)) {
         m_p2_start_frames.push({.index = m_frame_buffer.head_index(),
                                 .recovery_frames = current->p2_recovery_frames,
-                                .game_frame = current->game_frame});
+                                .game_frame = current->game_frame,
+                                .attack_seq = current->p2_attack_seq});
         if (m_logging) {
             log_info("MARK STARTUP P2: %i", current->game_frame);
         }
@@ -220,16 +227,14 @@ StartFrame FrameDataAnalyser::get_startup_frame(const bool p2) {
     const size_t item_count = buffer->item_count();
     for (size_t i = 0; i < item_count; i++) {
         const StartFrame start_frame = buffer->pop();
-        // Reverse walk frames
-        for (size_t j = 0; j < REVERSE_WALK_LIMIT; j++) {
-            const game_state *frame = m_frame_buffer.get_from_head(j);
-            const uint32_t last_action = p2 ? frame->p2_frames_last_action : frame->p1_frames_last_action;
+        // Check frame before connection, as the player can initiate new attack on connection frame
+        const game_state *frame = m_frame_buffer.get_from_head(1);
 
-            // Try to validate if the frame buffer has valid state
-            if (frame->game_frame - start_frame.game_frame + 1 == last_action) {
-                return start_frame;
-            }
+        const int32_t last_attack_seq = p2 ? frame->p2_attack_seq : frame->p1_attack_seq;
+        if (start_frame.attack_seq == last_attack_seq) {
+            return start_frame;
         }
+        log_debug("dropped invalid startup frame %d", start_frame.game_frame);
     }
 
     log_fatal("player startup frame not found");
@@ -403,11 +408,6 @@ bool FrameDataAnalyser::loop() {
     if (!update_game_state()) {
         log_fatal("failed to read game's state");
         return false;
-    }
-
-    // Collect frames before analysis
-    if (m_frame_buffer.item_count() < REVERSE_WALK_LIMIT) {
-        return true;
     }
 
     analyse_start_frames();

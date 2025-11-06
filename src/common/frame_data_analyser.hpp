@@ -31,6 +31,7 @@ struct StartFrame {
     size_t index;
     uint32_t recovery_frames;
     uint32_t game_frame;
+    int32_t attack_seq;
 };
 
 enum ConnectionEvent : uint8_t {
