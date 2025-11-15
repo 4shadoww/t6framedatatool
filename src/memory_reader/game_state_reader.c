@@ -27,11 +27,14 @@
 #include "number_conversions.h"
 
 static uint64_t g_player_side_address = 0;
+static uint64_t g_p1_attack_seq_address = 0;
+static uint64_t g_p2_attack_seq_address = 0;
 
 int init_memory_reader(void) {
     if (platform_init_memory_reader() == MR_INIT_ERROR) {
         return MR_INIT_ERROR;
     }
+    // Player side
     int32_t value = 0;
     if (read_4bytes(PLAYER_SIDE_PTR, &value) == READ_ERROR) {
         return MR_INIT_ERROR;
@@ -39,6 +42,25 @@ int init_memory_reader(void) {
 
     value += PLAYER_SIDE_OFFSET;
     g_player_side_address = ps3_address_to_x64((uint32_t) value);
+
+    // Player 1 attack seq
+    value = 0;
+    if (read_4bytes(P1_ATTACK_SEQ_PTR, &value) == READ_ERROR) {
+        return MR_INIT_ERROR;
+    }
+
+    value += P1_ATTACK_SEQ_OFFSET;
+    g_p1_attack_seq_address = ps3_address_to_x64((uint32_t) value);
+
+    // Player 2 attack seq
+    value = 0;
+    if (read_4bytes(P2_ATTACK_SEQ_PTR, &value) == READ_ERROR) {
+        return MR_INIT_ERROR;
+    }
+
+    value += P2_ATTACK_SEQ_OFFSET;
+    g_p2_attack_seq_address = ps3_address_to_x64((uint32_t) value);
+
 
     return MR_INIT_OK;
 }
@@ -81,7 +103,7 @@ int p1_position(struct player_coordinate *value) {
 }
 
 int32_t p1_attack_seq(int32_t *value) {
-    return read_4bytes(P1_ATTACK_SEQ, value);
+    return read_4bytes((long long) g_p1_attack_seq_address, value);
 }
 
 int p2_frames_last_action(int32_t *value) {
@@ -122,7 +144,7 @@ int p2_position(struct player_coordinate *value) {
 }
 
 int32_t p2_attack_seq(int32_t *value) {
-    return read_4bytes(P2_ATTACK_SEQ, value);
+    return read_4bytes((long long) g_p2_attack_seq_address, value);
 }
 
 int current_game_frame(uint32_t *value) {
