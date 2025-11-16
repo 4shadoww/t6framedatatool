@@ -24,8 +24,8 @@ Release 0.3
 - Threading priority
 - Bug fixes
 
-Release 0.4 (UPCOMING)
-----------------------
+Release 0.4
+-----------
 
 - Fixes for frame advantage calculation
 - Added missing states to analyser
