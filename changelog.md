@@ -36,3 +36,4 @@ Release 0.5 (UPCOMING)
 
 - Fixes to strings
 - Fixes to multi-hit attacks
+- Fixed GUI refresh rate on Linux
