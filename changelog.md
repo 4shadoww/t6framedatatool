@@ -30,3 +30,9 @@ Release 0.4
 - Fixes for frame advantage calculation
 - Added missing states to analyser
 - Added CLI options
+
+Release 0.5 (UPCOMING)
+-----------
+
+- Fixes to strings
+- Fixes to multi-hit attacks
