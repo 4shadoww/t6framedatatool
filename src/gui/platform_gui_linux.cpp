@@ -34,6 +34,7 @@ namespace {
 Window g_window;
 Window g_game_window;
 Display *g_display;
+Display *g_event_display;
 
 char *get_window_class(const Window window) {
     const Atom prop = XInternAtom(g_display, "WM_CLASS", False);
@@ -109,7 +110,14 @@ bool window_match(const char *window_class, const char *window_name) {
 bool platform_make_overlay(GLFWwindow *window) {
     g_display = glfwGetX11Display();
     if (g_display == nullptr) {
-        log_error("failed to get X11 display");
+        log_error("failed to get GLFW X11 display");
+        return false;
+    }
+
+    g_event_display = XOpenDisplay(nullptr);
+
+    if (g_event_display == nullptr) {
+        log_error("failed to get display X11 display");
         return false;
     }
 
@@ -162,10 +170,8 @@ void platform_find_game_window() {
             log_info("found game window %s, %s", window_class, window_name);
             g_game_window = windows[i];
 
-            // Subsribe window structure events
-            XSelectInput(g_display, g_game_window, StructureNotifyMask);
+            XSelectInput(g_event_display, g_game_window, StructureNotifyMask);
 
-            // Get current dimensions
             XWindowAttributes xwa;
             XGetWindowAttributes(g_display, g_game_window, &xwa);
             platform_update_ui_position(xwa.x, xwa.y, xwa.height, true);
@@ -177,11 +183,13 @@ void platform_find_game_window() {
 }
 
 void platform_update() {
-    XEvent e;
-    XNextEvent(g_display, &e);
+    while (XPending(g_event_display) > 0) {
+        XEvent e;
+        XNextEvent(g_event_display, &e);
 
-    if (e.type == ConfigureNotify) {
-        const XConfigureEvent xce = e.xconfigure;
-        platform_update_ui_position(xce.x, xce.y, xce.height, true);
+        if (e.type == ConfigureNotify && e.xconfigure.window == g_game_window) {
+            const XConfigureEvent xce = e.xconfigure;
+            platform_update_ui_position(xce.x, xce.y, xce.height, true);
+        }
     }
 }
