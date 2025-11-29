@@ -89,8 +89,16 @@ int32_t p1_state(int32_t *value) {
     return read_4bytes(P1_STATE, value);
 }
 
-int p1_position(struct player_coordinate *value) {
-    int read = read_bytes_raw(P1_POSITION, value, sizeof(struct player_coordinate));
+int p1_string_type(int32_t *value) {
+    return read_4bytes(P1_STRING_TYPE, value);
+}
+
+int p1_string_state(int32_t *value) {
+    return read_4bytes(P1_STRING_STATE, value);
+}
+
+int p1_position(struct PlayerCoordinate *value) {
+    int read = read_bytes_raw(P1_POSITION, value, sizeof(struct PlayerCoordinate));
     if (read == READ_ERROR) {
         return READ_ERROR;
     }
@@ -130,8 +138,16 @@ int p2_state(int32_t *value) {
     return read_4bytes(P2_STATE, value);
 }
 
-int p2_position(struct player_coordinate *value) {
-    int read = read_bytes_raw(P2_POSITION, value, sizeof(struct player_coordinate));
+int p2_string_type(int32_t *value) {
+    return read_4bytes(P2_STRING_TYPE, value);
+}
+
+int p2_string_state(int32_t *value) {
+    return read_4bytes(P2_STRING_STATE, value);
+}
+
+int p2_position(struct PlayerCoordinate *value) {
+    int read = read_bytes_raw(P2_POSITION, value, sizeof(struct PlayerCoordinate));
     if (read == READ_ERROR) {
         return READ_ERROR;
     }
@@ -159,9 +175,9 @@ uint64_t player_side_address(void) {
     return g_player_side_address;
 }
 
-int read_game_state(struct game_state *state) {
+int read_game_state(struct GameState *state) {
     int32_t value = 0;
-    struct player_coordinate coords = {0, 0, 0};
+    struct PlayerCoordinate coords = {0, 0, 0};
 
     int result = current_game_frame((uint32_t *) &value);
 
@@ -212,6 +228,20 @@ int read_game_state(struct game_state *state) {
         return READ_ERROR;
     }
     state->p1_state = value;
+
+    result = p1_string_type(&value);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p1 string type");
+        return READ_ERROR;
+    }
+    state->p1_string_type = value;
+
+    result = p1_string_state(&value);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p1 string state");
+        return READ_ERROR;
+    }
+    state->p1_string_state = value;
 
     result = p1_position(&coords);
     if (result == READ_ERROR) {
@@ -269,6 +299,20 @@ int read_game_state(struct game_state *state) {
         return READ_ERROR;
     }
     state->p2_state = value;
+
+    result = p2_string_type(&value);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p2 string type");
+        return READ_ERROR;
+    }
+    state->p2_string_type = value;
+
+    result = p2_string_state(&value);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p2 string state");
+        return READ_ERROR;
+    }
+    state->p2_string_state = value;
 
     memset(&coords, 0, sizeof(coords)); // NOLINT
 

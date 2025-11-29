@@ -25,7 +25,7 @@
 int main() {
     init_memory_reader();
 
-    struct game_state state{};
+    struct GameState state{};
     const int result = read_game_state(&state);
     if (result == READ_ERROR) {
         std::cout << "read failed" << std::endl;
@@ -43,6 +43,8 @@ int main() {
     std::cout << "P1 intent: " << state.p1_intent << std::endl;
     std::cout << "P1 move: " << state.p1_move << std::endl;
     std::cout << "P1 state: " << state.p1_state << std::endl;
+    std::cout << "P1 string type: " << state.p1_string_type << std::endl;
+    std::cout << "P1 string state: " << state.p1_string_state << std::endl;
     std::cout << "P1 position: " << state.p1_position.x << ", " << state.p1_position.y << ", " << state.p1_position.z << std::endl;
     std::cout << "P1 seq: " << state.p1_attack_seq << std::endl;
 
@@ -53,6 +55,8 @@ int main() {
     std::cout << "P2 intent: " << state.p2_intent << std::endl;
     std::cout << "P2 move: " << state.p2_move << std::endl;
     std::cout << "P2 state: " << state.p2_state << std::endl;
+    std::cout << "P2 string type: " << state.p2_string_type << std::endl;
+    std::cout << "P2 string state: " << state.p2_string_state << std::endl;
     std::cout << "P2 position: " << state.p2_position.x << ", " << state.p2_position.y << ", " << state.p2_position.z << std::endl;
     std::cout << "P2 seq: " << state.p2_attack_seq << std::endl;
 

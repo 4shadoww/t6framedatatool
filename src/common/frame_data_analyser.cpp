@@ -41,7 +41,7 @@
 //// frame_data_analyser
 ///
 volatile bool FrameDataAnalyser::m_stop = false;
-RingBuffer<game_state> FrameDataAnalyser::m_frame_buffer(FRAME_BUFFER_SIZE);
+RingBuffer<GameState> FrameDataAnalyser::m_frame_buffer(FRAME_BUFFER_SIZE);
 RingBuffer<StartFrame> FrameDataAnalyser::m_p1_start_frames(PLAYER_ACTION_BUFFER_SIZE);
 RingBuffer<StartFrame> FrameDataAnalyser::m_p2_start_frames(PLAYER_ACTION_BUFFER_SIZE);
 
@@ -52,7 +52,7 @@ int FrameDataAnalyser::m_last_player_intent = 0;
 bool FrameDataAnalyser::m_logging = false;
 
 void FrameDataAnalyser::log_frame() {
-    const game_state *const state = m_frame_buffer.head();
+    const GameState *const state = m_frame_buffer.head();
     std::stringstream stream;
     stream << "FRAME: " << state->game_frame << std::endl
            << "P1 last action: " << state->p1_frames_last_action << std::endl
@@ -61,6 +61,8 @@ void FrameDataAnalyser::log_frame() {
            << "P1 intent: " << state->p1_intent << std::endl
            << "P1 move: " << state->p1_move << std::endl
            << "P1 state: " << state->p1_state << std::endl
+           << "P1 string type: " << state->p1_string_type << std::endl
+           << "P1 string state: " << state->p1_string_state << std::endl
            << "P1 position: " << state->p1_position.x << ", " << state->p1_position.y << ", " << state->p1_position.z
            << std::endl
            << "P1 attack seq: " << state->p1_attack_seq << std::endl
@@ -70,6 +72,8 @@ void FrameDataAnalyser::log_frame() {
            << "P2 intent: " << state->p2_intent << std::endl
            << "P2 move: " << state->p2_move << std::endl
            << "P2 state: " << state->p2_state << std::endl
+           << "P2 string type: " << state->p2_string_type << std::endl
+           << "P2 string state: " << state->p2_string_state << std::endl
            << "P2 position: " << state->p2_position.x << ", " << state->p2_position.y << ", " << state->p2_position.z
            << std::endl
            << "P2 attack seq: " << state->p2_attack_seq;
@@ -106,11 +110,11 @@ bool FrameDataAnalyser::is_attack(const PlayerIntent &intent) {
     }
 }
 
-bool FrameDataAnalyser::p1_recovery_reset(const game_state *const previous, const game_state *const current) {
+bool FrameDataAnalyser::p1_recovery_reset(const GameState *const previous, const GameState *const current) {
     return previous->p1_move != current->p1_move;
 }
 
-bool FrameDataAnalyser::p2_recovery_reset(const game_state *const previous, const game_state *const current) {
+bool FrameDataAnalyser::p2_recovery_reset(const GameState *const previous, const GameState *const current) {
     return previous->p2_move != current->p2_move;
 }
 
@@ -132,7 +136,7 @@ const char *FrameDataAnalyser::player_status(const PlayerState state) {
     case PlayerState::MOVE:
     case PlayerState::RECOVER1:
     case PlayerState::RECOVER2:
-    case PlayerState::SIDE_STEPPING:
+    case PlayerState::STRING:
     case PlayerState::STANDING_HIT:
     case PlayerState::CROUCH_DASH_JUMP:
         return STANDING;
@@ -162,20 +166,20 @@ const char *FrameDataAnalyser::player_status(const PlayerState state) {
     return UNDETERMINABLE;
 }
 
-bool FrameDataAnalyser::p1_initiated_attack(const game_state *previous, const game_state *current) {
+bool FrameDataAnalyser::p1_initiated_attack(const GameState *previous, const GameState *current) {
     return ((PlayerMove) current->p1_move != PlayerMove::IDLE && previous->p1_move != current->p1_move) ||
            (previous->p1_attack_seq != current->p1_attack_seq);
 }
 
-bool FrameDataAnalyser::p2_initiated_attack(const game_state *previous, const game_state *current) {
+bool FrameDataAnalyser::p2_initiated_attack(const GameState *previous, const GameState *current) {
     return ((PlayerMove) current->p2_move != PlayerMove::IDLE && previous->p2_move != current->p2_move) ||
            (previous->p2_attack_seq != current->p2_attack_seq);
     ;
 }
 
 void FrameDataAnalyser::analyse_start_frames() {
-    const game_state *const current = m_frame_buffer.head();
-    const game_state *const previous = m_frame_buffer.get_from_head(1);
+    const GameState *const current = m_frame_buffer.head();
+    const GameState *const previous = m_frame_buffer.get_from_head(1);
 
     if (current == previous || previous == nullptr) {
         return;
@@ -205,8 +209,8 @@ void FrameDataAnalyser::analyse_start_frames() {
 }
 
 ConnectionEvent FrameDataAnalyser::has_new_connection() {
-    const game_state *const current = m_frame_buffer.head();
-    const game_state *const previous = m_frame_buffer.get_from_head(1);
+    const GameState *const current = m_frame_buffer.head();
+    const GameState *const previous = m_frame_buffer.get_from_head(1);
 
     if (current == previous || previous == nullptr) {
         return ConnectionEvent::NO_CONNECTION;
@@ -228,7 +232,7 @@ StartFrame FrameDataAnalyser::get_startup_frame(const bool p2) {
     for (size_t i = 0; i < item_count; i++) {
         const StartFrame start_frame = buffer->pop();
         // Check frame before connection, as the player can initiate new attack on connection frame
-        const game_state *frame = m_frame_buffer.get_from_head(1);
+        const GameState *frame = m_frame_buffer.get_from_head(1);
 
         const int32_t last_attack_seq = p2 ? frame->p2_attack_seq : frame->p1_attack_seq;
         if (start_frame.attack_seq == last_attack_seq) {
@@ -241,17 +245,39 @@ StartFrame FrameDataAnalyser::get_startup_frame(const bool p2) {
     return {};
 }
 
+bool FrameDataAnalyser::string_is_active(const GameState *const game_state, const bool p2) {
+    if (p2) {
+        return (PlayerState) game_state->p2_state == PlayerState::STRING;
+    } else {
+        return (PlayerState) game_state->p1_state == PlayerState::STRING;
+    }
+}
+
+bool FrameDataAnalyser::string_has_ended(const GameState *const game_state, const bool p2) {
+    // NOTE: this function can only tell if the string has ended, not if it's actually ongoing
+    if (p2) {
+        return (StringState) game_state->p2_string_state == StringState::ENDED;
+    } else {
+        return (StringState) game_state->p1_string_state == StringState::ENDED;
+    }
+}
+
 void FrameDataAnalyser::handle_connection() {
     const ConnectionEvent connection = has_new_connection();
     if (connection == ConnectionEvent::NO_CONNECTION) {
         return;
     }
-
-    const game_state *const current = m_frame_buffer.head();
-    const game_state *const previous = m_frame_buffer.get_from_head(1);
+    const bool p2 = connection == ConnectionEvent::P2_CONNECTION;
+    const GameState *const current = m_frame_buffer.head();
+    const GameState *const previous = m_frame_buffer.get_from_head(1);
 
     if (m_logging) {
         log_info("MARK CONNECTION P%i: %i", connection, current->game_frame);
+    }
+
+    if (string_is_active(current, p2) && !string_has_ended(current, p2)) {
+        get_startup_frame(p2);
+        return;
     }
 
     StartFrame start{};
@@ -308,24 +334,24 @@ void FrameDataAnalyser::handle_connection() {
     m_listener->frame_data(data_point);
 }
 
-float FrameDataAnalyser::calculate_distance(const game_state *const state) {
+float FrameDataAnalyser::calculate_distance(const GameState *const state) {
     return (float) (std::sqrt(std::pow(state->p1_position.x - state->p2_position.x, 2) +
                               std::pow(state->p1_position.z - state->p2_position.z, 2)) /
                     1000);
 }
 
 void FrameDataAnalyser::handle_distance() {
-    const game_state *const current = m_frame_buffer.head();
+    const GameState *const current = m_frame_buffer.head();
     const float distance = calculate_distance(current);
     m_listener->distance(distance);
 }
 
 void FrameDataAnalyser::handle_status() {
-    const game_state *const current = m_frame_buffer.head();
+    const GameState *const current = m_frame_buffer.head();
     m_listener->status((PlayerState) current->p1_state);
 }
 
-bool FrameDataAnalyser::flip_player_data(game_state &state) {
+bool FrameDataAnalyser::flip_player_data(GameState &state) {
     int32_t side_val = 0;
     const int result = player_side(&side_val);
 
@@ -335,7 +361,7 @@ bool FrameDataAnalyser::flip_player_data(game_state &state) {
     }
 
     const auto side = (enum PlayerSide) side_val;
-    const game_state temp_state = state;
+    const GameState temp_state = state;
 
     switch (side) {
     case PlayerSide::LEFT:
@@ -367,7 +393,7 @@ bool FrameDataAnalyser::flip_player_data(game_state &state) {
 
 bool FrameDataAnalyser::update_game_state() {
     // Read the game's state
-    game_state state{};
+    GameState state{};
     if (read_game_state(&state) != READ_OK) {
         return false;
     }
@@ -391,7 +417,7 @@ bool FrameDataAnalyser::loop() {
         return false;
     }
 
-    const game_state *const previous = m_frame_buffer.head();
+    const GameState *const previous = m_frame_buffer.head();
 
     // Check if the analyser is in sync with the game
     if (previous->game_frame != current_frame - 1 && previous->game_frame != 0) {

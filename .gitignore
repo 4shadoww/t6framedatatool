@@ -6,3 +6,4 @@ generated-src
 __cmake_systeminformation
 .clangd
 run-clang-tidy.py
+logs

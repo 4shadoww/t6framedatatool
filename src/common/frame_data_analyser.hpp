@@ -48,7 +48,7 @@ enum class PlayerState : int {
     MOVE_FORWARDS = 67650,
     RECOVER1 = 29698,
     RECOVER2 = 4178,
-    SIDE_STEPPING = 2114,
+    STRING = 2114, // String, multi-hit, sidestep
     JUMPING = 51266,
     JUMPING_FORWARDS = 116802,
     JUMPING_BACKWARDS = 182338,
@@ -94,6 +94,12 @@ enum class PlayerMove : uint8_t {
     IDLE = 0
 };
 
+enum class StringState : uint8_t {
+    NOT_ENDED1 = 0,
+    NOT_ENDED2 = 1, // Sometimes appears in midde of the string
+    ENDED = 2
+};
+
 class EventListener {
 public:
     virtual ~EventListener() = default;
@@ -136,7 +142,7 @@ public:
 
 private:
     static volatile bool m_stop;
-    static RingBuffer<game_state> m_frame_buffer;
+    static RingBuffer<GameState> m_frame_buffer;
     static EventListener *m_listener;
     static int m_last_player_intent;
     static bool m_logging;
@@ -150,22 +156,24 @@ private:
     static bool loop();
 
     inline static void log_frame();
-    inline static bool flip_player_data(game_state &state);
+    inline static bool flip_player_data(GameState &state);
     inline static bool is_attack(const PlayerIntent &intent);
-    inline static bool p1_recovery_reset(const game_state *const previous, const game_state *const current);
-    inline static bool p2_recovery_reset(const game_state *const previous, const game_state *const current);
+    inline static bool p1_recovery_reset(const GameState *const previous, const GameState *const current);
+    inline static bool p2_recovery_reset(const GameState *const previous, const GameState *const current);
     static StartFrame get_startup_frame(const bool p2);
 
-    inline static bool p1_initiated_attack(const game_state *previous, const game_state *current);
-    inline static bool p2_initiated_attack(const game_state *previous, const game_state *current);
+    inline static bool p1_initiated_attack(const GameState *previous, const GameState *current);
+    inline static bool p2_initiated_attack(const GameState *previous, const GameState *current);
     static void analyse_start_frames();
     static bool update_game_state();
     static ConnectionEvent has_new_connection();
+    static bool string_has_ended(const GameState *const game_state, const bool p2);
+    static bool string_is_active(const GameState *const game_state, const bool p2);
     static void handle_connection();
     static void handle_distance();
     static void handle_status();
 
-    static float calculate_distance(const game_state *const state);
+    static float calculate_distance(const GameState *const state);
 };
 
 #endif

@@ -24,13 +24,13 @@ extern "C" {
 
 #include <stdint.h>
 
-struct player_coordinate {
+struct PlayerCoordinate {
     float x;
     float y;
     float z;
 };
 
-struct game_state {
+struct GameState {
     uint32_t game_frame;
 
     int32_t p1_frames_last_action;
@@ -39,7 +39,9 @@ struct game_state {
     int32_t p1_intent;
     int32_t p1_move;
     int32_t p1_state;
-    struct player_coordinate p1_position;
+    int32_t p1_string_state;
+    int32_t p1_string_type;
+    struct PlayerCoordinate p1_position;
     int32_t p1_attack_seq;
 
     int32_t p2_frames_last_action;
@@ -48,7 +50,9 @@ struct game_state {
     int32_t p2_intent;
     int32_t p2_move;
     int32_t p2_state;
-    struct player_coordinate p2_position;
+    int32_t p2_string_state;
+    int32_t p2_string_type;
+    struct PlayerCoordinate p2_position;
     int32_t p2_attack_seq;
 };
 
@@ -60,7 +64,9 @@ int p1_recovery_frames(uint32_t *value);
 int p1_intent(int32_t *value);
 int p1_move(int32_t *value);
 int p1_state(int32_t *value);
-int p1_position(struct player_coordinate *value);
+int p1_string_type(int32_t *value);
+int p1_string_state(int32_t *value);
+int p1_position(struct PlayerCoordinate *value);
 int p1_attack_seq(int32_t *value);
 
 int p2_frames_last_action(int32_t *value);
@@ -69,7 +75,9 @@ int p2_recovery_frames(uint32_t *value);
 int p2_intent(int32_t *value);
 int p2_move(int32_t *value);
 int p2_state(int32_t *value);
-int p2_position(struct player_coordinate *value);
+int p2_string_type(int32_t *value);
+int p2_string_state(int32_t *value);
+int p2_position(struct PlayerCoordinate *value);
 int p2_attack_seq(int32_t *value);
 
 int current_game_frame(uint32_t *value);
@@ -81,7 +89,7 @@ uint64_t player_side_address(void);
  * @param pointer to state struct
  * @return 0 on success, -1 on error
  */
-int read_game_state(struct game_state *state);
+int read_game_state(struct GameState *state);
 
 #ifdef __cplusplus
 };
