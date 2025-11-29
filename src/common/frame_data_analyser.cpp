@@ -138,6 +138,7 @@ const char *FrameDataAnalyser::player_status(const PlayerState state) {
     case PlayerState::STRING:
     case PlayerState::STANDING_HIT:
     case PlayerState::CROUCH_DASH_JUMP:
+    case PlayerState::POWER_STANCE:
         return STANDING;
     case PlayerState::CROUCH:
         return CROUCH;

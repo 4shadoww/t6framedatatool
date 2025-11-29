@@ -63,6 +63,7 @@ enum class PlayerState : int {
     CROUCHING_FORWARDS = 75809,
     STANDING_HIT = 22562,
     CROUCH_DASH_JUMP = 575554,
+    POWER_STANCE = 40960,
 };
 
 enum class PlayerIntent : int {
