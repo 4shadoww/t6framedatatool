@@ -175,7 +175,7 @@ uint64_t player_side_address(void) {
     return g_player_side_address;
 }
 
-int read_game_state(struct GameState *state) {
+int read_game_state(struct GameFrame *state) {
     int32_t value = 0;
     struct PlayerCoordinate coords = {0, 0, 0};
 
@@ -192,70 +192,70 @@ int read_game_state(struct GameState *state) {
         log_debug("readed invalid p1 last action frames");
         return READ_ERROR;
     }
-    state->p1_frames_last_action = value;
+    state->p1.frames_last_action = value;
 
     result = p1_connection((int16_t *) &value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p1 last connection frames");
         return READ_ERROR;
     }
-    state->p1_connection = (int16_t) value; // NOLINT
+    state->p1.connection = (int16_t) value; // NOLINT
 
     result = p1_recovery_frames((uint32_t *) &value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p1 recovery frames");
         return READ_ERROR;
     }
-    state->p1_recovery_frames = (uint32_t) value;
+    state->p1.recovery_frames = (uint32_t) value;
 
     result = p1_intent(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p1 intent");
         return READ_ERROR;
     }
-    state->p1_intent = value;
+    state->p1.intent = value;
 
     result = p1_move(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p1 move");
         return READ_ERROR;
     }
-    state->p1_move = value;
+    state->p1.move = value;
 
     result = p1_state(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p1 state");
         return READ_ERROR;
     }
-    state->p1_state = value;
+    state->p1.state = value;
 
     result = p1_string_type(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p1 string type");
         return READ_ERROR;
     }
-    state->p1_string_type = value;
+    state->p1.string_type = value;
 
     result = p1_string_state(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p1 string state");
         return READ_ERROR;
     }
-    state->p1_string_state = value;
+    state->p1.string_state = value;
 
     result = p1_position(&coords);
     if (result == READ_ERROR) {
         log_debug("readed invalid p1 state");
         return READ_ERROR;
     }
-    state->p1_position = coords;
+    state->p1.position = coords;
 
     result = p1_attack_seq(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p1 attack seq");
         return READ_ERROR;
     }
-    state->p1_attack_seq = value;
+    state->p1.attack_seq = value;
 
 
     result = p2_frames_last_action(&value);
@@ -263,56 +263,56 @@ int read_game_state(struct GameState *state) {
         log_debug("readed invalid p2 last action frames");
         return READ_ERROR;
     }
-    state->p2_frames_last_action = value;
+    state->p2.frames_last_action = value;
 
     result = p2_connection((int16_t *) &value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p2 last connection frames");
         return READ_ERROR;
     }
-    state->p2_connection = (int16_t) value; // NOLINT
+    state->p2.connection = (int16_t) value; // NOLINT
 
     result = p2_recovery_frames((uint32_t *) &value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p2 recovery frames");
         return READ_ERROR;
     }
-    state->p2_recovery_frames = value;
+    state->p2.recovery_frames = value;
 
     result = p2_intent(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p2 intent");
         return READ_ERROR;
     }
-    state->p2_intent = value;
+    state->p2.intent = value;
 
     result = p2_move(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p2 move");
         return READ_ERROR;
     }
-    state->p2_move = value;
+    state->p2.move = value;
 
     result = p2_state(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p2 state");
         return READ_ERROR;
     }
-    state->p2_state = value;
+    state->p2.state = value;
 
     result = p2_string_type(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p2 string type");
         return READ_ERROR;
     }
-    state->p2_string_type = value;
+    state->p2.string_type = value;
 
     result = p2_string_state(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p2 string state");
         return READ_ERROR;
     }
-    state->p2_string_state = value;
+    state->p2.string_state = value;
 
     memset(&coords, 0, sizeof(coords)); // NOLINT
 
@@ -322,14 +322,14 @@ int read_game_state(struct GameState *state) {
         log_debug("readed invalid p1 state");
         return READ_ERROR;
     }
-    state->p2_position = coords;
+    state->p2.position = coords;
 
     result = p2_attack_seq(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p2 attack seq");
         return READ_ERROR;
     }
-    state->p2_attack_seq = value;
+    state->p2.attack_seq = value;
 
     return 0;
 }

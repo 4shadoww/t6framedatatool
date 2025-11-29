@@ -142,7 +142,7 @@ public:
 
 private:
     static volatile bool m_stop;
-    static RingBuffer<GameState> m_frame_buffer;
+    static RingBuffer<GameFrame> m_frame_buffer;
     static EventListener *m_listener;
     static int m_last_player_intent;
     static bool m_logging;
@@ -150,30 +150,30 @@ private:
     // Analysis state
     static RingBuffer<StartFrame> m_p1_start_frames;
     static RingBuffer<StartFrame> m_p2_start_frames;
+    static RingBuffer<StartFrame> m_p1_string_frames;
+    static RingBuffer<StartFrame> m_p2_string_frames;
 
 
     static bool init(EventListener *listener);
     static bool loop();
 
     inline static void log_frame();
-    inline static bool flip_player_data(GameState &state);
+    inline static bool flip_player_data(GameFrame &state);
     inline static bool is_attack(const PlayerIntent &intent);
-    inline static bool p1_recovery_reset(const GameState *const previous, const GameState *const current);
-    inline static bool p2_recovery_reset(const GameState *const previous, const GameState *const current);
+    inline static bool recovery_reset(const PlayerFrame *const previous, const PlayerFrame *const current);
     static StartFrame get_startup_frame(const bool p2);
 
-    inline static bool p1_initiated_attack(const GameState *previous, const GameState *current);
-    inline static bool p2_initiated_attack(const GameState *previous, const GameState *current);
+    inline static bool initiated_attack(const PlayerFrame *const previous, const PlayerFrame *const current);
     static void analyse_start_frames();
     static bool update_game_state();
     static ConnectionEvent has_new_connection();
-    static bool string_has_ended(const GameState *const game_state, const bool p2);
-    static bool string_is_active(const GameState *const game_state, const bool p2);
+    inline static bool string_is_active(const PlayerFrame *const player_frame);
+    inline static bool string_has_ended(const PlayerFrame *const player_frame);
     static void handle_connection();
     static void handle_distance();
     static void handle_status();
 
-    static float calculate_distance(const GameState *const state);
+    static float calculate_distance(const GameFrame *const state);
 };
 
 #endif

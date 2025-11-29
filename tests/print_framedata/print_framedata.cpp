@@ -25,7 +25,7 @@
 int main() {
     init_memory_reader();
 
-    struct GameState state{};
+    struct GameFrame state{};
     const int result = read_game_state(&state);
     if (result == READ_ERROR) {
         std::cout << "read failed" << std::endl;
@@ -37,28 +37,28 @@ int main() {
     std::cout << "----------" << std::endl;
 
     // P1
-    std::cout << "P1 last action: " << state.p1_frames_last_action << std::endl;
-    std::cout << "P1 recovery frames: " << state.p1_recovery_frames << std::endl;
-    std::cout << "P1 connection: " << (bool) state.p1_connection << std::endl;
-    std::cout << "P1 intent: " << state.p1_intent << std::endl;
-    std::cout << "P1 move: " << state.p1_move << std::endl;
-    std::cout << "P1 state: " << state.p1_state << std::endl;
-    std::cout << "P1 string type: " << state.p1_string_type << std::endl;
-    std::cout << "P1 string state: " << state.p1_string_state << std::endl;
-    std::cout << "P1 position: " << state.p1_position.x << ", " << state.p1_position.y << ", " << state.p1_position.z << std::endl;
-    std::cout << "P1 seq: " << state.p1_attack_seq << std::endl;
+    std::cout << "P1 last action: " << state.p1.frames_last_action << std::endl;
+    std::cout << "P1 recovery frames: " << state.p1.recovery_frames << std::endl;
+    std::cout << "P1 connection: " << (bool) state.p1.connection << std::endl;
+    std::cout << "P1 intent: " << state.p1.intent << std::endl;
+    std::cout << "P1 move: " << state.p1.move << std::endl;
+    std::cout << "P1 state: " << state.p1.state << std::endl;
+    std::cout << "P1 string type: " << state.p1.string_type << std::endl;
+    std::cout << "P1 string state: " << state.p1.string_state << std::endl;
+    std::cout << "P1 position: " << state.p1.position.x << ", " << state.p1.position.y << ", " << state.p1.position.z << std::endl;
+    std::cout << "P1 seq: " << state.p1.attack_seq << std::endl;
 
     // P2
-    std::cout << "P2 last action: " << state.p2_frames_last_action << std::endl;
-    std::cout << "P2 recovery frames: " << state.p2_recovery_frames << std::endl;
-    std::cout << "P2 connection: " << (bool) state.p2_connection << std::endl;
-    std::cout << "P2 intent: " << state.p2_intent << std::endl;
-    std::cout << "P2 move: " << state.p2_move << std::endl;
-    std::cout << "P2 state: " << state.p2_state << std::endl;
-    std::cout << "P2 string type: " << state.p2_string_type << std::endl;
-    std::cout << "P2 string state: " << state.p2_string_state << std::endl;
-    std::cout << "P2 position: " << state.p2_position.x << ", " << state.p2_position.y << ", " << state.p2_position.z << std::endl;
-    std::cout << "P2 seq: " << state.p2_attack_seq << std::endl;
+    std::cout << "P2 last action: " << state.p2.frames_last_action << std::endl;
+    std::cout << "P2 recovery frames: " << state.p2.recovery_frames << std::endl;
+    std::cout << "P2 connection: " << (bool) state.p2.connection << std::endl;
+    std::cout << "P2 intent: " << state.p2.intent << std::endl;
+    std::cout << "P2 move: " << state.p2.move << std::endl;
+    std::cout << "P2 state: " << state.p2.state << std::endl;
+    std::cout << "P2 string type: " << state.p2.string_type << std::endl;
+    std::cout << "P2 string state: " << state.p2.string_state << std::endl;
+    std::cout << "P2 position: " << state.p2.position.x << ", " << state.p2.position.y << ", " << state.p2.position.z << std::endl;
+    std::cout << "P2 seq: " << state.p2.attack_seq << std::endl;
 
     // Game state
     std::cout << "current game frame: " << state.game_frame << std::endl;

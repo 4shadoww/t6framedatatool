@@ -30,30 +30,23 @@ struct PlayerCoordinate {
     float z;
 };
 
-struct GameState {
+struct PlayerFrame {
+    int32_t frames_last_action;
+    uint32_t recovery_frames;
+    int8_t connection;
+    int32_t intent;
+    int32_t move;
+    int32_t state;
+    int32_t string_state;
+    int32_t string_type;
+    struct PlayerCoordinate position;
+    int32_t attack_seq;
+};
+
+struct GameFrame {
     uint32_t game_frame;
-
-    int32_t p1_frames_last_action;
-    uint32_t p1_recovery_frames;
-    int8_t p1_connection;
-    int32_t p1_intent;
-    int32_t p1_move;
-    int32_t p1_state;
-    int32_t p1_string_state;
-    int32_t p1_string_type;
-    struct PlayerCoordinate p1_position;
-    int32_t p1_attack_seq;
-
-    int32_t p2_frames_last_action;
-    uint32_t p2_recovery_frames;
-    int8_t p2_connection;
-    int32_t p2_intent;
-    int32_t p2_move;
-    int32_t p2_state;
-    int32_t p2_string_state;
-    int32_t p2_string_type;
-    struct PlayerCoordinate p2_position;
-    int32_t p2_attack_seq;
+    struct PlayerFrame p1;
+    struct PlayerFrame p2;
 };
 
 int init_memory_reader(void);
@@ -89,7 +82,7 @@ uint64_t player_side_address(void);
  * @param pointer to state struct
  * @return 0 on success, -1 on error
  */
-int read_game_state(struct GameState *state);
+int read_game_state(struct GameFrame *state);
 
 #ifdef __cplusplus
 };
