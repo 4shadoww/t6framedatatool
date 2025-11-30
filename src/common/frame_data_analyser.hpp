@@ -151,8 +151,12 @@ private:
     // Analysis state
     static RingBuffer<StartFrame> m_p1_start_frames;
     static RingBuffer<StartFrame> m_p2_start_frames;
-    static RingBuffer<StartFrame> m_p1_string_frames;
-    static RingBuffer<StartFrame> m_p2_string_frames;
+    // String connection frames
+    static RingBuffer<GameFrame> m_p1_str_connection_frames;
+    static RingBuffer<GameFrame> m_p2_str_connection_frames;
+    // String end frames
+    static RingBuffer<GameFrame> m_p1_str_end_frames;
+    static RingBuffer<GameFrame> m_p2_str_end_frames;
 
 
     static bool init(EventListener *listener);
@@ -162,15 +166,24 @@ private:
     inline static bool flip_player_data(GameFrame &state);
     inline static bool is_attack(const PlayerIntent &intent);
     inline static bool recovery_reset(const PlayerFrame *const previous, const PlayerFrame *const current);
-    static StartFrame get_startup_frame(const bool p2);
+    static const GameFrame *get_game_frame(const uint32_t game_frame);
+    static StartFrame get_startup_frame(const GameFrame *const frame, const bool p2);
 
     inline static bool initiated_attack(const PlayerFrame *const previous, const PlayerFrame *const current);
     static void analyse_start_frames();
     static bool update_game_state();
     static ConnectionEvent has_new_connection();
     inline static bool string_is_active(const PlayerFrame *const player_frame);
-    inline static bool string_has_ended(const PlayerFrame *const player_frame);
+    inline static bool string_has_ended_state(const PlayerFrame *const player_frame);
+    inline static void reset_string_sm();
+    static bool calculate_natural_string(RingBuffer<GameFrame> *const player_connections, const bool p2);
+    static bool calculate_strings(const bool p2);
+    static bool string_has_concluded(const GameFrame *const current, const bool p2);
+    static void calculate_single_attack(const ConnectionEvent connection,
+                                        const GameFrame *const previous,
+                                        const GameFrame *const current);
     static void handle_connection();
+    static void handle_strings();
     static void handle_distance();
     static void handle_status();
 
