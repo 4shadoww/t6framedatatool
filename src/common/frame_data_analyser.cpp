@@ -266,9 +266,10 @@ bool FrameDataAnalyser::string_has_ended_state(const PlayerFrame *player_frame) 
 bool FrameDataAnalyser::string_has_concluded(const GameFrame *current, const bool p2) {
     RingBuffer<GameFrame> *const str_end_frames = p2 ? &m_p2_str_end_frames : &m_p1_str_end_frames;
 
+    str_end_frames->push(*current);
+
     // Collect more frames
     if (str_end_frames->item_count() < PLAYER_STRING_END_BUFFER_SIZE) {
-        str_end_frames->push(*current);
         return false;
     }
 
