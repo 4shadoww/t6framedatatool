@@ -19,6 +19,6 @@
 #define VERSION_HPP
 
 #define PROGRAM_NAME "t6framedatatool"
-#define VERSION "0.5-preview1"
+#define VERSION "0.5-preview2"
 
 #endif
