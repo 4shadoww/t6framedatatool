@@ -254,8 +254,10 @@ StartFrame FrameDataAnalyser::get_startup_frame(const GameFrame *const frame, co
 }
 
 bool FrameDataAnalyser::string_is_active(const PlayerFrame *player_frame) {
-    return (PlayerState) player_frame->state == PlayerState::STRING ||
-           (PlayerState) player_frame->state == PlayerState::MOVE;
+    return ((PlayerState) player_frame->state == PlayerState::STRING ||
+            (PlayerState) player_frame->state == PlayerState::MOVE) &&
+           // Zero is a grap
+           (PlayerMove) player_frame->move != PlayerMove::IDLE;
 }
 
 bool FrameDataAnalyser::string_has_ended_state(const PlayerFrame *player_frame) {
