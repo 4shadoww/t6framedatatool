@@ -260,6 +260,11 @@ bool FrameDataAnalyser::string_is_active(const PlayerFrame *player_frame) {
            (PlayerMove) player_frame->move != PlayerMove::IDLE;
 }
 
+bool FrameDataAnalyser::should_handle_string(const PlayerFrame *const player_frame, const bool p2) {
+    RingBuffer<GameFrame> *const str_end_frames = p2 ? &m_p2_str_end_frames : &m_p1_str_end_frames;
+    return string_is_active(player_frame) || str_end_frames->item_count() > 0;
+}
+
 bool FrameDataAnalyser::string_has_ended_state(const PlayerFrame *player_frame) {
     // NOTE: this function can only tell if the string has ended state, not if it's actually ongoing
     return (StringState) player_frame->string_state == StringState::ENDED;
@@ -487,12 +492,12 @@ void FrameDataAnalyser::handle_strings() {
     const GameFrame *const current = m_frame_buffer.head();
 
     // Try to caluculate P1
-    if (string_is_active(&current->p1) && calculate_strings(false)) {
+    if (should_handle_string(&current->p1, false) && calculate_strings(false)) {
         return;
     }
 
     // Try to calculate P2
-    if (string_is_active(&current->p2)) {
+    if (should_handle_string(&current->p2, true)) {
         calculate_strings(true);
     }
 }
