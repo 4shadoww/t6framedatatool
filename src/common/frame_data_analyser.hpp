@@ -32,6 +32,7 @@ struct StartFrame {
     uint32_t recovery_frames;
     uint32_t game_frame;
     int32_t attack_seq;
+    bool is_string;
 };
 
 enum ConnectionEvent : uint8_t {
@@ -101,6 +102,12 @@ enum class StringState : uint8_t {
     ENDED = 2
 };
 
+enum class StringType : uint16_t {
+    MULTIHIT0 = 1024,
+    MULTIHIT1 = 1026,
+    MULTIHIT2 = 1027,
+};
+
 class EventListener {
 public:
     virtual ~EventListener() = default;
@@ -157,6 +164,9 @@ private:
     // String end frames
     static RingBuffer<GameFrame> m_p1_str_end_frames;
     static RingBuffer<GameFrame> m_p2_str_end_frames;
+    // String type frames
+    static RingBuffer<GameFrame> m_p1_str_type_frames;
+    static RingBuffer<GameFrame> m_p2_str_type_frames;
 
 
     static bool init(EventListener *listener);
@@ -167,7 +177,7 @@ private:
     inline static bool is_attack(const PlayerIntent &intent);
     inline static bool recovery_reset(const PlayerFrame *const previous, const PlayerFrame *const current);
     static const GameFrame *get_game_frame(const uint32_t game_frame);
-    static StartFrame get_startup_frame(const GameFrame *const frame, const bool p2);
+    static StartFrame get_startup_frame(const GameFrame *const frame, const bool p2, const bool pop);
 
     inline static bool initiated_attack(const PlayerFrame *const previous, const PlayerFrame *const current);
     static void analyse_start_frames();
@@ -177,6 +187,10 @@ private:
     inline static bool should_handle_string(const PlayerFrame *const player_frame, const bool p2);
     inline static bool string_has_ended_state(const PlayerFrame *const player_frame);
     inline static void reset_string_sm();
+    inline static void push_string_type(const GameFrame *const frame, const bool p2);
+    inline static bool is_multihit_attack(const PlayerFrame *const player);
+    static bool string_is_multihit_attack(RingBuffer<GameFrame> *const player_connections, const bool p2);
+    static bool calculate_multihit_string(RingBuffer<GameFrame> *const player_connections, const bool p2);
     static bool calculate_natural_string(RingBuffer<GameFrame> *const player_connections, const bool p2);
     static bool calculate_strings(const bool p2);
     static bool string_has_concluded(const GameFrame *const current, const bool p2);
