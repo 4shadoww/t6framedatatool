@@ -39,7 +39,7 @@
 #define FRAME_BUFFER_SIZE (size_t) (60 * 10)
 #define PLAYER_ACTION_BUFFER_SIZE 10
 #define PLAYER_STRING_BUFFER_SIZE 50
-#define PLAYER_STRING_END_BUFFER_SIZE 3
+#define PLAYER_STRING_END_BUFFER_SIZE 4
 
 //// frame_data_analyser
 ///
@@ -157,8 +157,18 @@ const char *FrameDataAnalyser::player_status(const PlayerState state) {
     case PlayerState::STANDING_HIT:
     case PlayerState::CROUCH_DASH_JUMP:
     case PlayerState::POWER_STANCE:
+    case PlayerState::SPINNING1:
+    case PlayerState::SPINNING2:
+    case PlayerState::SPIN_TO_STANDUP:
+    case PlayerState::TRANSITION1:
+    case PlayerState::TRANSITION2:
+    case PlayerState::UNBLOCKABLE1:
+    case PlayerState::UNBLOCKABLE2:
+    case PlayerState::SLIDE1:
+    case PlayerState::SLIDE2:
         return STANDING;
     case PlayerState::CROUCH:
+    case PlayerState::SITTING:
         return CROUCH;
     case PlayerState::CROUCHING:
     case PlayerState::CROUCHING_ATTACK:
@@ -284,6 +294,8 @@ bool FrameDataAnalyser::string_has_ended_state(const PlayerFrame *player_frame) 
 
 bool FrameDataAnalyser::string_has_concluded(const GameFrame *current, const bool p2) {
     RingBuffer<GameFrame> *const str_end_frames = p2 ? &m_p2_str_end_frames : &m_p1_str_end_frames;
+    RingBuffer<GameFrame> *const connection_frames = p2 ? &m_p2_str_connection_frames : &m_p1_str_connection_frames;
+    const GameFrame *const connection = connection_frames->head();
 
     str_end_frames->push(*current);
 
@@ -297,7 +309,8 @@ bool FrameDataAnalyser::string_has_concluded(const GameFrame *current, const boo
     for (size_t i = 1; i < PLAYER_STRING_END_BUFFER_SIZE; i++) {
         GameFrame *const current_check = str_end_frames->get(i);
         // Inconsistent, continue collecting frames
-        if (previous_check->game_frame + 1 != current_check->game_frame) {
+        if ((previous_check->game_frame + 1 != current_check->game_frame) ||
+            connection->game_frame > previous_check->game_frame) {
             str_end_frames->pop();
             return false;
         }
