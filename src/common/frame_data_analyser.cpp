@@ -287,6 +287,11 @@ bool FrameDataAnalyser::string_is_active(const PlayerFrame *const player_frame) 
            (PlayerMove) player_frame->move != PlayerMove::IDLE;
 }
 
+bool FrameDataAnalyser::is_knockdown(const PlayerFrame *const player_frame) {
+    return (PlayerState) player_frame->state == PlayerState::AIRBORNE ||
+           (PlayerState) player_frame->state == PlayerState::GROUNDED2;
+}
+
 bool FrameDataAnalyser::should_handle_string(const PlayerFrame *const player_frame, const bool p2) {
     RingBuffer<GameFrame> *const str_end_frames = p2 ? &m_p2_str_end_frames : &m_p1_str_end_frames;
     return string_is_active(player_frame) || str_end_frames->item_count() > 0;
@@ -421,17 +426,22 @@ bool FrameDataAnalyser::calculate_multihit_string(RingBuffer<GameFrame> *const p
     int32_t startup_frames = (int) (first_connection->game_frame - first_startup.game_frame); // NOLINT
     uint32_t frame_delta = last_connection->game_frame - first_startup.game_frame;
     int32_t frame_advantage = 0;
+    bool knock_down = false;
 
     if (p2) {
+        knock_down = is_knockdown(&last_connection->p1);
         frame_advantage =
             (int) (last_connection->p1.recovery_frames - last_connection->p2.recovery_frames + frame_delta);
         startup_frames = 0;
     } else {
+        knock_down = is_knockdown(&last_connection->p2);
         frame_advantage =
             (int) (last_connection->p2.recovery_frames - last_connection->p1.recovery_frames + frame_delta);
     }
 
-    const struct FrameDataPoint data_point = {.startup_frames = startup_frames, .frame_advantage = frame_advantage};
+    const struct FrameDataPoint data_point = {.startup_frames = startup_frames,
+                                              .frame_advantage = frame_advantage,
+                                              .knock_down = knock_down};
 
     m_listener->frame_data(data_point);
 
@@ -484,8 +494,10 @@ bool FrameDataAnalyser::calculate_natural_string(RingBuffer<GameFrame> *const pl
     int32_t startup_frames = (int) (first_connection->game_frame - first_startup.game_frame); // NOLINT
     const int last_startup_frames = (int) (last_connection->game_frame - last_startup.game_frame);
     int32_t frame_advantage = 0;
+    bool knock_down = false;
 
     if (p2) {
+        knock_down = is_knockdown(&last_connection->p1);
         // Don't base recovery time on startup frame if new recovery has begun
         if (recovery_reset(&last_previous_frame->p2, &last_connection->p2)) {
             frame_advantage = (int) (last_connection->p1.recovery_frames - last_connection->p2.recovery_frames);
@@ -495,6 +507,7 @@ bool FrameDataAnalyser::calculate_natural_string(RingBuffer<GameFrame> *const pl
         }
         startup_frames = 0;
     } else {
+        knock_down = is_knockdown(&last_connection->p2);
         // Don't base recovery time on startup frame if new recovery has begun
         if (recovery_reset(&last_previous_frame->p1, &last_connection->p1)) {
             frame_advantage = (int) (last_connection->p2.recovery_frames - last_connection->p1.recovery_frames);
@@ -504,7 +517,9 @@ bool FrameDataAnalyser::calculate_natural_string(RingBuffer<GameFrame> *const pl
         }
     }
 
-    const struct FrameDataPoint data_point = {.startup_frames = startup_frames, .frame_advantage = frame_advantage};
+    const struct FrameDataPoint data_point = {.startup_frames = startup_frames,
+                                              .frame_advantage = frame_advantage,
+                                              .knock_down = knock_down};
 
     m_listener->frame_data(data_point);
 
@@ -585,6 +600,7 @@ void FrameDataAnalyser::calculate_single_attack(const ConnectionEvent connection
     // Calculate frame data for single attack
     int32_t startup_frames = (int) (current->game_frame - startup.game_frame); // NOLINT
     int32_t frame_advantage = 0;
+    const bool knock_down = is_knockdown(opponent);
 
     if (connection == ConnectionEvent::P1_CONNECTION) {
         // Don't base recovery time on startup frame if new recovery has begun
@@ -605,7 +621,9 @@ void FrameDataAnalyser::calculate_single_attack(const ConnectionEvent connection
         startup_frames = 0;
     }
 
-    const struct FrameDataPoint data_point = {.startup_frames = startup_frames, .frame_advantage = frame_advantage};
+    const struct FrameDataPoint data_point = {.startup_frames = startup_frames,
+                                              .frame_advantage = frame_advantage,
+                                              .knock_down = knock_down};
 
     m_listener->frame_data(data_point);
 }

@@ -78,7 +78,10 @@ public:
 
 void Listener::frame_data(const FrameDataPoint frame_data) {
     g_data_point = frame_data;
-    log_info("startup frames: %d, frame advantage: %d", frame_data.startup_frames, frame_data.frame_advantage);
+    log_info("startup frames: %d, frame advantage: %d, KD: %d",
+             frame_data.startup_frames,
+             frame_data.frame_advantage,
+             frame_data.knock_down);
 }
 
 void Listener::distance(const float distance) {
@@ -361,11 +364,15 @@ void draw_game_state() {
     (void) sprintf(buffer, STATUS, FrameDataAnalyser::player_status(g_status));
     render_line(buffer, 1, TEXT_COLOR_GREEN);
 
-    (void) sprintf(buffer, FRAME_ADVANTAGE, g_data_point.frame_advantage);
-    if (g_data_point.frame_advantage < 0) {
-        render_line(buffer, 2, TEXT_COLOR_RED);
+    if (g_data_point.knock_down) {
+        render_line(FRAME_ADVANTAGE_KD, 2, TEXT_COLOR_GREEN);
     } else {
-        render_line(buffer, 2, TEXT_COLOR_GREEN);
+        (void) sprintf(buffer, FRAME_ADVANTAGE, g_data_point.frame_advantage);
+        if (g_data_point.frame_advantage < 0) {
+            render_line(buffer, 2, TEXT_COLOR_RED);
+        } else {
+            render_line(buffer, 2, TEXT_COLOR_GREEN);
+        }
     }
 
     (void) sprintf(buffer, STARTUP_FRAMES, g_data_point.startup_frames);

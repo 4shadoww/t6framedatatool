@@ -25,6 +25,7 @@
 struct FrameDataPoint {
     int startup_frames;
     int frame_advantage;
+    bool knock_down;
 };
 
 struct StartFrame {
@@ -195,6 +196,7 @@ private:
     static ConnectionEvent has_new_connection();
     inline static bool player_in_stasis(const PlayerFrame *const player_frame);
     inline static bool string_is_active(const PlayerFrame *const player_frame);
+    inline static bool is_knockdown(const PlayerFrame *const player_frame);
     inline static bool should_handle_string(const PlayerFrame *const player_frame, const bool p2);
     inline static bool string_has_ended_state(const PlayerFrame *const player_frame);
     inline static void reset_string_sm();

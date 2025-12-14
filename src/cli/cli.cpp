@@ -33,7 +33,7 @@ public:
 
 void Listener::frame_data(const FrameDataPoint frame_data) {
     std::cout << "startup frames: " << frame_data.startup_frames << ", frame advantage: " << frame_data.frame_advantage
-              << std::endl;
+              << ", KD: " << frame_data.knock_down << std::endl;
 }
 
 void Listener::distance(const float /*distance*/) {
