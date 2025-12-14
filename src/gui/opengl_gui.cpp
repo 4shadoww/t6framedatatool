@@ -50,8 +50,10 @@ namespace {
 // Constants
 #define TEXT_COLOR_GREEN glm::vec3(0.5, 1.0F, 0.2F)
 #define TEXT_COLOR_RED glm::vec3(1.0, 0.2F, 0.2F)
+#define RESET_UI_MILLIS 2500
 
 // Global variables
+std::chrono::time_point<std::chrono::steady_clock> g_last_update;
 struct FrameDataPoint g_data_point = {};
 float g_distance = 0;
 PlayerState g_status = {};
@@ -77,6 +79,7 @@ public:
 };
 
 void Listener::frame_data(const FrameDataPoint frame_data) {
+    g_last_update = std::chrono::steady_clock::now();
     g_data_point = frame_data;
     log_info("startup frames: %d, frame advantage: %d, KD: %d",
              frame_data.startup_frames,
@@ -355,7 +358,7 @@ void analyser_loop() {
     }
 }
 
-void draw_game_state() {
+void draw_frame_data() {
     char buffer[50];
 
     (void) sprintf(buffer, DISTANCE, g_distance);
@@ -379,11 +382,34 @@ void draw_game_state() {
     render_line(buffer, 3, TEXT_COLOR_GREEN);
 }
 
+void draw_no_frame_data() {
+    char buffer[50];
+
+    (void) sprintf(buffer, DISTANCE, g_distance);
+    render_line(buffer, 0, TEXT_COLOR_GREEN);
+
+    (void) sprintf(buffer, STATUS, FrameDataAnalyser::player_status(g_status));
+    render_line(buffer, 1, TEXT_COLOR_GREEN);
+
+    render_line(NO_FRAME_ADVANTAGE, 2, TEXT_COLOR_GREEN);
+    render_line(NO_STARTUP_FRAMES, 3, TEXT_COLOR_GREEN);
+}
+
+void draw_game_state() {
+    auto now = std::chrono::steady_clock::now();
+    auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - g_last_update).count();
+    if (millis > RESET_UI_MILLIS) {
+        draw_no_frame_data();
+    } else {
+        draw_frame_data();
+    }
+}
+
 void draw_no_game() {
     render_line(NO_DISTANCE, 0, TEXT_COLOR_GREEN);
     render_line(NO_STATUS, 1, TEXT_COLOR_GREEN);
     render_line(NO_FRAME_ADVANTAGE, 2, TEXT_COLOR_GREEN);
-    render_line(NO_STARTUP_FRAMES, 3, TEXT_COLOR_GREEN);
+    render_line(NO_STARTUP_FRAMES_NO_GAME, 3, TEXT_COLOR_GREEN);
 }
 
 void gui_loop(GLFWwindow *window) {

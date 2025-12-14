@@ -28,7 +28,8 @@
 #define ANALYSER_START_INTERVAL 1
 
 // UI
-#define NO_STARTUP_FRAMES "Startup Frames --- (No game hooked)"
+#define NO_STARTUP_FRAMES_NO_GAME "Startup Frames --- (No game hooked)"
+#define NO_STARTUP_FRAMES "Startup Frames ---"
 #define NO_FRAME_ADVANTAGE "Frame Advantage ---"
 #define NO_STATUS "Status ---"
 #define NO_DISTANCE "Distance ---"

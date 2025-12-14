@@ -37,3 +37,5 @@ Release 0.5 (UPCOMING)
 - Fixes to "natural" strings
 - Fixes to "multi-hit" attacks
 - Fixed GUI refresh rate on Linux
+- Add KD
+- Reset frame data after inactivity
