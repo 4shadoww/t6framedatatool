@@ -76,6 +76,7 @@ enum class PlayerState : int {
     UNBLOCKABLE2 = 2099266,
     SLIDE1 = 16806918,
     SLIDE2 = 36996,
+    STAND_SWORD = 2672706,
 };
 
 enum class PlayerIntent : int {

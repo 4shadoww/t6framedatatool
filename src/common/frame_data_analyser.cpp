@@ -166,6 +166,7 @@ const char *FrameDataAnalyser::player_status(const PlayerState state) {
     case PlayerState::UNBLOCKABLE2:
     case PlayerState::SLIDE1:
     case PlayerState::SLIDE2:
+    case PlayerState::STAND_SWORD:
         return STANDING;
     case PlayerState::CROUCH:
     case PlayerState::SITTING:
