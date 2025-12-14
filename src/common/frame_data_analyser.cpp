@@ -248,6 +248,10 @@ ConnectionEvent FrameDataAnalyser::has_new_connection() {
     return ConnectionEvent::NO_CONNECTION;
 }
 
+bool FrameDataAnalyser::player_in_stasis(const PlayerFrame *const player_frame) {
+    return (PlayerIntent) player_frame->intent == PlayerIntent::STASIS;
+}
+
 StartFrame FrameDataAnalyser::get_startup_frame(const GameFrame *const frame, const bool p2, const bool pop) {
     RingBuffer<StartFrame> *buffer = p2 ? &m_p2_start_frames : &m_p1_start_frames;
     const int32_t last_attack_seq = p2 ? frame->p2.attack_seq : frame->p1.attack_seq;
@@ -277,7 +281,8 @@ StartFrame FrameDataAnalyser::get_startup_frame(const GameFrame *const frame, co
 bool FrameDataAnalyser::string_is_active(const PlayerFrame *const player_frame) {
     return ((PlayerState) player_frame->state == PlayerState::STRING ||
             (PlayerState) player_frame->state == PlayerState::MOVE ||
-            (PlayerState) player_frame->state == PlayerState::CROUCHING_ATTACK) &&
+            (PlayerState) player_frame->state == PlayerState::CROUCHING_ATTACK ||
+            (PlayerState) player_frame->state == PlayerState::JUMPING) &&
            // Zero is a grap
            (PlayerMove) player_frame->move != PlayerMove::IDLE;
 }
@@ -571,7 +576,11 @@ void FrameDataAnalyser::calculate_single_attack(const ConnectionEvent connection
         return;
     }
 
-    log_debug("calculate single hit");
+    if (player_in_stasis(player)) {
+        log_debug("calculate single hit (stasis)");
+    } else {
+        log_debug("calculate single hit");
+    }
 
     // Calculate frame data for single attack
     int32_t startup_frames = (int) (current->game_frame - startup.game_frame); // NOLINT
@@ -579,14 +588,16 @@ void FrameDataAnalyser::calculate_single_attack(const ConnectionEvent connection
 
     if (connection == ConnectionEvent::P1_CONNECTION) {
         // Don't base recovery time on startup frame if new recovery has begun
-        if (recovery_reset(&previous->p1, player)) {
+        // Or the connection is grab
+        if (recovery_reset(&previous->p1, player) || player_in_stasis(player)) {
             frame_advantage = (int) (opponent->recovery_frames - player->recovery_frames);
         } else {
             frame_advantage = (int) (startup_frames - (startup.recovery_frames - opponent->recovery_frames));
         }
     } else {
         // Don't base recovery time on startup frame if new recovery has begun
-        if (recovery_reset(&previous->p2, player)) {
+        // Or the connection is grab
+        if (recovery_reset(&previous->p2, player) || player_in_stasis(player)) {
             frame_advantage = (int) (opponent->recovery_frames - player->recovery_frames);
         } else {
             frame_advantage = (int) ((startup.recovery_frames - opponent->recovery_frames) - startup_frames);
