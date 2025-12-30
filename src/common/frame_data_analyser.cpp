@@ -293,9 +293,19 @@ bool FrameDataAnalyser::is_knockdown(const PlayerFrame *const player_frame) {
            (PlayerState) player_frame->state == PlayerState::GROUNDED2;
 }
 
+bool FrameDataAnalyser::has_string_startup(const bool p2) {
+    RingBuffer<StartFrame> *const startup_frames = p2 ? &m_p2_start_frames : &m_p1_start_frames;
+    const size_t count = startup_frames->item_count();
+    for (size_t i = 0; i < count; i++) {
+        if (startup_frames->get(i)->is_string) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool FrameDataAnalyser::should_handle_string(const PlayerFrame *const player_frame, const bool p2) {
-    RingBuffer<GameFrame> *const str_end_frames = p2 ? &m_p2_str_end_frames : &m_p1_str_end_frames;
-    return string_is_active(player_frame) || str_end_frames->item_count() > 0;
+    return string_is_active(player_frame) || has_string_startup(p2);
 }
 
 bool FrameDataAnalyser::string_has_ended_state(const PlayerFrame *player_frame) {
