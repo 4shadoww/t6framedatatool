@@ -3,7 +3,7 @@ Tekken 6 frame data tool
 
 Tekken 6 frame data overlay for RPCS3.
 
-[![Tekken 6 frame data tool demo](t6framedata.png)](https://www.youtube.com/watch?v=fgl7vU3PrNk)
+[![Tekken 6 frame data tool demo](t6framedata.png)](https://www.youtube.com/watch?v=PMzXz8wr8RE)
 
 Requirements
 ------------
