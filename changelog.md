@@ -31,7 +31,7 @@ Release 0.4
 - Added missing states to analyser
 - Added CLI options
 
-Release 0.5 (UPCOMING)
+Release 0.5
 -----------
 
 - Fixes to "natural" strings

@@ -12,7 +12,6 @@ Requirements
 - Linux or Windows
 - Tekken 6 Europe (BLES00635) with 01.03 update patch
 
-
 Compiling
 ---------
 
@@ -52,5 +51,4 @@ Missing features
 Known bugs
 ----------
 
-- Frame data of moves which do damage at multiple points of the move are not calculated correctly.
-  For example Alisa Destroy Form.
+- There exists a number of strings and multi-hit attacks that don't work correctly
