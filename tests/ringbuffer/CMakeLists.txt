@@ -10,8 +10,7 @@ target_link_libraries(
   GTest::gtest_main
 )
 
-include_directories(${COMMON_SRC}
-                    ${gtest_SOURCE_DIR}/include
-                    ${gtest_SOURCE_DIR})
+target_include_directories(test_ring_buffer PRIVATE ${COMMON_SRC})
+target_include_directories(test_ring_buffer SYSTEM PRIVATE ${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 gtest_discover_tests(test_ring_buffer)

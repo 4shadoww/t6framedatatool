@@ -25,9 +25,7 @@ target_link_libraries(${TARGET}
 
 if(WIN32)
     # For some reason Windows needs this
-    target_include_directories(${TARGET} PRIVATE ${3RDPARTY_LIBS})
+    target_include_directories(${TARGET} SYSTEM PRIVATE ${3RDPARTY_LIBS})
 endif()
 
-target_include_directories(${TARGET}
-   INTERFACE ${GENERATED_SRCS}
-)
+target_include_directories(${TARGET} PRIVATE ${PROJECT_SOURCE_DIR}/generated-src)

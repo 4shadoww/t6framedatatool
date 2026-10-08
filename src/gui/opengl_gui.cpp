@@ -43,7 +43,7 @@
 #include "shaders.hpp"
 #include "version.hpp"
 
-#include "generated-src/fonts.h"
+#include "fonts.h"
 
 namespace {
 

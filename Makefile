@@ -103,8 +103,13 @@ test: configure_test ignore_build
 run_test: test
 	ctest --output-on-failure --test-dir $(BUILD_DIR_TEST)
 
+# First-party translation units only. -quiet hides the summary of warnings
+# suppressed in third-party and system headers. The header filter keeps
+# warnings in src/ and tests/ headers.
 lint:
-	run-clang-tidy -j 8 -allow-no-checks
+	run-clang-tidy -j 8 -quiet -allow-no-checks \
+		-header-filter '$(CURDIR)/(src|tests)/' \
+		'$(CURDIR)/src/' '$(CURDIR)/tests/'
 
 format:
 	find src -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' | clang-format --style=file --files=/dev/stdin

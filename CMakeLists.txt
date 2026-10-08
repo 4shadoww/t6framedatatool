@@ -17,7 +17,18 @@ set(COMMON_LIB_TYPE OBJECT)
 # Set global variables
 set(3RDPARTY_LIBS ${PROJECT_SOURCE_DIR}/3rdparty)
 set(SRCS ${PROJECT_SOURCE_DIR}/src)
-set(GENERATED_SRCS ${PROJECT_SOURCE_DIR}/generated-srcs)
+
+# Third-party headers are not project code. Mark their include directories as
+# system headers so -Werror and clang-tidy report only src/ and tests/.
+function(mark_includes_as_system target)
+    if(NOT TARGET ${target})
+        return()
+    endif()
+    get_target_property(_incs ${target} INTERFACE_INCLUDE_DIRECTORIES)
+    if(_incs)
+        set_property(TARGET ${target} PROPERTY INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${_incs})
+    endif()
+endfunction()
 
 # 3rdparty library imports
 if(GUI)
@@ -32,7 +43,18 @@ if(GUI)
     add_subdirectory("${3RDPARTY_LIBS}/freetype" freetype)
 
     # Glm
+    # GLM's own lists use PROJECT_SOURCE_DIR, which is this repo when GLM is
+    # added with add_subdirectory. Headers live in 3rdparty/glm and are included
+    # as <glm/...>, so the include directory is 3rdparty/.
     add_subdirectory("${3RDPARTY_LIBS}/glm")
+    set_property(TARGET glm-header-only PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+        "$<BUILD_INTERFACE:${3RDPARTY_LIBS}>"
+        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+    )
+
+    foreach(tgt glfw glad_gl_core_33 freetype glm glm-header-only)
+        mark_includes_as_system(${tgt})
+    endforeach()
 endif()
 
 if(DEBUG)
