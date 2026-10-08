@@ -34,6 +34,9 @@ make release
 # Debug build
 make debug
 
+# Test deps
+make test_deps
+
 # Run tests
 make run_test
 
