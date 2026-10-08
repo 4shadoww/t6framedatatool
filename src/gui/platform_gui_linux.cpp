@@ -36,21 +36,46 @@ Window g_game_window;
 Display *g_display;
 Display *g_event_display;
 
-char *get_window_class(const Window window) {
-    const Atom prop = XInternAtom(g_display, "WM_CLASS", False);
+char *read_string_property(const Window window, const char *property_name, unsigned long *len) {
+    const Atom prop = XInternAtom(g_display, property_name, False);
     Atom type = 0;
     int form = 0;
     unsigned long remain = 0;
-    unsigned long len = 0;
     unsigned char *list = nullptr;
 
-    if (XGetWindowProperty(g_display, window, prop, 0, 1024, False, XA_STRING, &type, &form, &len, &remain, &list) !=
+    if (XGetWindowProperty(g_display, window, prop, 0, 1024, False, XA_STRING, &type, &form, len, &remain, &list) !=
         Success) {
-        log_error("failed to read window class");
+        log_error("failed to read window property %s", property_name);
+        *len = 0;
         return nullptr;
     }
 
     return (char *) list; // NOLINT
+}
+
+// WM_CLASS is two NUL-separated strings (instance, then class). AppImage sets
+// instance to "AppRun.wrapped" and class to "RPCS3", so both have to be searched.
+bool property_contains(const char *value, const unsigned long len, const char *needle) {
+    if (value == nullptr || needle == nullptr || len == 0) {
+        return false;
+    }
+
+    const char *cursor = value;
+    const char *end = value + len;
+    while (cursor < end) {
+        if (*cursor != '\0' && strcasestr(cursor, needle) != nullptr) {
+            return true;
+        }
+
+        while (cursor < end && *cursor != '\0') {
+            cursor++;
+        }
+        if (cursor < end) {
+            cursor++;
+        }
+    }
+
+    return false;
 }
 
 Window *get_windows(unsigned long *len) {
@@ -77,29 +102,15 @@ Window *get_windows(unsigned long *len) {
     }
     return (Window *) list; // NOLINT
 }
-char *get_window_name(const Window window) {
-    const Atom prop = XInternAtom(g_display, "WM_NAME", False);
-    Atom type = 0;
-    int form = 0;
-    unsigned long remain = 0;
-    unsigned long len = 0;
-    unsigned char *list = nullptr;
-
-    if (XGetWindowProperty(g_display, window, prop, 0, 1024, False, XA_STRING, &type, &form, &len, &remain, &list) !=
-        Success) {
-        log_error("failed to read window name");
-        return nullptr;
-    }
-
-    return (char *) list; // NOLINT
-}
-
-bool window_match(const char *window_class, const char *window_name) {
-    if (strcasestr(window_class, RPSC3_CLASS) == nullptr) {
+bool window_match(const char *window_class,
+                  const unsigned long class_len,
+                  const char *window_name,
+                  const unsigned long name_len) {
+    if (!property_contains(window_class, class_len, RPSC3_CLASS)) {
         return false;
     }
 
-    if (strcasestr(window_name, RPSC3_NAME) == nullptr) {
+    if (!property_contains(window_name, name_len, RPSC3_NAME)) {
         return false;
     }
 
@@ -157,29 +168,47 @@ void platform_update_ui_position(const int game_x, const int game_y, const int g
 void platform_find_game_window() {
     unsigned long len = 0;
 
-    const Window *windows = get_windows(&len);
+    Window *windows = get_windows(&len);
 
     if (windows == nullptr) {
         return;
     }
 
+    bool found = false;
     for (unsigned long i = 0; i < len; i++) {
-        const char *window_class = get_window_class(windows[i]);
-        const char *window_name = get_window_name(windows[i]);
-        if (window_match(window_class, window_name)) {
+        unsigned long class_len = 0;
+        unsigned long name_len = 0;
+        char *window_class = read_string_property(windows[i], "WM_CLASS", &class_len);
+        char *window_name = read_string_property(windows[i], "WM_NAME", &name_len);
+        if (window_match(window_class, class_len, window_name, name_len)) {
             log_info("found game window %s, %s", window_class, window_name);
             g_game_window = windows[i];
+            found = true;
+        }
 
-            XSelectInput(g_event_display, g_game_window, StructureNotifyMask);
-
-            XWindowAttributes xwa;
-            XGetWindowAttributes(g_display, g_game_window, &xwa);
-            platform_update_ui_position(xwa.x, xwa.y, xwa.height, true);
-            return;
+        if (window_class != nullptr) {
+            XFree(window_class);
+        }
+        if (window_name != nullptr) {
+            XFree(window_name);
+        }
+        if (found) {
+            break;
         }
     }
 
-    log_error("no game window found");
+    XFree(windows);
+
+    if (!found) {
+        log_error("no game window found");
+        return;
+    }
+
+    XSelectInput(g_event_display, g_game_window, StructureNotifyMask);
+
+    XWindowAttributes xwa;
+    XGetWindowAttributes(g_display, g_game_window, &xwa);
+    platform_update_ui_position(xwa.x, xwa.y, xwa.height, true);
 }
 
 void platform_update() {

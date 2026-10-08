@@ -17,10 +17,13 @@
 
 #define _GNU_SOURCE // NOLINT
 #include <dirent.h>
+#include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
+#include <unistd.h>
 
 #include <sys/types.h>
 #include <sys/uio.h>
@@ -90,53 +93,59 @@ int read_2bytes(const long long address, int16_t *value) {
     return READ_OK;
 }
 
-pid_t get_pid(char *name) {
-    static const char *directory = "/proc";
+static int process_exe_basename_is(const pid_t pid, const char *name) {
+    char link_path[64] = {0};
+    char exe_path[PATH_MAX] = {0};
 
-    DIR *dir = opendir(directory);
+    const int path_len = snprintf(link_path, sizeof(link_path), "/proc/%d/exe", (int) pid);
+    if (path_len < 0 || (size_t) path_len >= sizeof(link_path)) {
+        return 0;
+    }
+
+    const ssize_t exe_len = readlink(link_path, exe_path, sizeof(exe_path) - 1);
+    if (exe_len < 0 || (size_t) exe_len >= sizeof(exe_path) - 1) {
+        return 0;
+    }
+    exe_path[exe_len] = '\0';
+
+    const char *basename = exe_path;
+    for (ssize_t i = 0; i < exe_len; i++) {
+        if (exe_path[i] == '/') {
+            basename = &exe_path[i + 1];
+        }
+    }
+
+    return strcasecmp(basename, name) == 0;
+}
+
+pid_t get_pid(const char *name) {
+    DIR *dir = opendir("/proc");
 
     if (dir == NULL) {
         return -1;
     }
 
-    struct dirent *de = 0;
-
-    while ((de = readdir(dir)) != 0) { // NOLINT: no thread safe warning
+    // Match /proc/<pid>/exe. An AppImage's cmdline contains "rpcs3", but that
+    // process is the runtime stub. The emulator itself is AppRun.wrapped and
+    // its executable basename is still "rpcs3".
+    struct dirent *de = NULL;
+    while ((de = readdir(dir)) != NULL) { // NOLINT: no thread safe warning
         if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0) {
             continue;
         }
 
         pid_t pid = -1;
-        int res = sscanf(de->d_name, "%d", &pid); // NOLINT: warning nagging about using "strtol" as scanff iS NoT sAfE
+        const int res = sscanf(de->d_name, "%d", &pid); // NOLINT: warning nagging about using "strtol"
 
-        // PID valid
         if (res != 1) {
             continue;
         }
 
-        // Check the process name from cmdline
-        char cmdline_file[1024] = {0};
-        sprintf(cmdline_file, "%s/%d/cmdline", directory, pid); // NOLINT
-
-        FILE *cmdline = fopen(cmdline_file, "r");
-
-        size_t bytes_read = 0;
-        char *process_name = NULL;
-
-        if (getline(&process_name, &bytes_read, cmdline) <= 0) { // NOLINT
-            (void) fclose(cmdline); // NOLINT
+        if (process_exe_basename_is(pid, name) == 0) {
             continue;
         }
 
-        if (strstr(process_name, name) == 0) {
-            (void) fclose(cmdline);
-            continue;
-        }
-
-        // Found PID close streams
-        (void) fclose(cmdline);
         closedir(dir);
-
         return pid;
     }
 
@@ -152,6 +161,8 @@ int platform_init_memory_reader(void) {
         log_error("cannot find the emulator process");
         return MR_INIT_ERROR;
     }
+
+    log_info("attached to emulator process %d", (int) g_pid);
 
     g_local[0].iov_base = g_buf;
     g_remote[0].iov_len = READ_BUFFER_LEN;
