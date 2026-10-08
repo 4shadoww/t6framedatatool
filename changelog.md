@@ -39,3 +39,8 @@ Release 0.5
 - Fixed GUI refresh rate on Linux
 - Add KD
 - Reset frame data after inactivity
+
+Release 0.5.1
+-------------
+
+- Fix RPCS3 AppImage process and window finding
