@@ -19,6 +19,24 @@
 
 #include "number_conversions.h"
 
+int64_t big64_to_little(const char *const buf) {
+    union {
+        char bytes[8];
+        int64_t value;
+    } u;
+
+    u.bytes[0] = buf[7];
+    u.bytes[1] = buf[6];
+    u.bytes[2] = buf[5];
+    u.bytes[3] = buf[4];
+    u.bytes[4] = buf[3];
+    u.bytes[5] = buf[2];
+    u.bytes[6] = buf[1];
+    u.bytes[7] = buf[0];
+
+    return u.value;
+}
+
 int32_t big32_to_little(const char *const buf) {
     union {
         char bytes[4];
@@ -45,7 +63,7 @@ int16_t big16_to_little(const char *const buf) {
     return u.value;
 }
 
-uint64_t ps3_address_to_x64(const uint32_t address) {
+uint64_t ps3_address_to_x64(const ps3address address) {
     static const uint64_t BASE_ADDRESS = 0x300000000;
     return address + BASE_ADDRESS;
 }

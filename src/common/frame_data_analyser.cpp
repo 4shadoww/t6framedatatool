@@ -68,7 +68,7 @@ void FrameDataAnalyser::log_frame() {
            << "P1 recovery frames: " << state->p1.recovery_frames << std::endl
            << "P1 connection: " << (bool) state->p1.connection << std::endl
            << "P1 intent: " << state->p1.intent << std::endl
-           << "P1 move: " << state->p1.move << std::endl
+           << "P1 move: " << state->p1.move_id << std::endl
            << "P1 state: " << state->p1.state << std::endl
            << "P1 string type: " << state->p1.string_type << std::endl
            << "P1 string state: " << state->p1.string_state << std::endl
@@ -79,7 +79,7 @@ void FrameDataAnalyser::log_frame() {
            << "P2 recovery frames: " << state->p2.recovery_frames << std::endl
            << "P2 connection: " << (bool) state->p2.connection << std::endl
            << "P2 intent: " << state->p2.intent << std::endl
-           << "P2 move: " << state->p2.move << std::endl
+           << "P2 move: " << state->p2.move_id << std::endl
            << "P2 state: " << state->p2.state << std::endl
            << "P2 string type: " << state->p2.string_type << std::endl
            << "P2 string state: " << state->p2.string_state << std::endl
@@ -120,7 +120,7 @@ bool FrameDataAnalyser::is_attack(const PlayerIntent &intent) {
 }
 
 bool FrameDataAnalyser::recovery_reset(const PlayerFrame *const previous, const PlayerFrame *const current) {
-    return previous->move != current->move;
+    return previous->move_id != current->move_id;
 }
 
 const GameFrame *FrameDataAnalyser::get_game_frame(const uint32_t game_frame) {
@@ -285,7 +285,7 @@ bool FrameDataAnalyser::string_is_active(const PlayerFrame *const player_frame) 
             (PlayerState) player_frame->state == PlayerState::CROUCHING_ATTACK ||
             (PlayerState) player_frame->state == PlayerState::JUMPING) &&
            // Zero is a grap
-           (PlayerMove) player_frame->move != PlayerMove::IDLE;
+           (PlayerMove) player_frame->move_id != PlayerMove::IDLE;
 }
 
 bool FrameDataAnalyser::is_knockdown(const PlayerFrame *const player_frame) {

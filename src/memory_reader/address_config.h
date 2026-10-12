@@ -42,6 +42,8 @@
 #define P1_STRING_TYPE GAME_BASE_ADDRESS + 356
 // Player 1 string state
 #define P1_STRING_STATE GAME_BASE_ADDRESS + 178532
+// Player 1 move struct ptr
+#define P1_MOVE_STRUCT_PTR GAME_BASE_ADDRESS + 1832
 
 // Player 2 frames since last action
 #define P2_FRAMES_LAST_ACTION GAME_BASE_ADDRESS + 3260
@@ -65,6 +67,8 @@
 #define P2_STRING_TYPE GAME_BASE_ADDRESS + 3492
 // Player 2 string state
 #define P2_STRING_STATE GAME_BASE_ADDRESS + 178676
+// Player 2 move struct ptr
+#define P2_MOVE_STRUCT_PTR GAME_BASE_ADDRESS + 4968
 
 // Current game frame
 #define CURRENT_GAME_FRAME GAME_BASE_ADDRESS + 270587472

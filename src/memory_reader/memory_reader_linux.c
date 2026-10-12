@@ -40,7 +40,7 @@
  */
 
 // Constants
-#define READ_BUFFER_LEN 12
+#define READ_BUFFER_LEN 124
 #define RPCS3_NAME "rpcs3"
 
 // UIO variables

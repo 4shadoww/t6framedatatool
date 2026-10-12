@@ -16,14 +16,17 @@
 */
 
 #include <iostream>
+#include <ostream>
 
 #include "game_state_reader.h"
 #include "memory_reader_types.h"
+#include "refl_struct.h"
 
 // Just print the current frame data and exit
 
 int main() {
     init_memory_reader();
+    char text[2048];
 
     struct GameFrame state{};
     const int result = read_game_state(&state);
@@ -41,24 +44,36 @@ int main() {
     std::cout << "P1 recovery frames: " << state.p1.recovery_frames << std::endl;
     std::cout << "P1 connection: " << (bool) state.p1.connection << std::endl;
     std::cout << "P1 intent: " << state.p1.intent << std::endl;
-    std::cout << "P1 move: " << state.p1.move << std::endl;
+    std::cout << "P1 move: " << state.p1.move_id << std::endl;
     std::cout << "P1 state: " << state.p1.state << std::endl;
     std::cout << "P1 string type: " << state.p1.string_type << std::endl;
     std::cout << "P1 string state: " << state.p1.string_state << std::endl;
     std::cout << "P1 position: " << state.p1.position.x << ", " << state.p1.position.y << ", " << state.p1.position.z << std::endl;
     std::cout << "P1 seq: " << state.p1.attack_seq << std::endl;
+    if (state.p1.move_struct.o_0x0_int == 0 && state.p1.move_struct.o_0x4_int == 0) {
+        std::cout << "P2 no start of move" << std::endl;
+    } else {
+        format_refl_struct(text, sizeof(text), "P1 move:", &state.p1.move_struct, move_fields, move_field_count);
+        std::cout << text << std::endl;
+    }
 
     // P2
     std::cout << "P2 last action: " << state.p2.frames_last_action << std::endl;
     std::cout << "P2 recovery frames: " << state.p2.recovery_frames << std::endl;
     std::cout << "P2 connection: " << (bool) state.p2.connection << std::endl;
     std::cout << "P2 intent: " << state.p2.intent << std::endl;
-    std::cout << "P2 move: " << state.p2.move << std::endl;
+    std::cout << "P2 move: " << state.p2.move_id << std::endl;
     std::cout << "P2 state: " << state.p2.state << std::endl;
     std::cout << "P2 string type: " << state.p2.string_type << std::endl;
     std::cout << "P2 string state: " << state.p2.string_state << std::endl;
     std::cout << "P2 position: " << state.p2.position.x << ", " << state.p2.position.y << ", " << state.p2.position.z << std::endl;
     std::cout << "P2 seq: " << state.p2.attack_seq << std::endl;
+    if (state.p2.move_struct.o_0x0_int == 0 && state.p2.move_struct.o_0x4_int == 0) {
+        std::cout << "P2 no start of move" << std::endl;
+    } else {
+        format_refl_struct(text, sizeof(text), "P2 move:", &state.p2.move_struct, move_fields, move_field_count);
+        std::cout << text << std::endl;
+    }
 
     // Game state
     std::cout << "current game frame: " << state.game_frame << std::endl;

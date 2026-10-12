@@ -7,3 +7,4 @@ set(UTILS_SRC ${SRCS}/utils)
 
 add_subdirectory(ringbuffer)
 add_subdirectory(print_framedata)
+add_subdirectory(memory_reader)
