@@ -23,6 +23,8 @@
 
 struct FrameDataPoint {
     int startup_frames;
+    uint32_t first_active_frame;
+    uint32_t last_active_frame;
     int frame_advantage;
     bool knock_down;
 };
@@ -33,6 +35,8 @@ struct StartFrame {
     uint32_t game_frame;
     int32_t attack_seq;
     bool is_string;
+    uint32_t first_active_frame;
+    uint32_t last_active_frame;
 };
 
 enum class ConnectionEvent : uint8_t {

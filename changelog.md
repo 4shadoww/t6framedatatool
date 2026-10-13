@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Release 0.6.0
+-------------
+
+- Active frames support added
+
 Release 0.5.1
 -------------
 

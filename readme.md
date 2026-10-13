@@ -47,8 +47,6 @@ make clean
 Missing features
 ----------------
 
-- Active frames
-
 - Edge case logic
 
 Known bugs

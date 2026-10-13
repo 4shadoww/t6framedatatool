@@ -34,8 +34,9 @@ public:
 };
 
 void Listener::frame_data(const FrameDataPoint frame_data) {
-    std::cout << "startup frames: " << frame_data.startup_frames << ", frame advantage: " << frame_data.frame_advantage
-              << ", KD: " << frame_data.knock_down << std::endl;
+    std::cout << "startup frames: " << frame_data.startup_frames << "(" << frame_data.first_active_frame << "~"
+              << frame_data.last_active_frame << ")"
+              << ", frame advantage: " << frame_data.frame_advantage << ", KD: " << frame_data.knock_down << std::endl;
 }
 
 void Listener::distance(const float /*distance*/) {

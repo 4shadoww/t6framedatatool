@@ -81,8 +81,10 @@ public:
 void Listener::frame_data(const FrameDataPoint frame_data) {
     g_last_update = std::chrono::steady_clock::now().time_since_epoch().count();
     g_data_point = frame_data;
-    log_info("startup frames: %d, frame advantage: %d, KD: %d",
+    log_info("startup frames: %d (%d~%d), frame advantage: %d, KD: %d",
              frame_data.startup_frames,
+             frame_data.first_active_frame,
+             frame_data.last_active_frame,
              frame_data.frame_advantage,
              frame_data.knock_down);
 }
@@ -382,7 +384,11 @@ void draw_frame_data() {
         }
     }
 
-    (void) sprintf(buffer, STARTUP_FRAMES, g_data_point.startup_frames);
+    (void) sprintf(buffer,
+                   STARTUP_FRAMES,
+                   g_data_point.startup_frames,
+                   g_data_point.first_active_frame,
+                   g_data_point.last_active_frame);
     render_line(buffer, 3, TEXT_COLOR_GREEN);
 }
 

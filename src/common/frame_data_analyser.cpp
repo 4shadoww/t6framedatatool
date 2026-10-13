@@ -15,12 +15,14 @@
   along with this program.    If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "refl_struct.h"
 #include "ring_buffer.hpp"
 
 #include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <sstream>
 #include <thread>
 
@@ -41,6 +43,8 @@
 #define PLAYER_STRING_BUFFER_SIZE 50
 #define PLAYER_STRING_END_BUFFER_SIZE 4
 
+#define STRUCT_STRING_SIZE 2048
+
 //// frame_data_analyser
 ///
 volatile bool FrameDataAnalyser::m_stop = false;
@@ -60,9 +64,26 @@ EventListener *FrameDataAnalyser::m_listener = nullptr;
 int FrameDataAnalyser::m_last_player_intent = 0;
 bool FrameDataAnalyser::m_logging = false;
 
+// Internal functions
+namespace {
+void move_struct_to_str(const Move *const move, char *struct_string) {
+    if (move->o_0x0_int == 0 && move->o_0x4_int == 0) {
+        char message[] = "no move struct";
+        strlcpy(struct_string, message, STRUCT_STRING_SIZE);
+    } else {
+        format_refl_struct(struct_string, STRUCT_STRING_SIZE, "move struct:", move, move_fields, move_field_count);
+    }
+}
+} // namespace
+
 void FrameDataAnalyser::log_frame() {
     const GameFrame *const state = m_frame_buffer.head();
+    char struct_string[STRUCT_STRING_SIZE];
+
+    move_struct_to_str(&state->p1.move_struct, struct_string);
+
     std::stringstream stream;
+    // TODO: log relevant structs
     stream << "FRAME: " << state->game_frame << std::endl
            << "P1 last action: " << state->p1.frames_last_action << std::endl
            << "P1 recovery frames: " << state->p1.recovery_frames << std::endl
@@ -75,7 +96,11 @@ void FrameDataAnalyser::log_frame() {
            << "P1 position: " << state->p1.position.x << ", " << state->p1.position.y << ", " << state->p1.position.z
            << std::endl
            << "P1 attack seq: " << state->p1.attack_seq << std::endl
-           << "P2 last action: " << state->p2.frames_last_action << std::endl
+           << struct_string;
+
+    move_struct_to_str(&state->p2.move_struct, struct_string);
+
+    stream << "P2 last action: " << state->p2.frames_last_action << std::endl
            << "P2 recovery frames: " << state->p2.recovery_frames << std::endl
            << "P2 connection: " << (bool) state->p2.connection << std::endl
            << "P2 intent: " << state->p2.intent << std::endl
@@ -85,7 +110,8 @@ void FrameDataAnalyser::log_frame() {
            << "P2 string state: " << state->p2.string_state << std::endl
            << "P2 position: " << state->p2.position.x << ", " << state->p2.position.y << ", " << state->p2.position.z
            << std::endl
-           << "P2 attack seq: " << state->p2.attack_seq;
+           << "P2 attack seq: " << state->p2.attack_seq << std::endl
+           << struct_string;
 
     log_info(stream.str().c_str());
 }
@@ -217,6 +243,8 @@ void FrameDataAnalyser::analyse_start_frames() {
             .game_frame = current->game_frame,
             .attack_seq = current->p1.attack_seq,
             .is_string = string_is_active(&current->p1),
+            .first_active_frame = previous->p1.move_struct.first_active_frame,
+            .last_active_frame = previous->p1.move_struct.last_active_frame,
         });
         if (m_logging) {
             log_info("MARK STARTUP P1: %i", current->game_frame);
@@ -231,6 +259,8 @@ void FrameDataAnalyser::analyse_start_frames() {
             .game_frame = current->game_frame,
             .attack_seq = current->p2.attack_seq,
             .is_string = string_is_active(&current->p2),
+            .first_active_frame = previous->p2.move_struct.first_active_frame,
+            .last_active_frame = previous->p2.move_struct.last_active_frame,
         });
         if (m_logging) {
             log_info("MARK STARTUP P2: %i", current->game_frame);
@@ -445,6 +475,8 @@ bool FrameDataAnalyser::calculate_multihit_string(RingBuffer<GameFrame> *const p
     const uint32_t frame_delta = last_connection->game_frame - first_startup.game_frame;
     int32_t frame_advantage = 0;
     bool knock_down = false;
+    uint32_t first_active_frame = 0;
+    uint32_t last_active_frame = 0;
 
     if (p2) {
         knock_down = is_knockdown(&last_connection->p1);
@@ -455,10 +487,14 @@ bool FrameDataAnalyser::calculate_multihit_string(RingBuffer<GameFrame> *const p
         knock_down = is_knockdown(&last_connection->p2);
         frame_advantage =
             (int) (last_connection->p2.recovery_frames - last_connection->p1.recovery_frames + frame_delta);
+        first_active_frame = first_startup.first_active_frame;
+        last_active_frame = first_startup.last_active_frame;
     }
 
     const struct FrameDataPoint data_point = {
         .startup_frames = startup_frames,
+        .first_active_frame = first_active_frame,
+        .last_active_frame = last_active_frame,
         .frame_advantage = frame_advantage,
         .knock_down = knock_down,
     };
@@ -515,6 +551,8 @@ bool FrameDataAnalyser::calculate_natural_string(RingBuffer<GameFrame> *const pl
     const int last_startup_frames = (int) (last_connection->game_frame - last_startup.game_frame);
     int32_t frame_advantage = 0;
     bool knock_down = false;
+    uint32_t first_active_frame = 0;
+    uint32_t last_active_frame = 0;
 
     if (p2) {
         knock_down = is_knockdown(&last_connection->p1);
@@ -535,10 +573,14 @@ bool FrameDataAnalyser::calculate_natural_string(RingBuffer<GameFrame> *const pl
             frame_advantage =
                 (int) (last_startup_frames - (last_startup.recovery_frames - last_connection->p2.recovery_frames));
         }
+        first_active_frame = first_startup.first_active_frame;
+        last_active_frame = first_startup.last_active_frame;
     }
 
     const struct FrameDataPoint data_point = {
         .startup_frames = startup_frames,
+        .first_active_frame = first_active_frame,
+        .last_active_frame = last_active_frame,
         .frame_advantage = frame_advantage,
         .knock_down = knock_down,
     };
@@ -623,6 +665,8 @@ void FrameDataAnalyser::calculate_single_attack(const ConnectionEvent connection
     int32_t startup_frames = (int) (current->game_frame - startup.game_frame); // NOLINT
     int32_t frame_advantage = 0;
     const bool knock_down = is_knockdown(opponent);
+    uint32_t first_active_frame = 0;
+    uint32_t last_active_frame = 0;
 
     if (connection == ConnectionEvent::P1_CONNECTION) {
         // Don't base recovery time on startup frame if new recovery has begun
@@ -632,6 +676,8 @@ void FrameDataAnalyser::calculate_single_attack(const ConnectionEvent connection
         } else {
             frame_advantage = (int) (startup_frames - (startup.recovery_frames - opponent->recovery_frames));
         }
+        first_active_frame = startup.first_active_frame;
+        last_active_frame = startup.last_active_frame;
     } else {
         // Don't base recovery time on startup frame if new recovery has begun
         // Or the connection is grab
@@ -645,6 +691,8 @@ void FrameDataAnalyser::calculate_single_attack(const ConnectionEvent connection
 
     const struct FrameDataPoint data_point = {
         .startup_frames = startup_frames,
+        .first_active_frame = first_active_frame,
+        .last_active_frame = last_active_frame,
         .frame_advantage = frame_advantage,
         .knock_down = knock_down,
     };

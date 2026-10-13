@@ -37,7 +37,7 @@
 #define BORDER_MARGIN_X 25
 #define BORDER_MARGIN_Y 15
 
-#define STARTUP_FRAMES "Startup Frames %d"
+#define STARTUP_FRAMES "Startup Frames %d (%d~%d)"
 #define FRAME_ADVANTAGE "Frame Advantage %d"
 #define FRAME_ADVANTAGE_KD "Frame Advantage KD"
 #define STATUS "Status %s"
