@@ -35,13 +35,14 @@ struct StartFrame {
     bool is_string;
 };
 
-enum ConnectionEvent : uint8_t {
+enum class ConnectionEvent : uint8_t {
     NO_CONNECTION,
     P1_CONNECTION,
-    P2_CONNECTION
+    P2_CONNECTION,
 };
 
 enum class PlayerState : int {
+    UNKNOWN = 0,
     STANDING = 6482,
     CROUCH = 538921,
     CROUCHING = 14633,
@@ -100,17 +101,17 @@ enum class PlayerIntent : int {
 
 enum class PlayerSide : uint8_t {
     RIGHT = 0,
-    LEFT = 1
+    LEFT = 1,
 };
 
 enum class PlayerMove : uint8_t {
-    IDLE = 0
+    IDLE = 0,
 };
 
 enum class StringState : uint8_t {
     NOT_ENDED1 = 0,
     NOT_ENDED2 = 1, // Sometimes appears in midde of the string
-    ENDED = 2
+    ENDED = 2,
 };
 
 enum class StringType : uint16_t {

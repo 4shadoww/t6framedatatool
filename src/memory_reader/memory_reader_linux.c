@@ -97,6 +97,7 @@ static int process_exe_basename_is(const pid_t pid, const char *name) {
     char link_path[64] = {0};
     char exe_path[PATH_MAX] = {0};
 
+    // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
     const int path_len = snprintf(link_path, sizeof(link_path), "/proc/%d/exe", (int) pid);
     if (path_len < 0 || (size_t) path_len >= sizeof(link_path)) {
         return 0;
@@ -118,7 +119,7 @@ static int process_exe_basename_is(const pid_t pid, const char *name) {
     return strcasecmp(basename, name) == 0;
 }
 
-pid_t get_pid(const char *name) {
+static pid_t get_pid(const char *name) {
     DIR *dir = opendir("/proc");
 
     if (dir == NULL) {

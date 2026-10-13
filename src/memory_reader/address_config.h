@@ -21,60 +21,60 @@
 // Player 1 health
 #define GAME_BASE_ADDRESS 0x300B2C140
 // Player 1 frames since last action
-#define P1_FRAMES_LAST_ACTION GAME_BASE_ADDRESS + 124
+#define P1_FRAMES_LAST_ACTION (GAME_BASE_ADDRESS + 124)
 // Plater 1 animation recovery frames
-#define P1_RECOVERY_FRAMES GAME_BASE_ADDRESS + 392
+#define P1_RECOVERY_FRAMES (GAME_BASE_ADDRESS + 392)
 // Plater 1 connection boolean
-#define P1_CONNECTION_BOOL GAME_BASE_ADDRESS + 915132194
+#define P1_CONNECTION_BOOL (GAME_BASE_ADDRESS + 915132194)
 // Player 1 intent
-#define P1_INTENT GAME_BASE_ADDRESS + 472
+#define P1_INTENT (GAME_BASE_ADDRESS + 472)
 // Player 1 move
-#define P1_MOVE GAME_BASE_ADDRESS + 332
+#define P1_MOVE (GAME_BASE_ADDRESS + 332)
 // Player 1 state
-#define P1_STATE GAME_BASE_ADDRESS + 172
+#define P1_STATE (GAME_BASE_ADDRESS + 172)
 // Player 1 coordinates
-#define P1_POSITION GAME_BASE_ADDRESS + 2192
+#define P1_POSITION (GAME_BASE_ADDRESS + 2192)
 // Player 1 attack sequence number pointer
-#define P1_ATTACK_SEQ_PTR GAME_BASE_ADDRESS + 342632
+#define P1_ATTACK_SEQ_PTR (GAME_BASE_ADDRESS + 342632)
 // Offset from pointer to attack seq value
 #define P1_ATTACK_SEQ_OFFSET 312
 // Player 1 string type
-#define P1_STRING_TYPE GAME_BASE_ADDRESS + 356
+#define P1_STRING_TYPE (GAME_BASE_ADDRESS + 356)
 // Player 1 string state
-#define P1_STRING_STATE GAME_BASE_ADDRESS + 178532
+#define P1_STRING_STATE (GAME_BASE_ADDRESS + 178532)
 // Player 1 move struct ptr
-#define P1_MOVE_STRUCT_PTR GAME_BASE_ADDRESS + 1832
+#define P1_MOVE_STRUCT_PTR (GAME_BASE_ADDRESS + 1832)
 
 // Player 2 frames since last action
-#define P2_FRAMES_LAST_ACTION GAME_BASE_ADDRESS + 3260
+#define P2_FRAMES_LAST_ACTION (GAME_BASE_ADDRESS + 3260)
 // Plater 2 animation recovery frames
-#define P2_RECOVERY_FRAMES GAME_BASE_ADDRESS + 3528
+#define P2_RECOVERY_FRAMES (GAME_BASE_ADDRESS + 3528)
 // Plater 2 connection boolean
-#define P2_CONNECTION_BOOL GAME_BASE_ADDRESS + 915132186
+#define P2_CONNECTION_BOOL (GAME_BASE_ADDRESS + 915132186)
 // Player 2 intent
-#define P2_INTENT GAME_BASE_ADDRESS + 3608
+#define P2_INTENT (GAME_BASE_ADDRESS + 3608)
 // Player 2 move
-#define P2_MOVE GAME_BASE_ADDRESS + 3468
+#define P2_MOVE (GAME_BASE_ADDRESS + 3468)
 // Player 2 state
-#define P2_STATE GAME_BASE_ADDRESS + 3308
+#define P2_STATE (GAME_BASE_ADDRESS + 3308)
 // Player 2 coordinates
-#define P2_POSITION GAME_BASE_ADDRESS + 5248
+#define P2_POSITION (GAME_BASE_ADDRESS + 5248)
 // Player 2 attack sequence number pointer
-#define P2_ATTACK_SEQ_PTR GAME_BASE_ADDRESS + 342636
+#define P2_ATTACK_SEQ_PTR (GAME_BASE_ADDRESS + 342636)
 // Offset from pointer to attack seq value
 #define P2_ATTACK_SEQ_OFFSET 312
 // Player 2 string type
-#define P2_STRING_TYPE GAME_BASE_ADDRESS + 3492
+#define P2_STRING_TYPE (GAME_BASE_ADDRESS + 3492)
 // Player 2 string state
-#define P2_STRING_STATE GAME_BASE_ADDRESS + 178676
+#define P2_STRING_STATE (GAME_BASE_ADDRESS + 178676)
 // Player 2 move struct ptr
-#define P2_MOVE_STRUCT_PTR GAME_BASE_ADDRESS + 4968
+#define P2_MOVE_STRUCT_PTR (GAME_BASE_ADDRESS + 4968)
 
 // Current game frame
-#define CURRENT_GAME_FRAME GAME_BASE_ADDRESS + 270587472
+#define CURRENT_GAME_FRAME (GAME_BASE_ADDRESS + 270587472)
 
 // Player side ptr
-#define PLAYER_SIDE_PTR GAME_BASE_ADDRESS + 915193080
+#define PLAYER_SIDE_PTR (GAME_BASE_ADDRESS + 915193080)
 #define PLAYER_SIDE_OFFSET 21808
 
 

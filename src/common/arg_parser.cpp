@@ -31,19 +31,41 @@ struct Arg {
     int (*handler)(const char *);
 };
 
-enum ArgType : uint8_t {
+namespace {
+enum class ArgType : uint8_t {
     FLAG,
-    VALUE
+    VALUE,
 };
+} // namespace
 
 Configuration *ArgParser::s_configuration = {};
 const char *ArgParser::s_program_name = {};
 
 Arg ArgParser::s_arguments[] = {
-    {.long_form = "--help", .short_form = "-h", .type = ArgType::FLAG, .handler = &ArgParser::arg_print_help},
-    {.long_form = "--version", .short_form = "\0", .type = ArgType::FLAG, .handler = &arg_print_version},
-    {.long_form = "--verbose", .short_form = "-v", .type = ArgType::FLAG, .handler = &arg_verbose},
-    {.long_form = "--print-frames", .short_form = "-pf", .type = ArgType::FLAG, .handler = &arg_print_frames},
+    {
+        .long_form = "--help",
+        .short_form = "-h",
+        .type = (int) ArgType::FLAG,
+        .handler = &ArgParser::arg_print_help,
+    },
+    {
+        .long_form = "--version",
+        .short_form = "\0",
+        .type = (int) ArgType::FLAG,
+        .handler = &arg_print_version,
+    },
+    {
+        .long_form = "--verbose",
+        .short_form = "-v",
+        .type = (int) ArgType::FLAG,
+        .handler = &arg_verbose,
+    },
+    {
+        .long_form = "--print-frames",
+        .short_form = "-pf",
+        .type = (int) ArgType::FLAG,
+        .handler = &arg_print_frames,
+    },
 };
 
 int ArgParser::arg_print_help(const char * /*value*/) {
@@ -90,11 +112,11 @@ int ArgParser::parse_arguments(const int argc, const char **argv, Configuration 
                 continue;
             }
 
-            if (arg.type == FLAG) {
+            if (arg.type == (int) ArgType::FLAG) {
                 success = arg.handler(nullptr);
                 arg_parsed = true;
                 break;
-            } else if (arg.type == VALUE) {
+            } else if (arg.type == (int) ArgType::VALUE) {
                 if (i + 1 == argc) {
                     std::cerr << "too frew arguments given" << std::endl;
                     return 1;

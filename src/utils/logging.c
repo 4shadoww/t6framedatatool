@@ -42,7 +42,7 @@ static struct {
 
 
 static const char *level_strings[] = {
-    "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"
+    "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL",
 };
 
 #ifdef LOG_USE_COLOR

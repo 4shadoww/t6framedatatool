@@ -53,7 +53,7 @@ namespace {
 #define RESET_UI_MILLIS 2500
 
 // Global variables
-std::chrono::time_point<std::chrono::steady_clock> g_last_update;
+std::chrono::steady_clock::rep g_last_update = 0;
 struct FrameDataPoint g_data_point = {};
 float g_distance = 0;
 PlayerState g_status = {};
@@ -79,7 +79,7 @@ public:
 };
 
 void Listener::frame_data(const FrameDataPoint frame_data) {
-    g_last_update = std::chrono::steady_clock::now();
+    g_last_update = std::chrono::steady_clock::now().time_since_epoch().count();
     g_data_point = frame_data;
     log_info("startup frames: %d, frame advantage: %d, KD: %d",
              frame_data.startup_frames,
@@ -120,13 +120,15 @@ void render_text(unsigned int shader, std::string text, float x, float y, float 
         const float h = (float) ch.size.y * scale;
 
         // Update VBO for each character
-        float vertices[6][4] = {{xpos, ypos + h, 0.0F, 0.0F},
-                                {xpos, ypos, 0.0F, 1.0F},
-                                {xpos + w, ypos, 1.0F, 1.0F},
+        float vertices[6][4] = {
+            {xpos, ypos + h, 0.0F, 0.0F},
+            {xpos, ypos, 0.0F, 1.0F},
+            {xpos + w, ypos, 1.0F, 1.0F},
 
-                                {xpos, ypos + h, 0.0F, 0.0F},
-                                {xpos + w, ypos, 1.0F, 1.0F},
-                                {xpos + w, ypos + h, 1.0F, 0.0F}};
+            {xpos, ypos + h, 0.0F, 0.0F},
+            {xpos + w, ypos, 1.0F, 1.0F},
+            {xpos + w, ypos + h, 1.0F, 0.0F},
+        };
 
         // Render glyph to quad
         glBindTexture(GL_TEXTURE_2D, ch.texture_id);
@@ -205,7 +207,7 @@ bool setup_shaders() {
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    glm::mat4 projection = glm::ortho(0.0F, (float) MAX_WIDTH, 0.0F, (float) MAX_HEIGTH);
+    const glm::mat4 projection = glm::ortho(0.0F, (float) MAX_WIDTH, 0.0F, (float) MAX_HEIGTH);
     glUseProgram(g_shader_program);
     glUniformMatrix4fv(glGetUniformLocation(g_shader_program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -275,10 +277,12 @@ bool load_font() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        const FontChar character = {.texture_id = texture,
-                                    .size = glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-                                    .bearing = glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-                                    .advance = static_cast<unsigned int>(face->glyph->advance.x)};
+        const FontChar character = {
+            .texture_id = texture,
+            .size = glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+            .bearing = glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+            .advance = static_cast<unsigned int>(face->glyph->advance.x),
+        };
 
         font_chars.insert(std::pair<char, FontChar>(c, character));
     }
@@ -396,8 +400,9 @@ void draw_no_frame_data() {
 }
 
 void draw_game_state() {
-    auto now = std::chrono::steady_clock::now();
-    auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - g_last_update).count();
+    const auto now = std::chrono::steady_clock::now();
+    const auto elapsed = now.time_since_epoch() - std::chrono::steady_clock::duration(g_last_update);
+    const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
     if (millis > RESET_UI_MILLIS) {
         draw_no_frame_data();
     } else {
@@ -448,7 +453,7 @@ void start_gui(GLFWwindow *window) {
     analyser_thread.join();
 }
 
-void apply_config(Configuration &config) {
+void apply_config(const Configuration &config) {
     log_set_level(config.log_level);
     FrameDataAnalyser::set_logging(config.frame_data_logging);
 }

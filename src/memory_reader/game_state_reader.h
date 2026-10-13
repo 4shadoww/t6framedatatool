@@ -64,7 +64,7 @@ inline int p1_string_type(int32_t *value);
 inline int p1_string_state(int32_t *value);
 inline int p1_position(struct PlayerCoordinate *value);
 int32_t p1_attack_seq(int32_t *value);
-inline int p1_move(struct Move *move_struct);
+int p1_move(struct Move *move_struct);
 
 inline int p2_frames_last_action(int32_t *value);
 inline int p2_connection(int16_t *value);
@@ -76,7 +76,7 @@ inline int p2_string_type(int32_t *value);
 inline int p2_string_state(int32_t *value);
 inline int p2_position(struct PlayerCoordinate *value);
 int32_t p2_attack_seq(int32_t *value);
-inline int p2_move(struct Move *move_struct);
+int p2_move(struct Move *move_struct);
 
 int current_game_frame(uint32_t *value);
 int player_side(int32_t *value);

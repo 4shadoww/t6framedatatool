@@ -19,11 +19,16 @@
 #define RING_BUFFER_HPP
 
 #include <cstdlib>
+#include <new>
 
 template<typename T>
 class RingBuffer {
 public:
-    explicit RingBuffer(const size_t size) : m_size(size), m_ring_buffer(new T[size]) {}
+    explicit RingBuffer(const size_t size) noexcept : m_size(size), m_ring_buffer(new (std::nothrow) T[size]) {
+        if (m_ring_buffer == nullptr) {
+            std::abort();
+        }
+    }
 
     ~RingBuffer() {
         delete[] m_ring_buffer;
@@ -59,8 +64,8 @@ public:
      * @param index relative index from tail to head
      * @return T pointer
      */
-    T *get(const size_t index) const {
-        size_t abs_index = (m_tail + index) % m_size;
+    [[nodiscard]] T *get(const size_t index) const {
+        const size_t abs_index = (m_tail + index) % m_size;
 
         if (!bounds_check(abs_index)) {
             return nullptr;
@@ -75,7 +80,7 @@ public:
      * @param index absolute unchanging index
      * @return T pointer
      */
-    T *get_abs(const size_t index) const {
+    [[nodiscard]] T *get_abs(const size_t index) const {
         if (!bounds_check(index)) {
             return nullptr;
         }
@@ -89,7 +94,7 @@ public:
      * @param index index
      * @return T pointer
      */
-    T *get_from_head(const size_t index) const {
+    [[nodiscard]] T *get_from_head(const size_t index) const {
         size_t abs_index = 0;
 
         if (m_item_count == 0) {
@@ -112,7 +117,7 @@ public:
      *
      * @return latest data
      */
-    T *head() const {
+    [[nodiscard]] T *head() const {
         if (m_item_count == 0) {
             return nullptr;
         }
@@ -135,7 +140,7 @@ public:
      *
      * @return oldest data
      */
-    T *tail() const {
+    [[nodiscard]] T *tail() const {
         if (m_item_count == 0) {
             return nullptr;
         }
@@ -161,7 +166,7 @@ public:
             return {};
         }
         m_item_count--;
-        size_t old_tail = m_tail;
+        const size_t old_tail = m_tail;
         if (m_tail != m_head) {
             m_tail = (m_tail + 1) % m_size;
         }

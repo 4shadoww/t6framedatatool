@@ -16,32 +16,27 @@
 */
 
 #include <gtest/gtest.h>
+#include <memory>
 
 #include "ring_buffer.hpp"
 
 #define BUFFER_SIZE 5
 
-class test_ring_buffer : public testing::Test {
+namespace {
+
+class TestRingBuffer : public testing::Test {
 protected:
-    RingBuffer<int> *m_ring_buffer;
-
-    test_ring_buffer() {}
-
-    ~test_ring_buffer() override {}
+    std::unique_ptr<RingBuffer<int>> m_ring_buffer;
 
     void SetUp() override {
-        m_ring_buffer = new RingBuffer<int>(BUFFER_SIZE);
-    }
-
-    void TearDown() override {
-        delete m_ring_buffer;
+        m_ring_buffer = std::make_unique<RingBuffer<int>>(BUFFER_SIZE);
     }
 
     void populate();
     void pop_all();
 };
 
-void test_ring_buffer::populate() {
+void TestRingBuffer::populate() { // NOLINT(readability-function-cognitive-complexity)
     for (int i = 1; i < 6; i++) {
         m_ring_buffer->push(i);
         ASSERT_EQ(i, m_ring_buffer->item_count());
@@ -54,7 +49,7 @@ void test_ring_buffer::populate() {
     }
 }
 
-void test_ring_buffer::pop_all() {
+void TestRingBuffer::pop_all() { // NOLINT(readability-function-cognitive-complexity)
     for (int i = 1; i < 6; i++) {
         ASSERT_EQ(i, m_ring_buffer->pop());
         ASSERT_EQ(4, m_ring_buffer->head_index());
@@ -73,21 +68,21 @@ void test_ring_buffer::pop_all() {
     ASSERT_EQ(0, m_ring_buffer->item_count());
 }
 
-TEST_F(test_ring_buffer, initial_state) {
+TEST_F(TestRingBuffer, initial_state) {
     ASSERT_EQ(0, m_ring_buffer->head_index());
     ASSERT_EQ(0, m_ring_buffer->tail_index());
     ASSERT_EQ(0, m_ring_buffer->item_count());
     EXPECT_EQ(BUFFER_SIZE, m_ring_buffer->capacity());
 }
 
-TEST_F(test_ring_buffer, push_full) {
+TEST_F(TestRingBuffer, push_full) {
     populate();
     ASSERT_EQ(5, m_ring_buffer->item_count());
     ASSERT_EQ(4, m_ring_buffer->head_index());
     ASSERT_EQ(0, m_ring_buffer->tail_index());
 }
 
-TEST_F(test_ring_buffer, push_overfill) {
+TEST_F(TestRingBuffer, push_overfill) { // NOLINT(readability-function-cognitive-complexity)
     populate();
 
     for (int i = 6; i < 11; i++) {
@@ -103,7 +98,7 @@ TEST_F(test_ring_buffer, push_overfill) {
     }
 }
 
-TEST_F(test_ring_buffer, get_tail_head) {
+TEST_F(TestRingBuffer, get_tail_head) {
     populate();
     ASSERT_EQ(1, *m_ring_buffer->tail());
     ASSERT_EQ(5, *m_ring_buffer->head());
@@ -117,7 +112,7 @@ TEST_F(test_ring_buffer, get_tail_head) {
     ASSERT_EQ(7, *m_ring_buffer->head());
 }
 
-TEST_F(test_ring_buffer, empty_get_bounds) {
+TEST_F(TestRingBuffer, empty_get_bounds) {
     ASSERT_EQ(nullptr, m_ring_buffer->get(0));
     ASSERT_EQ(nullptr, m_ring_buffer->get(4));
     ASSERT_EQ(nullptr, m_ring_buffer->get_abs(0));
@@ -128,7 +123,7 @@ TEST_F(test_ring_buffer, empty_get_bounds) {
     ASSERT_EQ(nullptr, m_ring_buffer->head());
 }
 
-TEST_F(test_ring_buffer, get_bounds) {
+TEST_F(TestRingBuffer, get_bounds) {
     populate();
     // When has data, cannot go out-of-bounds
     ASSERT_NE(nullptr, m_ring_buffer->get(0));
@@ -140,7 +135,7 @@ TEST_F(test_ring_buffer, get_bounds) {
     ASSERT_EQ(nullptr, m_ring_buffer->get_abs(BUFFER_SIZE));
 }
 
-TEST_F(test_ring_buffer, clear) {
+TEST_F(TestRingBuffer, clear) {
     populate();
     m_ring_buffer->clear();
 
@@ -149,26 +144,26 @@ TEST_F(test_ring_buffer, clear) {
     ASSERT_EQ(0, m_ring_buffer->item_count());
 }
 
-TEST_F(test_ring_buffer, pop) {
+TEST_F(TestRingBuffer, pop) {
     populate();
     pop_all();
 }
 
-TEST_F(test_ring_buffer, repopulate) {
+TEST_F(TestRingBuffer, repopulate) {
     populate();
     pop_all();
 
     for (int i = 1; i < 6; i++) {
         m_ring_buffer->push(i);
         ASSERT_EQ(i, m_ring_buffer->item_count());
-        size_t index = (3 + i) % 5;
+        const size_t index = (3 + i) % 5;
         ASSERT_EQ(i, *m_ring_buffer->get(i - 1));
         ASSERT_EQ(i, *m_ring_buffer->get_abs(index));
     }
 }
 
 
-TEST_F(test_ring_buffer, pop2) {
+TEST_F(TestRingBuffer, pop2) { // NOLINT(readability-function-cognitive-complexity)
     populate();
     m_ring_buffer->push(6);
     for (int i = 0; i < 5; i++) {
@@ -188,3 +183,5 @@ TEST_F(test_ring_buffer, pop2) {
     ASSERT_EQ(0, m_ring_buffer->tail_index());
     ASSERT_EQ(0, m_ring_buffer->item_count());
 }
+
+} // namespace

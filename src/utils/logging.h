@@ -29,18 +29,19 @@ typedef struct {
     void *udata;
     int line;
     int level;
-} log_Event;
+} log_Event; // NOLINT(readability-identifier-naming)
 
-typedef void (*log_LogFn)(log_Event *ev);
-typedef void (*log_LockFn)(bool lock, void *udata);
+typedef void (*log_LogFn)(log_Event *ev); // NOLINT(readability-identifier-naming)
+typedef void (*log_LockFn)(bool lock, void *udata); // NOLINT(readability-identifier-naming)
 
-enum {
+// C API. An enum class would not compile in logging.c.
+enum { // NOLINT(cppcoreguidelines-use-enum-class)
     LOG_TRACE,
     LOG_DEBUG,
     LOG_INFO,
     LOG_WARN,
     LOG_ERROR,
-    LOG_FATAL
+    LOG_FATAL,
 };
 
 // Disable lint because of the case

@@ -66,7 +66,7 @@ int init_memory_reader(void) {
     return MR_INIT_OK;
 }
 
-int read_refl_struct(const long long address,
+int read_refl_struct(const long long address, // NOLINT(misc-use-internal-linkage)
                      void *out,
                      const size_t size,
                      const struct Field *fields,
@@ -90,22 +90,20 @@ static int read_move_struct(const long long ptr_address, struct Move *move_struc
     int value = 0;
     if (read_4bytes(ptr_address, &value) == READ_ERROR) {
         // Error fill with zeros
+        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
         memset(move_struct, 0, sizeof(struct Move));
         return MR_INIT_ERROR;
     }
     // No active move, fill with zero
     if (value == 0) {
+        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
         memset(move_struct, 0, sizeof(struct Move));
         return READ_OK;
     }
 
-    const uint64_t move_address = ps3_address_to_x64((ps3address) value);;
+    const uint64_t move_address = ps3_address_to_x64((ps3address) value);
 
-    return read_refl_struct((long long) move_address,
-                            move_struct,
-                            sizeof(struct Move),
-                            move_fields,
-                            move_field_count);
+    return read_refl_struct((long long) move_address, move_struct, sizeof(struct Move), move_fields, move_field_count);
 }
 
 int p1_frames_last_action(int32_t *value) {

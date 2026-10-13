@@ -23,6 +23,8 @@
 #include "frame_data_analyser.hpp"
 #include "version.hpp"
 
+namespace {
+
 class Listener : public EventListener {
 public:
     void frame_data(FrameDataPoint frame_data) override;
@@ -48,8 +50,7 @@ void Listener::game_hooked() {
     // NOP
 }
 
-namespace {
-void apply_config(Configuration &config) {
+void apply_config(const Configuration &config) {
     log_set_level(config.log_level);
     FrameDataAnalyser::set_logging(config.frame_data_logging);
 }
