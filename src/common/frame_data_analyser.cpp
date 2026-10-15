@@ -69,7 +69,8 @@ namespace {
 void move_struct_to_str(const Move *const move, char *struct_string) {
     if (move->o_0x0_int == 0 && move->o_0x4_int == 0) {
         char message[] = "no move struct";
-        strlcpy(struct_string, message, STRUCT_STRING_SIZE);
+        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.strcpy)
+        strcpy(struct_string, message);
     } else {
         format_refl_struct(struct_string, STRUCT_STRING_SIZE, "move struct:", move, move_fields, move_field_count);
     }
