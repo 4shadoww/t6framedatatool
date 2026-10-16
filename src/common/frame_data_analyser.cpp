@@ -64,27 +64,10 @@ EventListener *FrameDataAnalyser::m_listener = nullptr;
 int FrameDataAnalyser::m_last_player_intent = 0;
 bool FrameDataAnalyser::m_logging = false;
 
-// Internal functions
-namespace {
-void move_struct_to_str(const Move *const move, char *struct_string) {
-    if (move->o_0x0_int == 0 && move->o_0x4_int == 0) {
-        char message[] = "no move struct";
-        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.strcpy)
-        strcpy(struct_string, message);
-    } else {
-        format_refl_struct(struct_string, STRUCT_STRING_SIZE, "move struct:", move, move_fields, move_field_count);
-    }
-}
-} // namespace
-
 void FrameDataAnalyser::log_frame() {
     const GameFrame *const state = m_frame_buffer.head();
-    char struct_string[STRUCT_STRING_SIZE];
-
-    move_struct_to_str(&state->p1.move_struct, struct_string);
 
     std::stringstream stream;
-    // TODO: log relevant structs
     stream << "FRAME: " << state->game_frame << std::endl
            << "P1 last action: " << state->p1.frames_last_action << std::endl
            << "P1 recovery frames: " << state->p1.recovery_frames << std::endl
@@ -97,11 +80,7 @@ void FrameDataAnalyser::log_frame() {
            << "P1 position: " << state->p1.position.x << ", " << state->p1.position.y << ", " << state->p1.position.z
            << std::endl
            << "P1 attack seq: " << state->p1.attack_seq << std::endl
-           << struct_string << std::endl;
-
-    move_struct_to_str(&state->p2.move_struct, struct_string);
-
-    stream << "P2 last action: " << state->p2.frames_last_action << std::endl
+           << "P2 last action: " << state->p2.frames_last_action << std::endl
            << "P2 recovery frames: " << state->p2.recovery_frames << std::endl
            << "P2 connection: " << (bool) state->p2.connection << std::endl
            << "P2 intent: " << state->p2.intent << std::endl
@@ -111,8 +90,7 @@ void FrameDataAnalyser::log_frame() {
            << "P2 string state: " << state->p2.string_state << std::endl
            << "P2 position: " << state->p2.position.x << ", " << state->p2.position.y << ", " << state->p2.position.z
            << std::endl
-           << "P2 attack seq: " << state->p2.attack_seq << std::endl
-           << struct_string;
+           << "P2 attack seq: " << state->p2.attack_seq << std::endl;
 
     log_info(stream.str().c_str());
 }
@@ -855,6 +833,7 @@ bool FrameDataAnalyser::init(EventListener *listener) {
     }
     FrameDataAnalyser::m_listener = listener;
 
+    set_memory_reader_logging(true);
     const int result = init_memory_reader();
     if (result != MR_INIT_OK) {
         return false;

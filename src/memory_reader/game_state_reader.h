@@ -22,6 +22,7 @@
 extern "C" {
 #endif
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "moveset_structs.h"
@@ -64,7 +65,7 @@ inline int p1_string_type(int32_t *value);
 inline int p1_string_state(int32_t *value);
 inline int p1_position(struct PlayerCoordinate *value);
 int32_t p1_attack_seq(int32_t *value);
-int p1_move(struct Move *move_struct);
+int p1_move_structs(struct Move *move_struct, const uint32_t game_frame);
 
 inline int p2_frames_last_action(int32_t *value);
 inline int p2_connection(int16_t *value);
@@ -76,7 +77,7 @@ inline int p2_string_type(int32_t *value);
 inline int p2_string_state(int32_t *value);
 inline int p2_position(struct PlayerCoordinate *value);
 int32_t p2_attack_seq(int32_t *value);
-int p2_move(struct Move *move_struct);
+int p2_move_structs(struct Move *move_struct, const uint32_t game_frame);
 
 int current_game_frame(uint32_t *value);
 int player_side(int32_t *value);
@@ -88,6 +89,8 @@ uint64_t player_side_address(void);
  * @return 0 on success, -1 on error
  */
 int read_game_state(struct GameFrame *state);
+
+void set_memory_reader_logging(const bool enabled);
 
 #ifdef __cplusplus
 };
