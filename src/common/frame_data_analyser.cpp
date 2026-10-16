@@ -97,7 +97,7 @@ void FrameDataAnalyser::log_frame() {
            << "P1 position: " << state->p1.position.x << ", " << state->p1.position.y << ", " << state->p1.position.z
            << std::endl
            << "P1 attack seq: " << state->p1.attack_seq << std::endl
-           << struct_string;
+           << struct_string << std::endl;
 
     move_struct_to_str(&state->p2.move_struct, struct_string);
 

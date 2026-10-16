@@ -25,6 +25,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+#include "number_conversions.h"
 #include "refl_struct.h"
 
 /* structs from TKMovesets github.com/Kiloutre/TKMovesets, credits: github.com/Kiloutre */
@@ -33,23 +34,23 @@ struct Pushback {
     uint16_t duration;
     uint16_t displacement;
     uint32_t num_of_loops;
-    uint32_t extradata_addr;
+    ps3address extradata_addr;
 };
 
 struct HitCondition {
-    uint32_t requirements_addr;
+    ps3address requirements_addr;
     uint32_t damage;
-    uint32_t reactions_addr;
+    ps3address reactions_addr;
 };
 
 struct Reactions {
-    uint32_t front_pushback;
-    uint32_t backturned_pushback;
-    uint32_t left_side_pushback;
-    uint32_t right_side_pushback;
-    uint32_t front_counterhit_pushback;
-    uint32_t downed_pushback;
-    uint32_t block_pushback;
+    ps3address front_pushback;
+    ps3address backturned_pushback;
+    ps3address left_side_pushback;
+    ps3address right_side_pushback;
+    ps3address front_counterhit_pushback;
+    ps3address downed_pushback;
+    ps3address block_pushback;
 
     uint16_t front_direction;
     uint16_t back_direction;
@@ -89,8 +90,8 @@ struct Cancel {
         uint64_t command;
         struct CancelInput input;
     };
-    uint32_t requirements_addr;
-    uint32_t extradata_addr;
+    ps3address requirements_addr;
+    ps3address extradata_addr;
     uint32_t detection_start;
     uint32_t detection_end;
     uint32_t starting_frame;
@@ -101,22 +102,22 @@ struct Cancel {
 struct Move {
     uint32_t o_0x0_int;
     uint32_t o_0x4_int;
-    uint32_t anim_addr;
+    ps3address anim_addr;
     uint32_t vuln;
     uint32_t hitlevel;
-    uint32_t cancel_addr;
+    ps3address cancel_addr;
     uint16_t transition;
     uint16_t move_id_val2;
     uint16_t move_id_val1;
-    uint32_t hit_condition_addr;
+    ps3address hit_condition_addr;
     int32_t anim_len;
     uint32_t airborne_start;
     uint32_t airborne_end;
     uint32_t ground_fall;
-    uint32_t voicelip_addr;
-    uint32_t extra_move_property_addr;
-    uint32_t move_start_extraprop_addr;
-    uint32_t move_end_extraprop_addr;
+    ps3address voicelip_addr;
+    ps3address extra_move_property_addr;
+    ps3address move_start_extraprop_addr;
+    ps3address move_end_extraprop_addr;
     int32_t o_0x98_int;
     uint32_t hitbox_location;
     uint32_t first_active_frame;
