@@ -66,6 +66,12 @@ Arg ArgParser::s_arguments[] = {
         .type = (int) ArgType::FLAG,
         .handler = &arg_print_frames,
     },
+    {
+        .long_form = "--print-structs",
+        .short_form = "-ps",
+        .type = (int) ArgType::FLAG,
+        .handler = &arg_print_structs,
+    },
 };
 
 int ArgParser::arg_print_help(const char * /*value*/) {
@@ -74,6 +80,7 @@ int ArgParser::arg_print_help(const char * /*value*/) {
                      "        --version\t\tprint version\n"
                      "  -v,   --verbose\t\tverbose output\n"
                      "  -pf,  --print-frames\t\tprint frame data\n"
+                     "  -ps,  --print-structs\t\tprint in game structs\n"
                      "\nTekken 6 frame data tool overlay";
 
     std::cout << "usage: " << s_program_name << " [OPTIONS...]\n" << options << std::endl;
@@ -96,8 +103,17 @@ int ArgParser::arg_print_frames(const char * /*value*/) {
     return 0;
 }
 
+int ArgParser::arg_print_structs(const char * /*value*/) {
+    s_configuration->game_struct_logging = true;
+    return 0;
+}
+
 Configuration ArgParser::create_default_config() {
-    return {.log_level = LOG_INFO, .frame_data_logging = false};
+    return {
+        .log_level = LOG_INFO,
+        .frame_data_logging = false,
+        .game_struct_logging = false,
+    };
 }
 
 int ArgParser::parse_arguments(const int argc, const char **argv, Configuration *config) {

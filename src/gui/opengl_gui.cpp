@@ -18,6 +18,7 @@
 // Based on text rendering example from: https://learnopengl.com
 
 #include "arg_parser.hpp"
+#include "game_state_reader.h"
 #include <map>
 #include <string>
 #include <thread>
@@ -462,6 +463,7 @@ void start_gui(GLFWwindow *window) {
 void apply_config(const Configuration &config) {
     log_set_level(config.log_level);
     FrameDataAnalyser::set_logging(config.frame_data_logging);
+    set_memory_reader_logging(config.game_struct_logging);
 }
 
 } // namespace

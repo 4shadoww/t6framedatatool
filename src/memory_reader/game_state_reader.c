@@ -91,37 +91,42 @@ int read_refl_struct(const long long address, // NOLINT(misc-use-internal-linkag
 }
 
 static int read_move_structs(const long long ptr_address,
-                             struct Move *move_struct,
+                             struct PlayerFrame *player_frame,
                              const uint32_t game_frame,
                              uint8_t player_num) {
     int value = 0;
+    struct Move move_struct;
     if (read_4bytes(ptr_address, &value) == READ_ERROR) {
         // Error fill with zeros
-        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-        memset(move_struct, 0, sizeof(struct Move));
+        player_frame->first_active_frame = 0;
+        player_frame->last_active_frame = 0;
         return MR_INIT_ERROR;
     }
     // No active move, fill with zero
     if (value == 0) {
-        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-        memset(move_struct, 0, sizeof(struct Move));
+        player_frame->first_active_frame = 0;
+        player_frame->last_active_frame = 0;
         return READ_OK;
     }
 
     const uint64_t move_address = ps3_address_to_x64((ps3address) value);
 
     int result =
-        read_refl_struct((long long) move_address, move_struct, sizeof(struct Move), move_fields, move_field_count);
+        read_refl_struct((long long) move_address, &move_struct, sizeof(struct Move), move_fields, move_field_count);
     if (result == READ_ERROR) {
         return READ_ERROR;
     }
+
+    // Active frames
+    player_frame->first_active_frame = move_struct.first_active_frame;
+    player_frame->last_active_frame = move_struct.last_active_frame;
 
     if (g_logging) {
         char struct_string[STRUCT_STRING_SIZE];
         format_refl_struct(struct_string,
                            STRUCT_STRING_SIZE,
                            "move struct:",
-                           move_struct,
+                           &move_struct,
                            move_fields,
                            move_field_count);
 
@@ -180,8 +185,8 @@ int p1_attack_seq(int32_t *value) {
     return read_4bytes((long long) g_p1_attack_seq_address, value);
 }
 
-int p1_move_structs(struct Move *move_struct, const uint32_t game_frame) {
-    return read_move_structs(P1_MOVE_STRUCT_PTR, move_struct, game_frame, 1);
+int p1_move_structs(struct PlayerFrame *player_frame, const uint32_t game_frame) {
+    return read_move_structs(P1_MOVE_STRUCT_PTR, player_frame, game_frame, 1);
 }
 
 int p2_frames_last_action(int32_t *value) {
@@ -233,8 +238,8 @@ int p2_attack_seq(int32_t *value) {
     return read_4bytes((long long) g_p2_attack_seq_address, value);
 }
 
-int p2_move_structs(struct Move *move_struct, const uint32_t game_frame) {
-    return read_move_structs(P2_MOVE_STRUCT_PTR, move_struct, game_frame, 2);
+int p2_move_structs(struct PlayerFrame *player_frame, const uint32_t game_frame) {
+    return read_move_structs(P2_MOVE_STRUCT_PTR, player_frame, game_frame, 2);
 }
 
 int current_game_frame(uint32_t *value) {
@@ -331,7 +336,7 @@ int read_game_state(struct GameFrame *state) {
     }
     state->p1.attack_seq = value;
 
-    result = p1_move_structs(&state->p1.move_struct, state->game_frame);
+    result = p1_move_structs(&state->p1, state->game_frame);
     if (result == READ_ERROR) {
         log_debug("failed to read p1 move");
         return READ_ERROR;
@@ -410,7 +415,7 @@ int read_game_state(struct GameFrame *state) {
     }
     state->p2.attack_seq = value;
 
-    result = p2_move_structs(&state->p2.move_struct, state->game_frame);
+    result = p2_move_structs(&state->p2, state->game_frame);
     if (result == READ_ERROR) {
         log_debug("failed to read p2 move");
         return READ_ERROR;

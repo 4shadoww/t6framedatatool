@@ -25,8 +25,6 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "moveset_structs.h"
-
 struct PlayerCoordinate {
     float x;
     float y;
@@ -44,7 +42,8 @@ struct PlayerFrame {
     int32_t string_type;
     struct PlayerCoordinate position;
     int32_t attack_seq;
-    struct Move move_struct;
+    uint32_t first_active_frame;
+    uint32_t last_active_frame;
 };
 
 struct GameFrame {
@@ -65,7 +64,7 @@ inline int p1_string_type(int32_t *value);
 inline int p1_string_state(int32_t *value);
 inline int p1_position(struct PlayerCoordinate *value);
 int32_t p1_attack_seq(int32_t *value);
-int p1_move_structs(struct Move *move_struct, const uint32_t game_frame);
+int p1_move_structs(struct PlayerFrame *player_frame, const uint32_t game_frame);
 
 inline int p2_frames_last_action(int32_t *value);
 inline int p2_connection(int16_t *value);
@@ -77,7 +76,7 @@ inline int p2_string_type(int32_t *value);
 inline int p2_string_state(int32_t *value);
 inline int p2_position(struct PlayerCoordinate *value);
 int32_t p2_attack_seq(int32_t *value);
-int p2_move_structs(struct Move *move_struct, const uint32_t game_frame);
+int p2_move_structs(struct PlayerFrame *player_frame, const uint32_t game_frame);
 
 int current_game_frame(uint32_t *value);
 int player_side(int32_t *value);
