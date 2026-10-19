@@ -44,6 +44,8 @@
 #define P1_STRING_STATE (GAME_BASE_ADDRESS + 178532)
 // Player 1 move struct ptr
 #define P1_MOVE_STRUCT_PTR (GAME_BASE_ADDRESS + 1832)
+// Player 1 moveset info
+#define P1_MOVESET_INFO_PTR (GAME_BASE_ADDRESS + 32)
 
 // Player 2 frames since last action
 #define P2_FRAMES_LAST_ACTION (GAME_BASE_ADDRESS + 3260)
@@ -69,6 +71,7 @@
 #define P2_STRING_STATE (GAME_BASE_ADDRESS + 178676)
 // Player 2 move struct ptr
 #define P2_MOVE_STRUCT_PTR (GAME_BASE_ADDRESS + 4968)
+#define P2_MOVESET_INFO_PTR (GAME_BASE_ADDRESS + 894171008)
 
 // Current game frame
 #define CURRENT_GAME_FRAME (GAME_BASE_ADDRESS + 270587472)

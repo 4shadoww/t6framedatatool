@@ -222,8 +222,8 @@ void FrameDataAnalyser::analyse_start_frames() {
             .game_frame = current->game_frame,
             .attack_seq = current->p1.attack_seq,
             .is_string = string_is_active(&current->p1),
-            .first_active_frame = previous->p1.first_active_frame,
-            .last_active_frame = previous->p1.last_active_frame,
+            .first_active_frame = previous->p1.move.first_active_frame,
+            .last_active_frame = previous->p1.move.last_active_frame,
         });
         if (m_logging) {
             log_info("MARK STARTUP P1: %i", current->game_frame);
@@ -238,8 +238,8 @@ void FrameDataAnalyser::analyse_start_frames() {
             .game_frame = current->game_frame,
             .attack_seq = current->p2.attack_seq,
             .is_string = string_is_active(&current->p2),
-            .first_active_frame = previous->p2.first_active_frame,
-            .last_active_frame = previous->p2.last_active_frame,
+            .first_active_frame = previous->p2.move.first_active_frame,
+            .last_active_frame = previous->p2.move.last_active_frame,
         });
         if (m_logging) {
             log_info("MARK STARTUP P2: %i", current->game_frame);

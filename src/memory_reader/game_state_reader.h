@@ -42,8 +42,10 @@ struct PlayerFrame {
     int32_t string_type;
     struct PlayerCoordinate position;
     int32_t attack_seq;
-    uint32_t first_active_frame;
-    uint32_t last_active_frame;
+    struct {
+        uint32_t first_active_frame;
+        uint32_t last_active_frame;
+    } move;
 };
 
 struct GameFrame {

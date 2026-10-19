@@ -94,43 +94,92 @@ static int read_move_structs(const long long ptr_address,
                              struct PlayerFrame *player_frame,
                              const uint32_t game_frame,
                              uint8_t player_num) {
+    //// Read move pointer
     int value = 0;
-    struct Move move_struct;
+    struct Move move;
+    struct HitCondition hit_condition;
+    struct Reactions reactions;
+
     if (read_4bytes(ptr_address, &value) == READ_ERROR) {
+        log_error("failed to read P%d move struct pointer", player_num);
         // Error fill with zeros
-        player_frame->first_active_frame = 0;
-        player_frame->last_active_frame = 0;
+        player_frame->move.first_active_frame = 0;
+        player_frame->move.last_active_frame = 0;
         return MR_INIT_ERROR;
     }
     // No active move, fill with zero
     if (value == 0) {
-        player_frame->first_active_frame = 0;
-        player_frame->last_active_frame = 0;
+        player_frame->move.first_active_frame = 0;
+        player_frame->move.last_active_frame = 0;
         return READ_OK;
     }
 
-    const uint64_t move_address = ps3_address_to_x64((ps3address) value);
+    //// Read move
+    uint64_t struct_address = ps3_address_to_x64(value);
 
     int result =
-        read_refl_struct((long long) move_address, &move_struct, sizeof(struct Move), move_fields, move_field_count);
+        read_refl_struct((long long) struct_address, &move, sizeof(struct Move), move_fields, move_field_count);
     if (result == READ_ERROR) {
+        log_error("failed to read P%d move struct", player_num);
         return READ_ERROR;
     }
 
     // Active frames
-    player_frame->first_active_frame = move_struct.first_active_frame;
-    player_frame->last_active_frame = move_struct.last_active_frame;
+    player_frame->move.first_active_frame = move.first_active_frame;
+    player_frame->move.last_active_frame = move.last_active_frame;
 
+    //// Read hit condition
+    struct_address = ps3_address_to_x64(move.hit_condition_addr);
+
+    result = read_refl_struct((long long) struct_address,
+                              &hit_condition,
+                              sizeof(struct HitCondition),
+                              hit_condition_fields,
+                              hit_condition_field_count);
+
+    if (result == READ_ERROR) {
+        log_error("failed to read P%d hit condition", player_num);
+        return READ_ERROR;
+    }
+
+    //// Read reactions
+    struct_address = ps3_address_to_x64(hit_condition.requirements_addr);
+
+    result = read_refl_struct((long long) struct_address,
+                              &reactions,
+                              sizeof(struct Reactions),
+                              reactions_fields,
+                              reactions_field_count);
+
+    if (result == READ_ERROR) {
+        log_error("failed to read P%d reactions", player_num);
+        return READ_ERROR;
+    }
+
+    //// Logging
     if (g_logging) {
         char struct_string[STRUCT_STRING_SIZE];
-        format_refl_struct(struct_string,
-                           STRUCT_STRING_SIZE,
-                           "move struct:",
-                           &move_struct,
-                           move_fields,
-                           move_field_count);
+        format_refl_struct(struct_string, STRUCT_STRING_SIZE, "move:", &move, move_fields, move_field_count);
 
         log_info("P%d move structs for FRAME %d:\n%s", player_num, game_frame, struct_string);
+
+        format_refl_struct(struct_string,
+                           STRUCT_STRING_SIZE,
+                           "hit conditions:",
+                           &hit_condition,
+                           hit_condition_fields,
+                           hit_condition_field_count);
+
+        log_info("%s", struct_string);
+
+        format_refl_struct(struct_string,
+                           STRUCT_STRING_SIZE,
+                           "reactions:",
+                           &reactions,
+                           reactions_fields,
+                           reactions_field_count);
+
+        log_info("%s", struct_string);
     }
 
     return READ_OK;
