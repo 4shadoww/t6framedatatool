@@ -99,6 +99,94 @@ struct Cancel {
     uint16_t cancel_option;
 };
 
+struct MovesetTable {
+    ps3address reactions;
+    uint32_t reactions_count;
+
+    ps3address requirement;
+    uint32_t requirement_count;
+
+    ps3address hit_condition;
+    uint32_t hit_condition_count;
+
+    ps3address pushback;
+    uint32_t pushback_count;
+
+    ps3address pushback_extradata;
+    uint32_t pushback_extradata_count;
+
+    ps3address cancel;
+    uint32_t cancel_count;
+
+    ps3address group_cancel;
+    uint32_t group_cancel_count;
+
+    ps3address cancel_extradata;
+    uint32_t cancel_extradata_count;
+
+    ps3address extra_move_property;
+    uint32_t extra_move_property_count;
+
+    ps3address move_beginning_prop;
+    uint32_t move_beginning_prop_count;
+
+    ps3address move_ending_prop;
+    uint32_t move_ending_prop_count;
+
+    ps3address move;
+    uint32_t move_count;
+
+    ps3address voiceclip;
+    uint32_t voiceclip_count;
+
+    ps3address input_sequence;
+    uint32_t input_sequence_count;
+
+    ps3address input;
+    uint32_t input_count;
+
+    ps3address unknown_parry_related;
+    uint32_t unknown_parry_related_count;
+
+    ps3address mvl_playable;
+    uint32_t mvl_playable_count;
+
+    ps3address mvl_input;
+    uint32_t mvl_input_count;
+
+    ps3address mvl_displayable;
+    uint32_t mvl_displayable_count;
+
+    ps3address struct_a3;
+    uint32_t struct_a3_count;
+
+    ps3address struct_a5;
+    uint32_t struct_a5_count;
+
+    ps3address struct_a6;
+    uint32_t struct_a6_count;
+
+    ps3address camera_data;
+    uint32_t camera_data_count;
+
+    ps3address throw_cameras;
+    uint32_t throw_cameras_count;
+};
+
+struct MovesetInfo {
+    char o_0x0[2];
+    uint8_t is_initialized;
+    char o_0x3[5];
+    ps3address character_name_addr;
+    ps3address character_creator_addr;
+    ps3address date_addr;
+    ps3address fulldate_addr;
+    uint16_t orig_aliases[69];
+    uint16_t current_aliases[69];
+    uint16_t unknown_values[36];
+    struct MovesetTable table;
+};
+
 struct Move {
     uint32_t o_0x0_int;
     uint32_t o_0x4_int;
@@ -140,6 +228,12 @@ extern const size_t cancel_field_count;
 
 extern const struct Field move_fields[];
 extern const size_t move_field_count;
+
+extern const struct Field moveset_info_fields[];
+extern const size_t moveset_info_field_count;
+
+extern const struct Field moveset_table_fields[];
+extern const size_t moveset_table_field_count;
 
 #ifdef __cplusplus
 }

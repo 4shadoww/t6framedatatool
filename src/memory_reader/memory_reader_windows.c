@@ -39,12 +39,12 @@
  */
 
 // Constants
-#define READ_BUFFER_LEN 124
+#define READ_BUFFER_LEN 1024
 #define RPCS3_NAME "rpcs3.exe"
 
 // Win32 API variables
 static HANDLE g_h_process = NULL; // Process handle for memory reading
-static char g_buf[READ_BUFFER_LEN];
+static char *g_buf;
 
 static DWORD get_pid_by_name(const char *processName) {
     PROCESSENTRY32 entry;
@@ -109,6 +109,11 @@ int read_2bytes(const long long address, int16_t *value) {
 }
 
 int platform_init_memory_reader(void) {
+    // Allocate memory
+    if (g_buf == NULL){
+        g_buf = malloc(READ_BUFFER_LEN);
+    }
+
     DWORD pid = get_pid_by_name(RPCS3_NAME);
 
     if (pid == 0) {

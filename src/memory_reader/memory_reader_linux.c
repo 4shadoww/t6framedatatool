@@ -40,12 +40,12 @@
  */
 
 // Constants
-#define READ_BUFFER_LEN 124
+#define READ_BUFFER_LEN 1024
 #define RPCS3_NAME "rpcs3"
 
 // UIO variables
 static pid_t g_pid = -1;
-static char g_buf[READ_BUFFER_LEN];
+static char *g_buf = NULL;
 static struct iovec g_local[1];
 static struct iovec g_remote[1];
 
@@ -156,6 +156,10 @@ static pid_t get_pid(const char *name) {
 }
 
 int platform_init_memory_reader(void) {
+    // Allocate memory
+    if (g_buf == NULL) {
+        g_buf = malloc(READ_BUFFER_LEN);
+    }
     g_pid = get_pid(RPCS3_NAME);
 
     if (g_pid == -1) {

@@ -31,6 +31,10 @@ _Static_assert(offsetof(struct Reactions, block_pushback) == 0x18, "Reactions.bl
 _Static_assert(sizeof(struct Cancel) == 0x20, "Cancel size");
 _Static_assert(offsetof(struct Cancel, starting_frame) == 0x18, "Cancel.starting_frame");
 
+_Static_assert(sizeof(struct MovesetTable) == 0xC0, "MovesetTable size");
+_Static_assert(offsetof(struct MovesetInfo, table) == 0x174, "MovesetInfo.table");
+_Static_assert(sizeof(struct MovesetInfo) == 0x234, "MovesetInfo size");
+
 _Static_assert(sizeof(struct Move) == 0x58, "Move size");
 _Static_assert(offsetof(struct Move, cancel_addr) == 0x14, "Move.cancel_addr");
 _Static_assert(offsetof(struct Move, move_id_val1) == 0x1C, "Move.moveId_val1");
@@ -98,6 +102,64 @@ const struct Field cancel_fields[] = {
     F16(struct Cancel, cancel_option, 1),
 };
 
+const struct Field moveset_info_fields[] = {
+    F32(struct MovesetInfo, character_name_addr, 1),
+    F32(struct MovesetInfo, character_creator_addr, 1),
+    F32(struct MovesetInfo, date_addr, 1),
+    F32(struct MovesetInfo, fulldate_addr, 1),
+};
+
+const struct Field moveset_table_fields[] = {
+    F32(struct MovesetTable, reactions, 1),
+    F32(struct MovesetTable, reactions_count, 1),
+    F32(struct MovesetTable, requirement, 1),
+    F32(struct MovesetTable, requirement_count, 1),
+    F32(struct MovesetTable, hit_condition, 1),
+    F32(struct MovesetTable, hit_condition_count, 1),
+    F32(struct MovesetTable, pushback, 1),
+    F32(struct MovesetTable, pushback_count, 1),
+    F32(struct MovesetTable, pushback_extradata, 1),
+    F32(struct MovesetTable, pushback_extradata_count, 1),
+    F32(struct MovesetTable, cancel, 1),
+    F32(struct MovesetTable, cancel_count, 1),
+    F32(struct MovesetTable, group_cancel, 1),
+    F32(struct MovesetTable, group_cancel_count, 1),
+    F32(struct MovesetTable, cancel_extradata, 1),
+    F32(struct MovesetTable, cancel_extradata_count, 1),
+    F32(struct MovesetTable, extra_move_property, 1),
+    F32(struct MovesetTable, extra_move_property_count, 1),
+    F32(struct MovesetTable, move_beginning_prop, 1),
+    F32(struct MovesetTable, move_beginning_prop_count, 1),
+    F32(struct MovesetTable, move_ending_prop, 1),
+    F32(struct MovesetTable, move_ending_prop_count, 1),
+    F32(struct MovesetTable, move, 1),
+    F32(struct MovesetTable, move_count, 1),
+    F32(struct MovesetTable, voiceclip, 1),
+    F32(struct MovesetTable, voiceclip_count, 1),
+    F32(struct MovesetTable, input_sequence, 1),
+    F32(struct MovesetTable, input_sequence_count, 1),
+    F32(struct MovesetTable, input, 1),
+    F32(struct MovesetTable, input_count, 1),
+    F32(struct MovesetTable, unknown_parry_related, 1),
+    F32(struct MovesetTable, unknown_parry_related_count, 1),
+    F32(struct MovesetTable, mvl_playable, 1),
+    F32(struct MovesetTable, mvl_playable_count, 1),
+    F32(struct MovesetTable, mvl_input, 1),
+    F32(struct MovesetTable, mvl_input_count, 1),
+    F32(struct MovesetTable, mvl_displayable, 1),
+    F32(struct MovesetTable, mvl_displayable_count, 1),
+    F32(struct MovesetTable, struct_a3, 1),
+    F32(struct MovesetTable, struct_a3_count, 1),
+    F32(struct MovesetTable, struct_a5, 1),
+    F32(struct MovesetTable, struct_a5_count, 1),
+    F32(struct MovesetTable, struct_a6, 1),
+    F32(struct MovesetTable, struct_a6_count, 1),
+    F32(struct MovesetTable, camera_data, 1),
+    F32(struct MovesetTable, camera_data_count, 1),
+    F32(struct MovesetTable, throw_cameras, 1),
+    F32(struct MovesetTable, throw_cameras_count, 1),
+};
+
 const struct Field move_fields[] = {
     F32(struct Move, o_0x0_int, 0),
     F32(struct Move, o_0x4_int, 0),
@@ -130,3 +192,5 @@ const size_t hit_condition_field_count = sizeof(hit_condition_fields) / sizeof(h
 const size_t reactions_field_count = sizeof(reactions_fields) / sizeof(reactions_fields[0]);
 const size_t cancel_field_count = sizeof(cancel_fields) / sizeof(cancel_fields[0]);
 const size_t move_field_count = sizeof(move_fields) / sizeof(move_fields[0]);
+const size_t moveset_info_field_count = sizeof(moveset_info_fields) / sizeof(moveset_info_fields[0]);
+const size_t moveset_table_field_count = sizeof(moveset_table_fields) / sizeof(moveset_table_fields[0]);

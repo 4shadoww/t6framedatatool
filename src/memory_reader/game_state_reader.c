@@ -19,6 +19,7 @@
 #include "game_state_reader.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "address_config.h"
@@ -32,11 +33,126 @@
 static uint64_t g_player_side_address = 0;
 static uint64_t g_p1_attack_seq_address = 0;
 static uint64_t g_p2_attack_seq_address = 0;
+static uint64_t g_p1_moveset_info_address = 0;
+static uint64_t g_p2_moveset_info_address = 0;
 static bool g_logging = false;
 
-#define STRUCT_STRING_SIZE 2048
+static struct MovesetInfo *g_p1_moveset_info = NULL;
+static struct MovesetInfo *g_p2_moveset_info = NULL;
+
+#define STRUCT_STRING_SIZE 3000
+
+int read_refl_struct(const long long address, // NOLINT(misc-use-internal-linkage)
+                     void *out,
+                     const size_t size,
+                     const struct Field *fields,
+                     const size_t field_count) {
+    if (out == NULL || size == 0) {
+        log_error("read_refl_struct called with no output");
+        return READ_ERROR;
+    }
+
+    unsigned char raw[size];
+    if (read_bytes_raw(address, raw, size) < 0) {
+        return READ_ERROR;
+    }
+    if (load_refl_struct(out, raw, size, fields, field_count) != REFL_OK) {
+        return READ_ERROR;
+    }
+    return READ_OK;
+}
+
+static void allocate_memory(void) {
+    // Not freed, same life time as whole program
+    if (g_p1_moveset_info == NULL) {
+        g_p1_moveset_info = malloc(sizeof(struct MovesetInfo));
+    }
+
+    if (g_p2_moveset_info == NULL) {
+        g_p2_moveset_info = malloc(sizeof(struct MovesetInfo));
+    }
+}
+
+static int read_player_moveset_info(const uint64_t address, struct MovesetInfo *destination) {
+    return read_refl_struct((long long) address, destination, sizeof(struct MovesetInfo), moveset_info_fields, moveset_info_field_count);
+}
+
+static int update_moveset_infos(const uint32_t game_frame) {
+    char struct_string[STRUCT_STRING_SIZE];
+    int32_t value = 0;
+    uint64_t address = 0;
+    // P1
+    if (read_4bytes(P1_MOVESET_INFO_PTR, &value) == READ_ERROR) {
+        return READ_ERROR;
+    }
+    address = ps3_address_to_x64(value);
+    if (address != g_p1_moveset_info_address) {
+        g_p1_moveset_info_address = address;
+
+        log_info("reading new P1 moveset info");
+        if (read_player_moveset_info(address, g_p1_moveset_info) == READ_ERROR) {
+            log_error("failed to read P1 moveset info");
+            return READ_ERROR;
+        }
+        if (g_logging) {
+            format_refl_struct(struct_string,
+                            STRUCT_STRING_SIZE,
+                            "moveset info:",
+                            g_p1_moveset_info,
+                            moveset_info_fields,
+                            moveset_info_field_count);
+            log_info("P1 moveset info for FRAME %d:\n%s", game_frame, struct_string);
+
+            format_refl_struct(struct_string,
+                            STRUCT_STRING_SIZE,
+                            "moveset table:",
+                            &g_p1_moveset_info->table,
+                            moveset_table_fields,
+                            moveset_table_field_count);
+            log_info("P1 moveset table for FRAME %d:\n%s", game_frame, struct_string);
+        }
+    }
+
+    // P2
+    if (read_4bytes(P2_MOVESET_INFO_PTR, &value) == READ_ERROR) {
+        return READ_ERROR;
+    }
+
+    address = ps3_address_to_x64(value);
+    if (address != g_p2_moveset_info_address) {
+        g_p2_moveset_info_address = address;
+
+        log_info("reading new P2 moveset info");
+        if (read_player_moveset_info(address, g_p2_moveset_info) == READ_ERROR) {
+            log_error("failed to read P2 moveset info");
+            return READ_ERROR;
+        }
+        if (g_logging) {
+            format_refl_struct(struct_string,
+                            STRUCT_STRING_SIZE,
+                            "moveset info:",
+                            g_p1_moveset_info,
+                            moveset_info_fields,
+                            moveset_info_field_count);
+
+            log_info("P2 moveset info for FRAME %d:\n%s", game_frame, struct_string);
+
+            format_refl_struct(struct_string,
+                            STRUCT_STRING_SIZE,
+                            "moveset table:",
+                            &g_p1_moveset_info->table,
+                            moveset_table_fields,
+                            moveset_table_field_count);
+            log_info("P2 moveset table for FRAME %d:\n%s", game_frame, struct_string);
+        }
+    }
+
+    return READ_OK;
+}
 
 int init_memory_reader(void) {
+    allocate_memory();
+
     if (platform_init_memory_reader() == MR_INIT_ERROR) {
         return MR_INIT_ERROR;
     }
@@ -67,27 +183,12 @@ int init_memory_reader(void) {
     value += P2_ATTACK_SEQ_OFFSET;
     g_p2_attack_seq_address = ps3_address_to_x64((ps3address) value);
 
+    // Player moveset infos
+    if (update_moveset_infos(0) == READ_ERROR) {
+        return MR_INIT_ERROR;
+    }
+
     return MR_INIT_OK;
-}
-
-int read_refl_struct(const long long address, // NOLINT(misc-use-internal-linkage)
-                     void *out,
-                     const size_t size,
-                     const struct Field *fields,
-                     const size_t field_count) {
-    if (out == NULL || size == 0) {
-        log_error("read_refl_struct called with no output");
-        return READ_ERROR;
-    }
-
-    unsigned char raw[size];
-    if (read_bytes_raw(address, raw, size) < 0) {
-        return READ_ERROR;
-    }
-    if (load_refl_struct(out, raw, size, fields, field_count) != REFL_OK) {
-        return READ_ERROR;
-    }
-    return READ_OK;
 }
 
 static int read_move_structs(const long long ptr_address,
@@ -314,6 +415,8 @@ int read_game_state(struct GameFrame *state) {
         return READ_ERROR;
     }
     state->game_frame = (uint32_t) value;
+
+    update_moveset_infos(value);
 
     result = p1_frames_last_action(&value);
     if (result == READ_ERROR) {
