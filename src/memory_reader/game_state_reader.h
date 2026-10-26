@@ -45,6 +45,7 @@ struct PlayerFrame {
     struct {
         uint32_t first_active_frame;
         uint32_t last_active_frame;
+        uint32_t cancel_startup;
     } move;
 };
 
