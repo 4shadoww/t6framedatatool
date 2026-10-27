@@ -44,6 +44,16 @@ struct Player {
     struct TableItem cancel;
 };
 
+struct Pushbacks {
+    struct Pushback front_pushback;
+    struct Pushback backturned_pushback;
+    struct Pushback left_side_pushback;
+    struct Pushback right_side_pushback;
+    struct Pushback front_counterhit_pushback;
+    struct Pushback downed_pushback;
+    struct Pushback block_pushback;
+};
+
 static uint64_t g_player_side_address = 0;
 static struct Player g_p1;
 static struct Player g_p2;
@@ -52,7 +62,7 @@ static bool g_logging = false;
 
 #define STRUCT_STRING_SIZE 3000
 
-int read_refl_struct(const long long address, // NOLINT(misc-use-internal-linkage)
+int read_refl_struct(const uint64_t address, // NOLINT(misc-use-internal-linkage)
                      void *out,
                      const size_t size,
                      const struct Field *fields,
@@ -63,7 +73,7 @@ int read_refl_struct(const long long address, // NOLINT(misc-use-internal-linkag
     }
 
     unsigned char raw[size];
-    if (read_bytes_raw(address, raw, size) < 0) {
+    if (read_bytes_raw((long long) address, raw, size) < 0) {
         return READ_ERROR;
     }
     if (load_refl_struct(out, raw, size, fields, field_count) != REFL_OK) {
@@ -84,11 +94,18 @@ static void allocate_memory(void) {
 }
 
 static int read_player_moveset_info_mem(const uint64_t address, struct MovesetInfo *destination) {
-    return read_refl_struct((long long) address,
-                            destination,
-                            sizeof(struct MovesetInfo),
-                            moveset_info_fields,
-                            moveset_info_field_count);
+    if (read_refl_struct((long long) address,
+                         destination,
+                         offsetof(struct MovesetInfo, table),
+                         moveset_info_fields,
+                         moveset_info_field_count) == READ_ERROR) {
+        return READ_ERROR;
+    }
+    return read_refl_struct((long long) address + (long long) offsetof(struct MovesetInfo, table),
+                            &destination->table,
+                            sizeof(struct MovesetTable),
+                            moveset_table_fields,
+                            moveset_table_field_count);
 }
 
 static int read_player_moveset_info(long long pointer_address, struct Player *player, const uint32_t game_frame) {
@@ -192,7 +209,61 @@ int init_memory_reader(void) {
     return MR_INIT_OK;
 }
 
-static int read_move_structs(const long long ptr_address,
+static int read_push_back(const uint64_t address, struct Pushback *pushback) {
+    return read_refl_struct((long long) address,
+                            pushback,
+                            sizeof(struct Pushback),
+                            pushback_fields,
+                            pushback_field_count);
+}
+
+static int read_push_backs(const uint64_t pushbacks_address, struct Reactions *reactions, struct Pushbacks *pushbacks) {
+    uint64_t address = pushbacks_address + reactions->front_pushback;
+    if (read_push_back(ps3_address_to_x64(address), &pushbacks->front_pushback) == READ_ERROR) {
+        log_error("failed to read front_pushback");
+        return READ_ERROR;
+    }
+
+    address = pushbacks_address + reactions->backturned_pushback;
+    if (read_push_back(ps3_address_to_x64(address), &pushbacks->backturned_pushback) == READ_ERROR) {
+        log_error("failed to read backturned_pushback");
+        return READ_ERROR;
+    }
+
+    address = pushbacks_address + reactions->left_side_pushback;
+    if (read_push_back(ps3_address_to_x64(address), &pushbacks->left_side_pushback) == READ_ERROR) {
+        log_error("failed to read left_side_pushback");
+        return READ_ERROR;
+    }
+
+    address = pushbacks_address + reactions->right_side_pushback;
+    if (read_push_back(ps3_address_to_x64(address), &pushbacks->right_side_pushback) == READ_ERROR) {
+        log_error("failed to read right_side_pushback");
+        return READ_ERROR;
+    }
+
+    address = pushbacks_address + reactions->front_counterhit_pushback;
+    if (read_push_back(ps3_address_to_x64(address), &pushbacks->front_counterhit_pushback) == READ_ERROR) {
+        log_error("failed to read front_counterhit_pushback");
+        return READ_ERROR;
+    }
+
+    address = pushbacks_address + reactions->downed_pushback;
+    if (read_push_back(ps3_address_to_x64(address), &pushbacks->downed_pushback) == READ_ERROR) {
+        log_error("failed to read downed_pushback");
+        return READ_ERROR;
+    }
+
+    address = pushbacks_address + reactions->block_pushback;
+    if (read_push_back(ps3_address_to_x64(address), &pushbacks->block_pushback) == READ_ERROR) {
+        log_error("failed to read block_pushback");
+        return READ_ERROR;
+    }
+
+    return READ_OK;
+}
+
+static int read_move_structs(const uint64_t ptr_address,
                              struct PlayerFrame *player_frame,
                              const struct Player *player,
                              const uint32_t game_frame) {
@@ -201,8 +272,10 @@ static int read_move_structs(const long long ptr_address,
     struct Move move;
     struct HitCondition hit_condition;
     struct Reactions reactions;
+    struct Cancel cancel;
+    struct Pushbacks pushbacks;
 
-    if (read_4bytes(ptr_address, &value) == READ_ERROR) {
+    if (read_4bytes((long long) ptr_address, &value) == READ_ERROR) {
         log_error("failed to read P%d move struct pointer", player->player_num);
         // Error fill with zeros
         player_frame->move.first_active_frame = 0;
@@ -229,6 +302,19 @@ static int read_move_structs(const long long ptr_address,
     // Active frames
     player_frame->move.first_active_frame = move.first_active_frame;
     player_frame->move.last_active_frame = move.last_active_frame;
+
+    //// Read Cancel
+    struct_address = ps3_address_to_x64(move.cancel_addr);
+
+    result =
+        read_refl_struct((long long) struct_address, &cancel, sizeof(struct Cancel), cancel_fields, cancel_field_count);
+
+    if (result == READ_ERROR) {
+        log_error("failed to read P%d cancel", player->player_num);
+        return READ_ERROR;
+    }
+
+    player_frame->move.cancel_startup = cancel.starting_frame;
 
     //// Read hit condition
     struct_address = ps3_address_to_x64(move.hit_condition_addr);
@@ -258,6 +344,12 @@ static int read_move_structs(const long long ptr_address,
         return READ_ERROR;
     }
 
+    //// Push backs
+    struct_address = ps3_address_to_x64(player->moveset_info->table.pushback);
+    if (read_push_backs(struct_address, &reactions, &pushbacks) == READ_ERROR) {
+        log_error("failed to read P%d pushbacks", player->player_num);
+    }
+
     //// Logging
     if (g_logging) {
         char struct_string[STRUCT_STRING_SIZE];
@@ -265,13 +357,15 @@ static int read_move_structs(const long long ptr_address,
 
         log_info("P%d move structs for FRAME %d:\n%s", player->player_num, game_frame, struct_string);
 
+        format_refl_struct(struct_string, STRUCT_STRING_SIZE, "cancel:", &cancel, cancel_fields, cancel_field_count);
+        log_info("%s", struct_string);
+
         format_refl_struct(struct_string,
                            STRUCT_STRING_SIZE,
                            "hit conditions:",
                            &hit_condition,
                            hit_condition_fields,
                            hit_condition_field_count);
-
         log_info("%s", struct_string);
 
         format_refl_struct(struct_string,
@@ -280,7 +374,62 @@ static int read_move_structs(const long long ptr_address,
                            &reactions,
                            reactions_fields,
                            reactions_field_count);
+        log_info("%s", struct_string);
 
+        format_refl_struct(struct_string,
+                           STRUCT_STRING_SIZE,
+                           "front_pushback:",
+                           &pushbacks.front_pushback,
+                           pushback_fields,
+                           pushback_field_count);
+        log_info("%s", struct_string);
+
+        format_refl_struct(struct_string,
+                           STRUCT_STRING_SIZE,
+                           "backturned_pushback:",
+                           &pushbacks.backturned_pushback,
+                           pushback_fields,
+                           pushback_field_count);
+        log_info("%s", struct_string);
+
+        format_refl_struct(struct_string,
+                           STRUCT_STRING_SIZE,
+                           "left_side_pushback:",
+                           &pushbacks.left_side_pushback,
+                           pushback_fields,
+                           pushback_field_count);
+        log_info("%s", struct_string);
+
+        format_refl_struct(struct_string,
+                           STRUCT_STRING_SIZE,
+                           "right_side_pushback:",
+                           &pushbacks.right_side_pushback,
+                           pushback_fields,
+                           pushback_field_count);
+        log_info("%s", struct_string);
+
+        format_refl_struct(struct_string,
+                           STRUCT_STRING_SIZE,
+                           "front_counterhit_pushback:",
+                           &pushbacks.front_counterhit_pushback,
+                           pushback_fields,
+                           pushback_field_count);
+        log_info("%s", struct_string);
+
+        format_refl_struct(struct_string,
+                           STRUCT_STRING_SIZE,
+                           "downed_pushback:",
+                           &pushbacks.downed_pushback,
+                           pushback_fields,
+                           pushback_field_count);
+        log_info("%s", struct_string);
+
+        format_refl_struct(struct_string,
+                           STRUCT_STRING_SIZE,
+                           "block_pushback:",
+                           &pushbacks.block_pushback,
+                           pushback_fields,
+                           pushback_field_count);
         log_info("%s", struct_string);
     }
 
