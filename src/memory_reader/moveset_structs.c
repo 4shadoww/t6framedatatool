@@ -19,8 +19,7 @@
 
 #include "moveset_structs.h"
 
-_Static_assert(sizeof(struct Pushback) == 0x0C, "Pushback size");
-_Static_assert(offsetof(struct Pushback, extradata_addr) == 0x08, "Pushback.extradata_addr");
+_Static_assert(sizeof(struct Requirement) == 0x08, "Requirement size");
 
 _Static_assert(sizeof(struct HitCondition) == 0x0C, "HitCondition size");
 
@@ -42,11 +41,9 @@ _Static_assert(offsetof(struct Move, hit_condition_addr) == 0x20, "Move.hit_cond
 _Static_assert(offsetof(struct Move, first_active_frame) == 0x4C, "Move.first_active_frame");
 _Static_assert(offsetof(struct Move, last_active_frame) == 0x50, "Move.last_active_frame");
 
-const struct Field pushback_fields[] = {
-    F16(struct Pushback, duration, 1),
-    F16(struct Pushback, displacement, 1),
-    F32(struct Pushback, num_of_loops, 1),
-    F32(struct Pushback, extradata_addr, 1),
+const struct Field requirement_fields[] = {
+    F32(struct Requirement, condition, 1),
+    F32(struct Requirement, param, 1),
 };
 
 const struct Field hit_condition_fields[] = {
@@ -187,10 +184,10 @@ const struct Field move_fields[] = {
     F16(struct Move, distance, 1),
 };
 
-const size_t pushback_field_count = sizeof(pushback_fields) / sizeof(pushback_fields[0]);
 const size_t hit_condition_field_count = sizeof(hit_condition_fields) / sizeof(hit_condition_fields[0]);
 const size_t reactions_field_count = sizeof(reactions_fields) / sizeof(reactions_fields[0]);
 const size_t cancel_field_count = sizeof(cancel_fields) / sizeof(cancel_fields[0]);
 const size_t move_field_count = sizeof(move_fields) / sizeof(move_fields[0]);
 const size_t moveset_info_field_count = sizeof(moveset_info_fields) / sizeof(moveset_info_fields[0]);
+const size_t requirement_field_count = sizeof(requirement_fields) / sizeof(requirement_fields[0]);
 const size_t moveset_table_field_count = sizeof(moveset_table_fields) / sizeof(moveset_table_fields[0]);

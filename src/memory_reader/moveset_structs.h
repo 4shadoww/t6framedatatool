@@ -30,11 +30,9 @@ extern "C" {
 
 /* structs from TKMovesets github.com/Kiloutre/TKMovesets, credits: github.com/Kiloutre */
 
-struct Pushback {
-    uint16_t duration;
-    uint16_t displacement;
-    uint32_t num_of_loops;
-    ps3address extradata_addr;
+struct Requirement {
+    uint32_t condition;
+    uint32_t param;
 };
 
 struct HitCondition {
@@ -214,8 +212,8 @@ struct Move {
     uint16_t distance;
 };
 
-extern const struct Field pushback_fields[];
-extern const size_t pushback_field_count;
+extern const struct Field requirement_fields[];
+extern const size_t requirement_field_count;
 
 extern const struct Field hit_condition_fields[];
 extern const size_t hit_condition_field_count;
