@@ -38,10 +38,6 @@
 #define P1_ATTACK_SEQ_PTR (GAME_BASE_ADDRESS + 342632)
 // Offset from pointer to attack seq value
 #define P1_ATTACK_SEQ_OFFSET 312
-// Player 1 string type
-#define P1_STRING_TYPE (GAME_BASE_ADDRESS + 356)
-// Player 1 string state
-#define P1_STRING_STATE (GAME_BASE_ADDRESS + 178532)
 // Player 1 move struct ptr
 #define P1_MOVE_STRUCT_PTR (GAME_BASE_ADDRESS + 1832)
 // Player 1 moveset info
@@ -65,10 +61,6 @@
 #define P2_ATTACK_SEQ_PTR (GAME_BASE_ADDRESS + 342636)
 // Offset from pointer to attack seq value
 #define P2_ATTACK_SEQ_OFFSET 312
-// Player 2 string type
-#define P2_STRING_TYPE (GAME_BASE_ADDRESS + 3492)
-// Player 2 string state
-#define P2_STRING_STATE (GAME_BASE_ADDRESS + 178676)
 // Player 2 move struct ptr
 #define P2_MOVE_STRUCT_PTR (GAME_BASE_ADDRESS + 4968)
 // Player 2 moveset info

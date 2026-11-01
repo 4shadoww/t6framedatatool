@@ -39,24 +39,13 @@
 
 // Ten seconds of frames
 #define FRAME_BUFFER_SIZE (size_t) (60 * 10)
-#define PLAYER_ACTION_BUFFER_SIZE 10
-#define PLAYER_STRING_BUFFER_SIZE 50
-#define PLAYER_STRING_END_BUFFER_SIZE 4
-
-#define STRUCT_STRING_SIZE 2048
 
 //// frame_data_analyser
 ///
 volatile bool FrameDataAnalyser::m_stop = false;
 RingBuffer<GameFrame> FrameDataAnalyser::m_frame_buffer(FRAME_BUFFER_SIZE);
-RingBuffer<StartFrame> FrameDataAnalyser::m_p1_start_frames(PLAYER_ACTION_BUFFER_SIZE);
-RingBuffer<StartFrame> FrameDataAnalyser::m_p2_start_frames(PLAYER_ACTION_BUFFER_SIZE);
-RingBuffer<GameFrame> FrameDataAnalyser::m_p1_str_connection_frames(PLAYER_STRING_BUFFER_SIZE);
-RingBuffer<GameFrame> FrameDataAnalyser::m_p2_str_connection_frames(PLAYER_STRING_BUFFER_SIZE);
-RingBuffer<GameFrame> FrameDataAnalyser::m_p1_str_end_frames(PLAYER_STRING_END_BUFFER_SIZE);
-RingBuffer<GameFrame> FrameDataAnalyser::m_p2_str_end_frames(PLAYER_STRING_END_BUFFER_SIZE);
-RingBuffer<GameFrame> FrameDataAnalyser::m_p1_str_type_frames(PLAYER_ACTION_BUFFER_SIZE);
-RingBuffer<GameFrame> FrameDataAnalyser::m_p2_str_type_frames(PLAYER_ACTION_BUFFER_SIZE);
+AttackChain FrameDataAnalyser::m_p1_chain{};
+AttackChain FrameDataAnalyser::m_p2_chain{};
 
 EventListener *FrameDataAnalyser::m_listener = nullptr;
 
@@ -75,69 +64,32 @@ void FrameDataAnalyser::log_frame() {
            << "P1 intent: " << state->p1.intent << std::endl
            << "P1 move: " << state->p1.move_id << std::endl
            << "P1 state: " << state->p1.state << std::endl
-           << "P1 string type: " << state->p1.string_type << std::endl
-           << "P1 string state: " << state->p1.string_state << std::endl
            << "P1 position: " << state->p1.position.x << ", " << state->p1.position.y << ", " << state->p1.position.z
            << std::endl
            << "P1 attack seq: " << state->p1.attack_seq << std::endl
+           << "P1 move index: " << state->p1.move.index << std::endl
+           << "P1 move start: " << state->p1.move.start_frame << std::endl
+           << "P1 idle starting_frame: " << state->p1.move.cancel_startup << std::endl
+           << "P1 string next: " << state->p1.move.string_next << std::endl
+           << "P1 chain start: " << m_p1_chain.start_frame << std::endl
+           << "P1 anim start: " << m_p1_chain.anim_start << std::endl
            << "P2 last action: " << state->p2.frames_last_action << std::endl
            << "P2 recovery frames: " << state->p2.recovery_frames << std::endl
            << "P2 connection: " << (bool) state->p2.connection << std::endl
            << "P2 intent: " << state->p2.intent << std::endl
            << "P2 move: " << state->p2.move_id << std::endl
            << "P2 state: " << state->p2.state << std::endl
-           << "P2 string type: " << state->p2.string_type << std::endl
-           << "P2 string state: " << state->p2.string_state << std::endl
            << "P2 position: " << state->p2.position.x << ", " << state->p2.position.y << ", " << state->p2.position.z
            << std::endl
-           << "P2 attack seq: " << state->p2.attack_seq << std::endl;
+           << "P2 attack seq: " << state->p2.attack_seq << std::endl
+           << "P2 move index: " << state->p2.move.index << std::endl
+           << "P2 move start: " << state->p2.move.start_frame << std::endl
+           << "P2 idle starting_frame: " << state->p2.move.cancel_startup << std::endl
+           << "P2 string next: " << state->p2.move.string_next << std::endl
+           << "P2 chain start: " << m_p2_chain.start_frame << std::endl
+           << "P2 anim start: " << m_p2_chain.anim_start << std::endl;
 
     log_info(stream.str().c_str());
-}
-
-bool FrameDataAnalyser::is_attack(const PlayerIntent &intent) {
-    switch (intent) {
-    case PlayerIntent::ATTACK1:
-    case PlayerIntent::ATTACK3:
-    case PlayerIntent::ATTACK5:
-    case PlayerIntent::ATTACK7:
-        return true;
-
-    case PlayerIntent::IDLE:
-    case PlayerIntent::INPUT_BUFFERING:
-    case PlayerIntent::BLOCK:
-    case PlayerIntent::WALK:
-    case PlayerIntent::SIDE_STEP:
-    case PlayerIntent::DOUBLE_SIDE_STEP:
-    case PlayerIntent::FALLING:
-    case PlayerIntent::LANDING:
-    case PlayerIntent::STASIS:
-    case PlayerIntent::WHIFF:
-    case PlayerIntent::GRAP_INIT:
-    case PlayerIntent::GRAP_CONNECT:
-    case PlayerIntent::SIDE_ROLLING:
-        return false;
-
-    default:
-        log_warn("unknown player intent \"%i\"", intent);
-        return false;
-    }
-}
-
-bool FrameDataAnalyser::recovery_reset(const PlayerFrame *const previous, const PlayerFrame *const current) {
-    return previous->move_id != current->move_id;
-}
-
-const GameFrame *FrameDataAnalyser::get_game_frame(const uint32_t game_frame) {
-    const size_t count = m_frame_buffer.item_count();
-    for (size_t i = 0; i < count; i++) {
-        const GameFrame *const frame = m_frame_buffer.get_from_head(i);
-        if (frame->game_frame == game_frame) {
-            return frame;
-        }
-    }
-
-    return nullptr;
 }
 
 const char *FrameDataAnalyser::player_status(const PlayerState state) {
@@ -185,7 +137,8 @@ const char *FrameDataAnalyser::player_status(const PlayerState state) {
     case PlayerState::JUMPING_FORWARDS:
     case PlayerState::JUMPING_BACKWARDS:
         return JUMPING;
-    case PlayerState::AIRBORNE:
+    case PlayerState::AIRBORNE1:
+    case PlayerState::AIRBORNE2:
         return AIRBORNE;
     case PlayerState::GROUNDED1:
     case PlayerState::GROUNDED2:
@@ -202,524 +155,219 @@ const char *FrameDataAnalyser::player_status(const PlayerState state) {
     return UNDETERMINABLE;
 }
 
-bool FrameDataAnalyser::initiated_attack(const PlayerFrame *const previous, const PlayerFrame *const current) {
-    return previous->attack_seq != current->attack_seq;
-}
-
-void FrameDataAnalyser::analyse_start_frames() {
-    const GameFrame *const current = m_frame_buffer.head();
-    const GameFrame *const previous = m_frame_buffer.get_from_head(1);
-
-    if (current == previous || previous == nullptr) {
-        return;
-    }
-
-    // Check if P1 initiated attack
-    if (initiated_attack(&previous->p1, &current->p1)) {
-        m_p1_start_frames.push({
-            .index = m_frame_buffer.head_index(),
-            .recovery_frames = current->p1.recovery_frames,
-            .game_frame = current->game_frame,
-            .attack_seq = current->p1.attack_seq,
-            .is_string = string_is_active(&current->p1),
-            .first_active_frame = previous->p1.move.first_active_frame,
-            .last_active_frame = previous->p1.move.last_active_frame,
-        });
-        if (m_logging) {
-            log_info("MARK STARTUP P1: %i", current->game_frame);
-        }
-    }
-
-    // Check if P2 initiated attack
-    if (initiated_attack(&previous->p2, &current->p2)) {
-        m_p2_start_frames.push({
-            .index = m_frame_buffer.head_index(),
-            .recovery_frames = current->p2.recovery_frames,
-            .game_frame = current->game_frame,
-            .attack_seq = current->p2.attack_seq,
-            .is_string = string_is_active(&current->p2),
-            .first_active_frame = previous->p2.move.first_active_frame,
-            .last_active_frame = previous->p2.move.last_active_frame,
-        });
-        if (m_logging) {
-            log_info("MARK STARTUP P2: %i", current->game_frame);
-        }
-    }
-}
-
-ConnectionEvent FrameDataAnalyser::has_new_connection() {
-    const GameFrame *const current = m_frame_buffer.head();
-    const GameFrame *const previous = m_frame_buffer.get_from_head(1);
-
-    if (current == previous || previous == nullptr) {
-        return ConnectionEvent::NO_CONNECTION;
-    }
-
-    if ((previous->p1.connection == 0) && (current->p1.connection != 0)) {
-        return ConnectionEvent::P1_CONNECTION;
-    } else if ((previous->p2.connection == 0) && (current->p2.connection != 0)) {
-        return ConnectionEvent::P2_CONNECTION;
-    }
-
-    return ConnectionEvent::NO_CONNECTION;
-}
-
-bool FrameDataAnalyser::player_in_stasis(const PlayerFrame *const player_frame) {
-    return (PlayerIntent) player_frame->intent == PlayerIntent::STASIS;
-}
-
-StartFrame FrameDataAnalyser::get_startup_frame(const GameFrame *const frame, const bool p2, const bool pop) {
-    RingBuffer<StartFrame> *buffer = p2 ? &m_p2_start_frames : &m_p1_start_frames;
-    const int32_t last_attack_seq = p2 ? frame->p2.attack_seq : frame->p1.attack_seq;
-
-    const size_t item_count = buffer->item_count();
-    for (size_t i = 0; i < item_count; i++) {
-        StartFrame start_frame{};
-        if (pop) {
-            start_frame = buffer->pop();
-        } else {
-            start_frame = *buffer->get(i);
-        }
-
-        if (start_frame.attack_seq == last_attack_seq) {
-            return start_frame;
-        }
-
-        if (pop) {
-            log_debug("dropped invalid startup frame %d", start_frame.game_frame);
-        }
-    }
-
-    log_fatal("player startup frame not found");
-    return {};
-}
-
-bool FrameDataAnalyser::string_is_active(const PlayerFrame *const player_frame) {
-    return ((PlayerState) player_frame->state == PlayerState::STRING ||
-            (PlayerState) player_frame->state == PlayerState::MOVE ||
-            (PlayerState) player_frame->state == PlayerState::CROUCHING_ATTACK ||
-            (PlayerState) player_frame->state == PlayerState::JUMPING) &&
-           // Zero is a grap
-           (PlayerMove) player_frame->move_id != PlayerMove::IDLE;
-}
-
+// A reaction move without an idle return does not recover on its own
 bool FrameDataAnalyser::is_knockdown(const PlayerFrame *const player_frame) {
-    return (PlayerState) player_frame->state == PlayerState::AIRBORNE ||
-           (PlayerState) player_frame->state == PlayerState::GROUNDED2;
-}
-
-bool FrameDataAnalyser::has_string_startup(const bool p2) {
-    const RingBuffer<StartFrame> *const startup_frames = p2 ? &m_p2_start_frames : &m_p1_start_frames;
-    const size_t count = startup_frames->item_count();
-    for (size_t i = 0; i < count; i++) {
-        if (startup_frames->get(i)->is_string) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool FrameDataAnalyser::should_handle_string(const PlayerFrame *const player_frame, const bool p2) {
-    return string_is_active(player_frame) || has_string_startup(p2);
-}
-
-bool FrameDataAnalyser::string_has_ended_state(const PlayerFrame *player_frame) {
-    // NOTE: this function can only tell if the string has ended state, not if it's actually ongoing
-    return (StringState) player_frame->string_state == StringState::ENDED;
-}
-
-bool FrameDataAnalyser::string_has_concluded(const GameFrame *current, const bool p2) {
-    RingBuffer<GameFrame> *const str_end_frames = p2 ? &m_p2_str_end_frames : &m_p1_str_end_frames;
-    const RingBuffer<GameFrame> *const connection_frames =
-        p2 ? &m_p2_str_connection_frames : &m_p1_str_connection_frames;
-    const GameFrame *const connection = connection_frames->head();
-
-    str_end_frames->push(*current);
-
-    // Collect more frames
-    if (str_end_frames->item_count() < PLAYER_STRING_END_BUFFER_SIZE) {
-        return false;
-    }
-
-    // Check consistency
-    const GameFrame *previous_check = str_end_frames->tail();
-    for (size_t i = 1; i < PLAYER_STRING_END_BUFFER_SIZE; i++) {
-        const GameFrame *const current_check = str_end_frames->get(i);
-        // Inconsistent, continue collecting frames
-        if ((previous_check->game_frame + 1 != current_check->game_frame) ||
-            connection->game_frame > previous_check->game_frame) {
-            str_end_frames->pop();
-            return false;
-        }
-        previous_check = current_check;
-    }
-
-    return true;
-}
-
-void FrameDataAnalyser::reset_string_sm() {
-    // Clear connections
-    m_p1_str_connection_frames.clear();
-    m_p2_str_connection_frames.clear();
-    // Clear end frames
-    m_p1_str_end_frames.clear();
-    m_p2_str_end_frames.clear();
-    // Clear string type frames
-    m_p1_str_type_frames.clear();
-    m_p2_str_type_frames.clear();
-}
-
-void FrameDataAnalyser::push_string_type(const GameFrame *const frame, const bool p2) {
-    if (p2) {
-        m_p2_str_type_frames.push(*frame);
-    } else {
-        m_p1_str_type_frames.push(*frame);
-    }
-}
-
-bool FrameDataAnalyser::is_multihit_attack(const PlayerFrame *const player) {
-    switch ((StringType) player->string_type) {
-    case StringType::MULTIHIT0:
-    case StringType::MULTIHIT1:
-    case StringType::MULTIHIT2:
+    switch ((PlayerState) player_frame->state) {
+    case PlayerState::AIRBORNE1:
+    case PlayerState::AIRBORNE2:
+    case PlayerState::GROUNDED1:
+    case PlayerState::GROUNDED2:
         return true;
+
     default:
         return false;
     }
 }
 
-bool FrameDataAnalyser::string_is_multihit_attack(RingBuffer<GameFrame> *const player_connections, const bool p2) {
-    RingBuffer<GameFrame> const *const type_frames = p2 ? &m_p2_str_type_frames : &m_p1_str_type_frames;
-    const GameFrame *const first_connection = player_connections->tail();
-    const GameFrame *const first_previous_frame = get_game_frame(first_connection->game_frame - 1);
-
-    if (first_previous_frame == nullptr) {
-        log_debug("cannot find previous frame for multi-hit string check");
-        return false;
-    }
-
-    const StartFrame last_startup = get_startup_frame(first_previous_frame, p2, false);
-    for (size_t i = 0; i < type_frames->item_count(); i++) {
-        const GameFrame *const type_frame = type_frames->get(i);
-        if (type_frame->game_frame > last_startup.game_frame) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool FrameDataAnalyser::calculate_multihit_string(RingBuffer<GameFrame> *const player_connections, const bool p2) {
-    const GameFrame *const first_connection = player_connections->tail();
-    const GameFrame *const first_previous_frame = get_game_frame(first_connection->game_frame - 1);
-    const GameFrame *const last_connection = player_connections->head();
-    const GameFrame *const last_previous_frame = get_game_frame(last_connection->game_frame - 1);
-
-    if (first_previous_frame == nullptr) {
-        log_error("cannot find previous frame for startup");
-        reset_string_sm();
-        return false;
-    }
-
-    if (last_previous_frame == nullptr) {
-        log_error("cannot find previous frame for connection");
-        reset_string_sm();
-        return false;
-    }
-
-    const StartFrame first_startup = get_startup_frame(first_previous_frame, p2, true);
-    if (first_startup.game_frame == 0) {
-        log_error("Player start up buffer has invalid state (cannot get first)");
-        reset_string_sm();
-        return false;
-    }
-
-    // Check if first and last are the same
-    StartFrame last_startup{};
-
-    if (first_connection->game_frame == last_connection->game_frame) {
-        last_startup = first_startup;
-    } else {
-        last_startup = get_startup_frame(last_previous_frame, p2, true);
-        if (last_startup.game_frame == 0) {
-            log_error("Player start up buffer has invalid state (cannot get last)");
-            reset_string_sm();
-            return false;
-        }
-    }
-
-    log_debug("calculate multi-hit string");
-    // Calculate frame data for natural string
-    int32_t startup_frames = (int) (first_connection->game_frame - first_startup.game_frame); // NOLINT
-    const uint32_t frame_delta = last_connection->game_frame - first_startup.game_frame;
-    int32_t frame_advantage = 0;
-    bool knock_down = false;
-    uint32_t first_active_frame = 0;
-    uint32_t last_active_frame = 0;
-
-    if (p2) {
-        knock_down = is_knockdown(&last_connection->p1);
-        frame_advantage =
-            (int) (last_connection->p1.recovery_frames - last_connection->p2.recovery_frames + frame_delta);
-        startup_frames = 0;
-    } else {
-        knock_down = is_knockdown(&last_connection->p2);
-        frame_advantage =
-            (int) (last_connection->p2.recovery_frames - last_connection->p1.recovery_frames + frame_delta);
-        first_active_frame = first_startup.first_active_frame;
-        last_active_frame = first_startup.last_active_frame;
-    }
-
-    const struct FrameDataPoint data_point = {
-        .startup_frames = startup_frames,
-        .first_active_frame = first_active_frame,
-        .last_active_frame = last_active_frame,
-        .frame_advantage = frame_advantage,
-        .knock_down = knock_down,
-    };
-
-    m_listener->frame_data(data_point);
-
-    reset_string_sm();
-
-    return true;
-}
-
-bool FrameDataAnalyser::calculate_natural_string(RingBuffer<GameFrame> *const player_connections, const bool p2) {
-    const GameFrame *const first_connection = player_connections->tail();
-    const GameFrame *const first_previous_frame = get_game_frame(first_connection->game_frame - 1);
-    const GameFrame *const last_connection = player_connections->head();
-    const GameFrame *const last_previous_frame = get_game_frame(last_connection->game_frame - 1);
-
-    if (first_previous_frame == nullptr) {
-        log_error("cannot find previous frame for startup");
-        reset_string_sm();
-        return false;
-    }
-
-    if (last_previous_frame == nullptr) {
-        log_error("cannot find previous frame for connection");
-        reset_string_sm();
-        return false;
-    }
-
-    const StartFrame first_startup = get_startup_frame(first_previous_frame, p2, true);
-    if (first_startup.game_frame == 0) {
-        log_error("Player start up buffer has invalid state (cannot get first)");
-        reset_string_sm();
-        return false;
-    }
-
-    // Check if first and last are the same
-    StartFrame last_startup{};
-
-    if (first_connection->game_frame == last_connection->game_frame) {
-        last_startup = first_startup;
-    } else {
-        last_startup = get_startup_frame(last_previous_frame, p2, true);
-        if (last_startup.game_frame == 0) {
-            log_error("Player start up buffer has invalid state (cannot get last)");
-            reset_string_sm();
-            return false;
-        }
-    }
-
-    log_debug("calculate natural string");
-    // Calculate frame data for natural string
-    int32_t startup_frames = (int) (first_connection->game_frame - first_startup.game_frame); // NOLINT
-    const int last_startup_frames = (int) (last_connection->game_frame - last_startup.game_frame);
-    int32_t frame_advantage = 0;
-    bool knock_down = false;
-    uint32_t first_active_frame = 0;
-    uint32_t last_active_frame = 0;
-
-    if (p2) {
-        knock_down = is_knockdown(&last_connection->p1);
-        // Don't base recovery time on startup frame if new recovery has begun
-        if (recovery_reset(&last_previous_frame->p2, &last_connection->p2)) {
-            frame_advantage = (int) (last_connection->p1.recovery_frames - last_connection->p2.recovery_frames);
-        } else {
-            frame_advantage =
-                (int) ((last_startup.recovery_frames - last_connection->p1.recovery_frames) - last_startup_frames);
-        }
-        startup_frames = 0;
-    } else {
-        knock_down = is_knockdown(&last_connection->p2);
-        // Don't base recovery time on startup frame if new recovery has begun
-        if (recovery_reset(&last_previous_frame->p1, &last_connection->p1)) {
-            frame_advantage = (int) (last_connection->p2.recovery_frames - last_connection->p1.recovery_frames);
-        } else {
-            frame_advantage =
-                (int) (last_startup_frames - (last_startup.recovery_frames - last_connection->p2.recovery_frames));
-        }
-        first_active_frame = first_startup.first_active_frame;
-        last_active_frame = first_startup.last_active_frame;
-    }
-
-    const struct FrameDataPoint data_point = {
-        .startup_frames = startup_frames,
-        .first_active_frame = first_active_frame,
-        .last_active_frame = last_active_frame,
-        .frame_advantage = frame_advantage,
-        .knock_down = knock_down,
-    };
-
-    m_listener->frame_data(data_point);
-
-    reset_string_sm();
-
-    return true;
-}
-
-bool FrameDataAnalyser::calculate_strings(const bool p2) {
-    const GameFrame *const current = m_frame_buffer.head();
-    const PlayerFrame *player{};
-    RingBuffer<GameFrame> *player_connections{};
-
-    if (p2) {
-        player_connections = &m_p2_str_connection_frames;
-        player = &current->p2;
-    } else {
-        player_connections = &m_p1_str_connection_frames;
-        player = &current->p1;
-    }
-
-    // Push string type frames
-    if (is_multihit_attack(player)) {
-        push_string_type(current, p2);
-    }
-
-    // No string ended state, or no data: nothing to handle
-    if (!string_has_ended_state(player) || player_connections->item_count() == 0) {
-        return false;
-    }
-
-    // Check if the string has concluded (state may be ended for few frames, but string continues)
-    if (!string_has_concluded(current, p2)) {
-        return false;
-    }
-
-    if (string_is_multihit_attack(player_connections, p2)) {
-        return calculate_multihit_string(player_connections, p2);
-    }
-
-    return calculate_natural_string(player_connections, p2);
-}
-
-void FrameDataAnalyser::calculate_single_attack(const ConnectionEvent connection,
-                                                const GameFrame *const previous,
-                                                const GameFrame *const current) {
-    StartFrame startup{};
-    // Value in current frame
-    const PlayerFrame *player{};
-    const PlayerFrame *opponent{};
-
-    // Check frame before connection, as the player can initiate new attack on connection frame
-    if (connection == ConnectionEvent::P1_CONNECTION) {
-        m_p2_start_frames.clear();
-        startup = get_startup_frame(previous, false, true);
-
-        player = &current->p1;
-        opponent = &current->p2;
-    } else {
-        m_p1_start_frames.clear();
-        startup = get_startup_frame(previous, true, true);
-
-        player = &current->p2;
-        opponent = &current->p1;
-    }
-
-    if (startup.game_frame == 0) {
-        log_error("Player start up buffer has invalid state");
+// Updates the chain when a move became current on this frame.
+// A move is chained when it was entered from an attack that had not reached
+// its idle cancel yet, or through an automatic string cancel.
+void FrameDataAnalyser::track_chain(const PlayerFrame *const previous,
+                                    const PlayerFrame *const current,
+                                    AttackChain *const chain,
+                                    const uint32_t game_frame) {
+    if (current->move.index < 0 || current->move.start_frame != game_frame) {
         return;
     }
 
-    if (player_in_stasis(player)) {
-        log_debug("calculate single hit (stasis)");
-    } else {
-        log_debug("calculate single hit");
+    const bool previous_attack = previous->move.index >= 0 && previous->move.hitlevel != 0;
+    const bool auto_string = previous_attack && previous->move.string_next == current->move.index;
+    const bool cancelled = previous_attack && (game_frame - previous->move.start_frame) < previous->move.cancel_startup;
+    const bool chained = chain->start_frame != 0 && (auto_string || cancelled);
+
+    report_replaced_string(previous, current, chain, auto_string);
+
+    if (!chained || left_before_hitbox(previous, current, chain, auto_string, game_frame)) {
+        if (current->move.hitlevel == 0) {
+            *chain = {};
+            return;
+        }
+        *chain = {};
+        chain->start_frame = game_frame;
+        chain->first_active_frame = current->move.first_active_frame;
+        chain->last_active_frame = current->move.last_active_frame;
+        if (m_logging) {
+            log_info("MARK STARTUP P%d: %u", chain == &m_p1_chain ? 1 : 2, game_frame);
+        }
+    } else if (chain->first_connection == 0 && chain->last_active_frame == 0) {
+        // The chain started from a move without a hitbox, the active window comes from this move
+        chain->first_active_frame = current->move.first_active_frame;
+        chain->last_active_frame = current->move.last_active_frame;
     }
 
-    // Calculate frame data for single attack
-    int32_t startup_frames = (int) (current->game_frame - startup.game_frame); // NOLINT
-    int32_t frame_advantage = 0;
-    const bool knock_down = is_knockdown(opponent);
-    uint32_t first_active_frame = 0;
-    uint32_t last_active_frame = 0;
-
-    if (connection == ConnectionEvent::P1_CONNECTION) {
-        // Don't base recovery time on startup frame if new recovery has begun
-        // Or the connection is grab
-        if (recovery_reset(&previous->p1, player) || player_in_stasis(player)) {
-            frame_advantage = (int) (opponent->recovery_frames - player->recovery_frames);
-        } else {
-            frame_advantage = (int) (startup_frames - (startup.recovery_frames - opponent->recovery_frames));
-        }
-        first_active_frame = startup.first_active_frame;
-        last_active_frame = startup.last_active_frame;
-    } else {
-        // Don't base recovery time on startup frame if new recovery has begun
-        // Or the connection is grab
-        if (recovery_reset(&previous->p2, player) || player_in_stasis(player)) {
-            frame_advantage = (int) (opponent->recovery_frames - player->recovery_frames);
-        } else {
-            frame_advantage = (int) ((startup.recovery_frames - opponent->recovery_frames) - startup_frames);
-        }
-        startup_frames = 0;
+    // The animation frame continues only through an automatic string in the same animation
+    if (!auto_string || previous->move.anim_addr != current->move.anim_addr) {
+        chain->anim_start = game_frame;
     }
-
-    const struct FrameDataPoint data_point = {
-        .startup_frames = startup_frames,
-        .first_active_frame = first_active_frame,
-        .last_active_frame = last_active_frame,
-        .frame_advantage = frame_advantage,
-        .knock_down = knock_down,
-    };
-
-    m_listener->frame_data(data_point);
 }
 
-void FrameDataAnalyser::handle_connection() {
-    const ConnectionEvent connection = has_new_connection();
-    if (connection == ConnectionEvent::NO_CONNECTION) {
-        return;
-    }
+void FrameDataAnalyser::track_chains() {
     const GameFrame *const current = m_frame_buffer.head();
     const GameFrame *const previous = m_frame_buffer.get_from_head(1);
 
-    if (m_logging) {
-        log_info("MARK CONNECTION P%i: %i", connection, current->game_frame);
-    }
-
-    const StartFrame startup = get_startup_frame(current, connection == ConnectionEvent::P2_CONNECTION, false);
-
-    // Handle string later on separate function
-    if (connection == ConnectionEvent::P1_CONNECTION) {
-        if (startup.is_string && string_is_active(&current->p1)) {
-            m_p1_str_connection_frames.push(*current);
-            return;
-        }
-    } else {
-        if (startup.is_string && string_is_active(&current->p2)) {
-            m_p2_str_connection_frames.push(*current);
-            return;
-        }
-    }
-
-    calculate_single_attack(connection, previous, current);
-}
-
-void FrameDataAnalyser::handle_strings() {
-    const GameFrame *const current = m_frame_buffer.head();
-
-    // Try to caluculate P1
-    if (should_handle_string(&current->p1, false) && calculate_strings(false)) {
+    if (current == previous || previous == nullptr) {
         return;
     }
 
-    // Try to calculate P2
-    if (should_handle_string(&current->p2, true)) {
-        calculate_strings(true);
+    track_chain(&previous->p1, &current->p1, &m_p1_chain, current->game_frame);
+    track_chain(&previous->p2, &current->p2, &m_p2_chain, current->game_frame);
+}
+
+bool FrameDataAnalyser::new_connection(const PlayerFrame *const previous, const PlayerFrame *const current) {
+    return previous->connection == 0 && current->connection != 0;
+}
+
+// The previous hitbox never came out and the follow-up is another attack
+bool FrameDataAnalyser::left_before_hitbox(const PlayerFrame *const previous,
+                                           const PlayerFrame *const current,
+                                           const AttackChain *const chain,
+                                           const bool auto_string,
+                                           const uint32_t game_frame) {
+    return previous->move.index >= 0 && previous->move.hitlevel != 0 && chain->first_connection == 0 && !auto_string &&
+           current->move.hitlevel != 0 && previous->move.first_active_frame != 0 &&
+           previous->move.anim_addr != current->move.anim_addr &&
+           (game_frame - previous->move.start_frame) < previous->move.first_active_frame;
+}
+
+// The automatic string did not continue, so the recorded hit is the finisher
+void FrameDataAnalyser::report_replaced_string(const PlayerFrame *const previous,
+                                               const PlayerFrame *const current,
+                                               AttackChain *const chain,
+                                               const bool auto_string) {
+    if (chain->first_connection == 0 || chain->reported || auto_string) {
+        return;
+    }
+
+    uint32_t recovery = previous->move.cancel_startup;
+    if (current->move.hitlevel == 0 && current->move.anim_addr == previous->move.anim_addr &&
+        current->move.cancel_startup != 0) {
+        recovery = current->move.cancel_startup;
+    }
+    report_chain(chain, chain == &m_p2_chain, recovery);
+}
+
+// Frame advantage from the idle cancel of the finisher and the recovery of the
+// defender recorded on the last connection
+void FrameDataAnalyser::report_chain(AttackChain *const chain, const bool p2, const uint32_t recovery) {
+    const uint32_t attacker_free = chain->anim_start + recovery;
+
+    int32_t frame_advantage = (int32_t) chain->defender_free - (int32_t) attacker_free;
+    auto startup_frames = (int32_t) (chain->first_connection - chain->start_frame);
+    uint32_t first_active_frame = chain->first_active_frame;
+    uint32_t last_active_frame = chain->last_active_frame;
+
+    // Frame data is shown from P1's point of view
+    if (p2) {
+        frame_advantage = -frame_advantage;
+        startup_frames = 0;
+        first_active_frame = 0;
+        last_active_frame = 0;
+    }
+
+    const struct FrameDataPoint data_point = {
+        .startup_frames = startup_frames,
+        .first_active_frame = first_active_frame,
+        .last_active_frame = last_active_frame,
+        .frame_advantage = frame_advantage,
+        .knock_down = chain->knock_down,
+    };
+
+    chain->reported = true;
+    m_listener->frame_data(data_point);
+}
+
+// Records the defender's recovery on a hit. Called before the chain is updated
+// for this frame, so the chain still describes the move that was active when
+// the hit landed.
+void FrameDataAnalyser::calculate_connection(const GameFrame *const previous,
+                                             const GameFrame *const current,
+                                             const bool p2) {
+    const PlayerFrame *attacker = p2 ? &current->p2 : &current->p1;
+    const PlayerFrame *const defender = p2 ? &current->p1 : &current->p2;
+    AttackChain *const chain = p2 ? &m_p2_chain : &m_p1_chain;
+    const uint32_t frame = current->game_frame;
+
+    // A cancel fired on the hit frame, the connecting move is the previous one
+    if (attacker->move.start_frame == frame) {
+        attacker = p2 ? &previous->p2 : &previous->p1;
+    }
+
+    if (m_logging) {
+        log_info("MARK CONNECTION P%d: %u", p2 ? 2 : 1, frame);
+    }
+
+    if (chain->start_frame == 0 || attacker->move.index < 0) {
+        log_debug("connection without tracked attack");
+        return;
+    }
+
+    if (defender->move.index < 0) {
+        log_debug("connection without defender move");
+        return;
+    }
+
+    if (chain->first_connection == 0) {
+        chain->first_connection = frame;
+    }
+    chain->defender_free = defender->move.start_frame + defender->move.cancel_startup;
+    chain->knock_down = is_knockdown(defender);
+    chain->reported = false;
+
+    // More hits of an automatic string are scheduled, wait for the finisher
+    if (attacker->move.string_next >= 0) {
+        return;
+    }
+
+    report_chain(chain, p2, attacker->move.cancel_startup);
+}
+
+// Emits the frame data when the finisher's active window passed without a hit
+void FrameDataAnalyser::handle_whiff(const PlayerFrame *const attacker, AttackChain *const chain, const bool p2) {
+    if (chain->start_frame == 0 || chain->first_connection == 0 || chain->reported || attacker->move.index < 0 ||
+        attacker->move.string_next >= 0) {
+        return;
+    }
+
+    const uint32_t frame = m_frame_buffer.head()->game_frame;
+    if (frame - chain->anim_start <= attacker->move.last_active_frame) {
+        return;
+    }
+
+    if (m_logging) {
+        log_info("MARK WHIFF P%d: %u", p2 ? 2 : 1, frame);
+    }
+    report_chain(chain, p2, attacker->move.cancel_startup);
+}
+
+void FrameDataAnalyser::handle_whiffs() {
+    const GameFrame *const current = m_frame_buffer.head();
+    handle_whiff(&current->p1, &m_p1_chain, false);
+    handle_whiff(&current->p2, &m_p2_chain, true);
+}
+
+void FrameDataAnalyser::handle_connection() {
+    const GameFrame *const current = m_frame_buffer.head();
+    const GameFrame *const previous = m_frame_buffer.get_from_head(1);
+
+    if (current == previous || previous == nullptr) {
+        return;
+    }
+
+    if (new_connection(&previous->p1, &current->p1)) {
+        calculate_connection(previous, current, false);
+    }
+    if (new_connection(&previous->p2, &current->p2)) {
+        calculate_connection(previous, current, true);
     }
 }
 
@@ -814,9 +462,9 @@ bool FrameDataAnalyser::loop() {
         return false;
     }
 
-    analyse_start_frames();
     handle_connection();
-    handle_strings();
+    track_chains();
+    handle_whiffs();
     handle_distance();
     handle_status();
 

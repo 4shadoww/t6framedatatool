@@ -29,20 +29,21 @@ struct FrameDataPoint {
     bool knock_down;
 };
 
-struct StartFrame {
-    size_t index;
-    uint32_t recovery_frames;
-    uint32_t game_frame;
-    int32_t attack_seq;
-    bool is_string;
+// Attack chain tracked from the moveset structs
+struct AttackChain {
+    // Game frame when the first attack of the chain started, zero when none
+    uint32_t start_frame;
+    // Game frame when the current animation started
+    uint32_t anim_start;
+    // Game frame of the first connection, zero until a hit lands
+    uint32_t first_connection;
     uint32_t first_active_frame;
     uint32_t last_active_frame;
-};
-
-enum class ConnectionEvent : uint8_t {
-    NO_CONNECTION,
-    P1_CONNECTION,
-    P2_CONNECTION,
+    // Game frame when the defender can act again, from the last connection
+    uint32_t defender_free;
+    bool knock_down;
+    // Frame data has been emitted for this chain
+    bool reported;
 };
 
 enum class PlayerState : int {
@@ -58,7 +59,8 @@ enum class PlayerState : int {
     JUMPING = 51266,
     JUMPING_FORWARDS = 116802,
     JUMPING_BACKWARDS = 182338,
-    AIRBORNE = 29702,
+    AIRBORNE1 = 29702,
+    AIRBORNE2 = 32262,
     GROUNDED1 = 24708,
     GROUNDED2 = 27268,
     DASH_FORWARDS = 1050690,
@@ -106,22 +108,6 @@ enum class PlayerIntent : int {
 enum class PlayerSide : uint8_t {
     RIGHT = 0,
     LEFT = 1,
-};
-
-enum class PlayerMove : uint8_t {
-    IDLE = 0,
-};
-
-enum class StringState : uint8_t {
-    NOT_ENDED1 = 0,
-    NOT_ENDED2 = 1, // Sometimes appears in midde of the string
-    ENDED = 2,
-};
-
-enum class StringType : uint16_t {
-    MULTIHIT0 = 1024,
-    MULTIHIT1 = 1026,
-    MULTIHIT2 = 1027,
 };
 
 #endif

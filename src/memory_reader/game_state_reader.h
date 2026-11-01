@@ -38,14 +38,19 @@ struct PlayerFrame {
     int32_t intent;
     int32_t move_id;
     int32_t state;
-    int32_t string_state;
-    int32_t string_type;
     struct PlayerCoordinate position;
     int32_t attack_seq;
+    // Current move, kept until the next move becomes current
     struct {
         uint32_t first_active_frame;
         uint32_t last_active_frame;
         uint32_t cancel_startup;
+        int32_t index;
+        int32_t string_next;
+        uint32_t hitlevel;
+        uint32_t anim_addr;
+        // Game frame when this move became current
+        uint32_t start_frame;
     } move;
 };
 
@@ -63,8 +68,6 @@ inline int p1_recovery_frames(uint32_t *value);
 inline int32_t p1_intent(int32_t *value);
 inline int32_t p1_move_id(int32_t *value);
 inline int32_t p1_state(int32_t *value);
-inline int p1_string_type(int32_t *value);
-inline int p1_string_state(int32_t *value);
 inline int p1_position(struct PlayerCoordinate *value);
 int32_t p1_attack_seq(int32_t *value);
 int p1_move_structs(struct PlayerFrame *player_frame, const uint32_t game_frame);
@@ -75,8 +78,6 @@ inline int p2_recovery_frames(uint32_t *value);
 inline int32_t p2_intent(int32_t *value);
 inline int32_t p2_move_id(int32_t *value);
 inline int32_t p2_state(int32_t *value);
-inline int p2_string_type(int32_t *value);
-inline int p2_string_state(int32_t *value);
 inline int p2_position(struct PlayerCoordinate *value);
 int32_t p2_attack_seq(int32_t *value);
 int p2_move_structs(struct PlayerFrame *player_frame, const uint32_t game_frame);

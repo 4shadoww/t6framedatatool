@@ -72,52 +72,37 @@ private:
     static bool m_logging;
 
     // Analysis state
-    static RingBuffer<StartFrame> m_p1_start_frames;
-    static RingBuffer<StartFrame> m_p2_start_frames;
-    // String connection frames
-    static RingBuffer<GameFrame> m_p1_str_connection_frames;
-    static RingBuffer<GameFrame> m_p2_str_connection_frames;
-    // String end frames
-    static RingBuffer<GameFrame> m_p1_str_end_frames;
-    static RingBuffer<GameFrame> m_p2_str_end_frames;
-    // String type frames
-    static RingBuffer<GameFrame> m_p1_str_type_frames;
-    static RingBuffer<GameFrame> m_p2_str_type_frames;
-
+    static AttackChain m_p1_chain;
+    static AttackChain m_p2_chain;
 
     static bool init(EventListener *listener);
     static bool loop();
 
     inline static void log_frame();
     inline static bool flip_player_data(GameFrame &state);
-    inline static bool is_attack(const PlayerIntent &intent);
-    inline static bool recovery_reset(const PlayerFrame *const previous, const PlayerFrame *const current);
-    static const GameFrame *get_game_frame(const uint32_t game_frame);
-    static StartFrame get_startup_frame(const GameFrame *const frame, const bool p2, const bool pop);
 
-    inline static bool initiated_attack(const PlayerFrame *const previous, const PlayerFrame *const current);
-    static void analyse_start_frames();
     static bool update_game_state();
-    static ConnectionEvent has_new_connection();
-    inline static bool player_in_stasis(const PlayerFrame *const player_frame);
-    inline static bool string_is_active(const PlayerFrame *const player_frame);
     inline static bool is_knockdown(const PlayerFrame *const player_frame);
-    inline static bool has_string_startup(const bool p2);
-    inline static bool should_handle_string(const PlayerFrame *const player_frame, const bool p2);
-    inline static bool string_has_ended_state(const PlayerFrame *const player_frame);
-    inline static void reset_string_sm();
-    inline static void push_string_type(const GameFrame *const frame, const bool p2);
-    inline static bool is_multihit_attack(const PlayerFrame *const player);
-    static bool string_is_multihit_attack(RingBuffer<GameFrame> *const player_connections, const bool p2);
-    static bool calculate_multihit_string(RingBuffer<GameFrame> *const player_connections, const bool p2);
-    static bool calculate_natural_string(RingBuffer<GameFrame> *const player_connections, const bool p2);
-    static bool calculate_strings(const bool p2);
-    static bool string_has_concluded(const GameFrame *const current, const bool p2);
-    static void calculate_single_attack(const ConnectionEvent connection,
-                                        const GameFrame *const previous,
-                                        const GameFrame *const current);
+    static void track_chain(const PlayerFrame *const previous,
+                            const PlayerFrame *const current,
+                            AttackChain *const chain,
+                            const uint32_t game_frame);
+    static void track_chains();
+    static bool new_connection(const PlayerFrame *const previous, const PlayerFrame *const current);
+    static bool left_before_hitbox(const PlayerFrame *const previous,
+                                   const PlayerFrame *const current,
+                                   const AttackChain *const chain,
+                                   const bool auto_string,
+                                   const uint32_t game_frame);
+    static void report_replaced_string(const PlayerFrame *const previous,
+                                       const PlayerFrame *const current,
+                                       AttackChain *const chain,
+                                       const bool auto_string);
+    static void report_chain(AttackChain *const chain, const bool p2, const uint32_t recovery);
+    static void calculate_connection(const GameFrame *const previous, const GameFrame *const current, const bool p2);
     static void handle_connection();
-    static void handle_strings();
+    static void handle_whiff(const PlayerFrame *const attacker, AttackChain *const chain, const bool p2);
+    static void handle_whiffs();
     static void handle_distance();
     static void handle_status();
 
