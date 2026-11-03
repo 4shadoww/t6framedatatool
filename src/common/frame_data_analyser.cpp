@@ -157,6 +157,10 @@ const char *FrameDataAnalyser::player_status(const PlayerState state) {
 
 // A reaction move without an idle return does not recover on its own
 bool FrameDataAnalyser::is_knockdown(const PlayerFrame *const player_frame) {
+    if (player_frame->move.cancel_startup == 0) {
+        return true;
+    }
+
     switch ((PlayerState) player_frame->state) {
     case PlayerState::AIRBORNE1:
     case PlayerState::AIRBORNE2:
