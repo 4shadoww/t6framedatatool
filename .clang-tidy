@@ -1,3 +1,8 @@
 ---
 InheritParentConfig: true
 Checks: '-modernize-avoid-c-style-cast'
+CheckOptions:
+  - key: misc-const-correctness.WarnPointersAsValues
+    value: true
+  - key: misc-const-correctness.TransformPointersAsValues
+    value: true

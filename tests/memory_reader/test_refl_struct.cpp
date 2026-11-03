@@ -25,13 +25,13 @@
 
 namespace {
 
-void store_be16(unsigned char *dst, uint16_t value) {
+void store_be16(unsigned char *const dst, uint16_t value) {
     const unsigned bits = value;
     dst[0] = static_cast<unsigned char>(bits >> 8U);
     dst[1] = static_cast<unsigned char>(bits);
 }
 
-void store_be32(unsigned char *dst, uint32_t value) {
+void store_be32(unsigned char *const dst, uint32_t value) {
     dst[0] = static_cast<unsigned char>(value >> 24U);
     dst[1] = static_cast<unsigned char>(value >> 16U);
     dst[2] = static_cast<unsigned char>(value >> 8U);
@@ -69,7 +69,7 @@ TEST(refl_struct, swaps_move_fields_and_leaves_marked_fields) {
     EXPECT_EQ(move.first_active_frame, 7U);
     EXPECT_EQ(move.last_active_frame, 10U);
     unsigned char pad[2] = {};
-    const void *move_bytes = &move;
+    const void *const move_bytes = &move;
     std::memcpy(pad, static_cast<const char *>(move_bytes) + 0x1E, sizeof(pad));
     EXPECT_EQ(pad[0], 0xAB);
     EXPECT_EQ(pad[1], 0xCD);
