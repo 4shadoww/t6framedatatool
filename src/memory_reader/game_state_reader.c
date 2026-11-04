@@ -18,7 +18,6 @@
 
 #include "game_state_reader.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 

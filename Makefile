@@ -3,6 +3,7 @@ BUILD_DIR=build
 BUILD_DIR_RELEASE=$(BUILD_DIR)/release
 BUILD_DIR_DEBUG=$(BUILD_DIR)/debug
 BUILD_DIR_TEST=$(BUILD_DIR)/test
+BUILD_DIR_TOOLS=$(BUILD_DIR)/tools
 GENERATED_SRC_DIR=generated-src
 FONT_SOURCE=$(GENERATED_SRC_DIR)/fonts.h
 .DEFAULT_GOAL := all
@@ -77,11 +78,19 @@ configure_test:
 	# Copy compile commands db to root for lsp
 	cp $(BUILD_DIR_TEST)/compile_commands.json .
 
+configure_tools:
+	cmake -G "Ninja" -S. -B$(BUILD_DIR_TOOLS)
+	# Copy compile commands db to root for lsp
+	cp $(BUILD_DIR_TOOLS)/compile_commands.json .
+
 cli_debug: configure_cli_debug ignore_build
 	cmake --build $(BUILD_DIR_DEBUG)
 
 cli_release: configure_cli ignore_build
 	cmake --build $(BUILD_DIR_RELEASE)
+
+tools: configure_tools ignore_build
+	cmake --build $(BUILD_DIR_TOOLS) --target t6framedump
 
 $(GENERATED_SRC_DIR):
 	mkdir -p $(GENERATED_SRC_DIR)
@@ -130,4 +139,4 @@ clean_3rdaprty:
 
 clean_all: clean clean_3rdaprty
 
-all: test debug release cli_debug cli_release
+all: test debug release cli_debug cli_release tools

@@ -1,6 +1,6 @@
 set(TARGET memoryreader)
 
-set(COMMON_SRCS game_state_reader.c moveset_structs.c)
+set(COMMON_SRCS game_state_reader.c moveset_structs.c frame_dumper.c)
 
 if(WIN32)
     set(SRCS ${COMMON_SRCS} memory_reader_windows.c)

@@ -18,6 +18,7 @@
 // Based on text rendering example from: https://learnopengl.com
 
 #include "arg_parser.hpp"
+#include "frame_dumper.h"
 #include "game_state_reader.h"
 #include <map>
 #include <string>
@@ -458,12 +459,17 @@ void start_gui(GLFWwindow *window) {
     // GUI has exited
     FrameDataAnalyser::stop();
     analyser_thread.join();
+    frame_dump_stop();
 }
 
 void apply_config(const Configuration &config) {
     log_set_level(config.log_level);
     FrameDataAnalyser::set_logging(config.frame_data_logging);
     set_memory_reader_logging(config.game_struct_logging);
+
+    if (config.frame_dump_path != nullptr) {
+        (void) frame_dump_start(config.frame_dump_path);
+    }
 }
 
 } // namespace
@@ -484,6 +490,7 @@ int main(const int argc, const char **argv) {
 
     GLFWwindow *window = setup_gui();
     if (window == nullptr) {
+        frame_dump_stop();
         return -1;
     }
 

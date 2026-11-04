@@ -26,6 +26,7 @@
 #include <sstream>
 #include <thread>
 
+#include "frame_dumper.h"
 #include "game_state_reader.h"
 #include "logging.h"
 #include "memory_reader_types.h"
@@ -392,15 +393,7 @@ void FrameDataAnalyser::handle_status() {
     m_listener->status((PlayerState) current->p1.state);
 }
 
-bool FrameDataAnalyser::flip_player_data(GameFrame &state) {
-    int32_t side_val = 0;
-    const int result = player_side(&side_val);
-
-    if (result == READ_ERROR) {
-        log_error("failed to read player side");
-        return false;
-    }
-
+bool FrameDataAnalyser::flip_player_data(GameFrame &state, const int32_t side_val) {
     const auto side = (enum PlayerSide) side_val;
     const GameFrame temp_state = state;
 
@@ -428,8 +421,19 @@ bool FrameDataAnalyser::update_game_state() {
         return false;
     }
 
+    int32_t side_val = 0;
+    if (player_side(&side_val) == READ_ERROR) {
+        log_error("failed to read player side");
+        return false;
+    }
+
+    // Record the frame before flipping so a replay can repeat the flip
+    if (frame_dump_write(&state, side_val) != READ_OK) {
+        return false;
+    }
+
     // Flip player data according to player side
-    if (!flip_player_data(state)) {
+    if (!flip_player_data(state, side_val)) {
         return false;
     }
 
@@ -462,7 +466,7 @@ bool FrameDataAnalyser::loop() {
 
     // Analysis logic
     if (!update_game_state()) {
-        log_fatal("failed to read game's state");
+        log_fatal("failed to update game's state");
         return false;
     }
 
@@ -492,7 +496,7 @@ bool FrameDataAnalyser::init(EventListener *listener) {
 
     // Analysis logic
     if (!update_game_state()) {
-        log_fatal("failed to read game's state");
+        log_fatal("failed to update game's state");
         return false;
     }
 

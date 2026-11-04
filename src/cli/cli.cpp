@@ -21,6 +21,7 @@
 #include "logging.h"
 
 #include "frame_data_analyser.hpp"
+#include "frame_dumper.h"
 #include "version.hpp"
 
 namespace {
@@ -55,6 +56,10 @@ void apply_config(const Configuration &config) {
     log_set_level(config.log_level);
     FrameDataAnalyser::set_logging(config.frame_data_logging);
     set_memory_reader_logging(config.game_struct_logging);
+
+    if (config.frame_dump_path != nullptr) {
+        (void) frame_dump_start(config.frame_dump_path);
+    }
 }
 } // namespace
 
@@ -73,6 +78,8 @@ int main(const int argc, const char **const argv) {
 
     Listener listener;
     FrameDataAnalyser::start(&listener);
+
+    frame_dump_stop();
 
     return 0;
 }

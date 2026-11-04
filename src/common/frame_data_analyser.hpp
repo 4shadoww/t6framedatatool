@@ -79,7 +79,7 @@ private:
     static bool loop();
 
     inline static void log_frame();
-    inline static bool flip_player_data(GameFrame &state);
+    inline static bool flip_player_data(GameFrame &state, const int32_t side_val);
 
     static bool update_game_state();
     inline static bool is_knockdown(const PlayerFrame *const player_frame);

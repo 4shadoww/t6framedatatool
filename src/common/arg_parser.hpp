@@ -24,6 +24,7 @@ struct Configuration {
     int log_level;
     bool frame_data_logging;
     bool game_struct_logging;
+    const char *frame_dump_path;
 };
 
 class ArgParser {
@@ -37,6 +38,7 @@ private:
     static int arg_verbose(const char * /*value*/);
     static int arg_print_frames(const char * /*value*/);
     static int arg_print_structs(const char * /*value*/);
+    static int arg_dump_frames(const char *value);
 
 public:
     static Configuration create_default_config();
