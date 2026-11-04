@@ -4,6 +4,7 @@ BUILD_DIR_RELEASE=$(BUILD_DIR)/release
 BUILD_DIR_DEBUG=$(BUILD_DIR)/debug
 BUILD_DIR_TEST=$(BUILD_DIR)/test
 BUILD_DIR_TOOLS=$(BUILD_DIR)/tools
+TEST_FILTER ?=
 GENERATED_SRC_DIR=generated-src
 FONT_SOURCE=$(GENERATED_SRC_DIR)/fonts.h
 .DEFAULT_GOAL := all
@@ -110,7 +111,7 @@ test: configure_test ignore_build
 	cmake --build $(BUILD_DIR_TEST)
 
 run_test: test
-	ctest --output-on-failure --test-dir $(BUILD_DIR_TEST)
+	ctest --output-on-failure --test-dir $(BUILD_DIR_TEST) $(if $(strip $(TEST_FILTER)),-R "$(TEST_FILTER)")
 
 # First-party translation units only. -quiet hides the summary of warnings
 # suppressed in third-party and system headers. The header filter keeps
