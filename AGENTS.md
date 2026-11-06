@@ -20,4 +20,5 @@
 - No filler, answers need to be short and coherent, more details will be asked if necessary
 - No small-talk, no filler
 - If something does not fully match the source data, add a FIXME comment explaining the mismatch
+- Do not add FIXME comments for startup or active window differences between CSV and dump data
 - The most important goal is to FOLLOW the INSTRUCTIONS EXACTLY and NOT passing tests
