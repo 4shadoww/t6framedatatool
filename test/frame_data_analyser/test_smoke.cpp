@@ -19,11 +19,12 @@
 
 #include "frame_data_analyser.hpp"
 #include "replay_harness.hpp"
+#include "test_paths.hpp"
 
 TEST(frame_data_analyser, replay_metadata) {
     ReplayHarness harness;
 
-    ASSERT_TRUE(harness.replay(TEST_DATA_DIR "/t6_king_34_3_hit.t6dump"));
+    ASSERT_TRUE(harness.replay(test_data("t6_king_34_3_kd.t6dump")));
     EXPECT_EQ(harness.frame_count(), 169U);
     ASSERT_EQ(harness.distance_events().size(), 169U);
     ASSERT_EQ(harness.status_events().size(), 169U);

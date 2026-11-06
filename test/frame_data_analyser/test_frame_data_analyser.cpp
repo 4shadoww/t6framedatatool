@@ -19,12 +19,86 @@
 
 #include "frame_data_assertions.hpp"
 #include "replay_harness.hpp"
+#include "test_paths.hpp"
 
 TEST(frame_data_analyser, king_3_4_1_reports_knockdown) {
     ReplayHarness harness;
 
-    ASSERT_TRUE(harness.replay(TEST_DATA_DIR "/t6_king_34_3_hit.t6dump"));
+    ASSERT_TRUE(harness.replay(test_data("t6_king_34_3_kd.t6dump")));
 
-    // FIXME: only startup and knockdown match CSV 3+4,1; active window and advantage come from replay.
+    // FIXME: advantage does not match CSV 3+4,1 block -5.
     expect_frame_data_events(harness.frame_data_events(), event(19, 19U, 20U, -31, false, 0, 0U, 0U, 31, true));
+}
+
+TEST(frame_data_analyser, alisa_u4_reports_knockdown) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_alisa_u4_kd.t6dump")));
+
+    // FIXME: advantage does not match CSV u+4 block -15~-14.
+    expect_frame_data_events(harness.frame_data_events(), event(15, 15U, 16U, 14, false, 0, 0U, 0U, -14, true));
+}
+
+TEST(frame_data_analyser, alisa_des_1_reports_knockdown) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_alisa_des_1_kd.t6dump")));
+
+    // FIXME: advantage does not match CSV DES.1 block -9.
+    expect_frame_data_events(harness.frame_data_events(),
+                             event(15, 14U, 40U, 19, false, 0, 0U, 0U, -19, false),
+                             event(15, 14U, 40U, 23, false, 0, 0U, 0U, -23, true));
+}
+
+TEST(frame_data_analyser, alisa_des_1_block) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_alisa_des_1_block.t6dump")));
+    expect_frame_data_events(harness.frame_data_events(), event(15, 14U, 40U, -9, false, 0, 0U, 0U, 9, false));
+}
+
+TEST(frame_data_analyser, jin_1_hit) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_jin_1_hit.t6dump")));
+    expect_frame_data_events(harness.frame_data_events(), event(10, 10U, 10U, 8, false, 0, 0U, 0U, -8, false));
+}
+
+TEST(frame_data_analyser, jin_1_block) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_jin_1_block.t6dump")));
+    expect_frame_data_events(harness.frame_data_events(), event(10, 10U, 10U, 1, false, 0, 0U, 0U, -1, false));
+}
+
+TEST(frame_data_analyser, jin_hellsweep_kd) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_jin_f_n_d_df-4_kd.t6dump")));
+    expect_frame_data_events(harness.frame_data_events(), event(20, 20U, 21U, -29, false, 0, 0U, 0U, 29, true));
+}
+
+TEST(frame_data_analyser, jin_hellsweep_block) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_jin_f_n_d_df-4_block.t6dump")));
+
+    // FIXME: advantage does not match CSV f,n,d,df+4 block -31.
+    expect_frame_data_events(harness.frame_data_events(), event(20, 20U, 21U, -10, false, 0, 0U, 0U, 10, false));
+}
+
+TEST(frame_data_analyser, king_d_3_4_hit) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_king_d-3-4_hit.t6dump")));
+    expect_frame_data_events(harness.frame_data_events(), event(16, 16U, 16U, -13, false, 0, 0U, 0U, 13, false));
+}
+
+TEST(frame_data_analyser, king_d_3_4_4_hit) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_king_d-3-4_4_hit.t6dump")));
+    expect_frame_data_events(harness.frame_data_events(),
+                             event(16, 16U, 16U, -13, false, 0, 0U, 0U, 13, false),
+                             event(16, 16U, 16U, 12, false, 0, 0U, 0U, -12, false));
 }
