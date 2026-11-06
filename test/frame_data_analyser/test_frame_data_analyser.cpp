@@ -17,11 +17,14 @@
 
 #include <gtest/gtest.h>
 
-#include "frame_dump_reader.hpp"
+#include "frame_data_assertions.hpp"
+#include "replay_harness.hpp"
 
-TEST(frame_data_analyser, opens_the_recorded_fixture) {
-    FrameDumpReader reader;
+TEST(frame_data_analyser, king_3_4_1_reports_knockdown) {
+    ReplayHarness harness;
 
-    ASSERT_TRUE(reader.open(TEST_DATA_DIR "/t6_king_34_3_hit.t6dump"));
-    EXPECT_EQ(reader.frame_count(), 169U);
+    ASSERT_TRUE(harness.replay(TEST_DATA_DIR "/t6_king_34_3_hit.t6dump"));
+
+    // FIXME: only startup and knockdown match CSV 3+4,1; active window and advantage come from replay.
+    expect_frame_data_events(harness.frame_data_events(), event(19, 19U, 20U, -31, false, 0, 0U, 0U, 31, true));
 }

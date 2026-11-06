@@ -1,6 +1,9 @@
 add_executable(
   test_frame_data_analyser
   test_frame_data_analyser.cpp
+  test_smoke.cpp
+  replay_harness.cpp
+  frame_data_assertions.cpp
 )
 
 target_link_libraries(
