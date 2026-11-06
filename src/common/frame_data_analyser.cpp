@@ -432,12 +432,29 @@ bool FrameDataAnalyser::update_game_state() {
         return false;
     }
 
-    // Flip player data according to player side
+    return process_frame(state, side_val);
+}
+
+bool FrameDataAnalyser::process_frame(GameFrame state, const int32_t side_val) {
     if (!flip_player_data(state, side_val)) {
         return false;
     }
 
+    return process_frame(state);
+}
+
+bool FrameDataAnalyser::process_frame(GameFrame state) {
     m_frame_buffer.push(state);
+
+    handle_connection();
+    track_chains();
+    handle_whiffs();
+    handle_distance();
+    handle_status();
+
+    if (m_logging) {
+        log_frame();
+    }
 
     return true;
 }
@@ -468,16 +485,6 @@ bool FrameDataAnalyser::loop() {
     if (!update_game_state()) {
         log_fatal("failed to update game's state");
         return false;
-    }
-
-    handle_connection();
-    track_chains();
-    handle_whiffs();
-    handle_distance();
-    handle_status();
-
-    if (m_logging) {
-        log_frame();
     }
 
     return true;
@@ -543,6 +550,16 @@ void FrameDataAnalyser::stop() {
 
 bool FrameDataAnalyser::should_stop() {
     return m_stop;
+}
+
+void FrameDataAnalyser::reset(EventListener *listener) {
+    m_stop = false;
+    m_frame_buffer.clear();
+    m_listener = listener;
+    m_last_player_intent = 0;
+    m_logging = false;
+    m_p1_chain = {};
+    m_p2_chain = {};
 }
 
 void FrameDataAnalyser::set_logging(const bool enabled) {

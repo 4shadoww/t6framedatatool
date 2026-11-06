@@ -61,6 +61,26 @@ public:
     static void stop();
     static bool should_stop();
 
+    /**
+     * Reset analysis state and attach a listener for replay
+     *
+     * @param listener event listener
+     */
+    static void reset(EventListener *listener);
+    /**
+     * Push and analyse a frame that is already flipped
+     *
+     * @param state game frame
+     */
+    static bool process_frame(GameFrame state);
+    /**
+     * Flip and analyse a raw recorded frame
+     *
+     * @param state raw game frame
+     * @param side_val recorded player side
+     */
+    static bool process_frame(GameFrame state, const int32_t side_val);
+
     static const char *player_status(const PlayerState state);
     static void set_logging(const bool enabled);
 
