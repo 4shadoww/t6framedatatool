@@ -115,11 +115,11 @@ run_test: test
 
 # First-party translation units only. -quiet hides the summary of warnings
 # suppressed in third-party and system headers. The header filter keeps
-# warnings in src/ and tests/ headers.
+# warnings in src/ and test/ headers.
 lint:
 	run-clang-tidy -j 8 -quiet -allow-no-checks \
-		-header-filter '$(CURDIR)/(src|tests)/' \
-		'$(CURDIR)/src/' '$(CURDIR)/tests/'
+		-header-filter '$(CURDIR)/(src|test)/' \
+		'$(CURDIR)/src/' '$(CURDIR)/test/'
 
 format:
 	find src -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' | clang-format --style=file --files=/dev/stdin

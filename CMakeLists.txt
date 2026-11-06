@@ -20,7 +20,7 @@ set(3RDPARTY_LIBS ${PROJECT_SOURCE_DIR}/3rdparty)
 set(SRCS ${PROJECT_SOURCE_DIR}/src)
 
 # Third-party headers are not project code. Mark their include directories as
-# system headers so -Werror and clang-tidy report only src/ and tests/.
+# system headers so -Werror and clang-tidy report only src/ and test/.
 function(mark_includes_as_system target)
     if(NOT TARGET ${target})
         return()
@@ -68,5 +68,5 @@ add_subdirectory(src)
 
 if(UNIT_TESTING)
     enable_testing()
-    add_subdirectory(tests)
+    add_subdirectory(test)
 endif()
