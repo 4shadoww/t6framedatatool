@@ -68,15 +68,15 @@ public:
      */
     static void reset(EventListener *listener);
     /**
-     * Push and analyse a frame that is already flipped
+     * Push and analyse a frame
      *
      * @param state game frame
      */
     static bool process_frame(GameFrame state);
     /**
-     * Flip and analyse a raw recorded frame
+     * Set the local side and analyse a recorded frame
      *
-     * @param state raw game frame
+     * @param state game frame
      * @param side_val recorded player side
      */
     static bool process_frame(GameFrame state, const int32_t side_val);
@@ -90,6 +90,7 @@ private:
     static EventListener *m_listener;
     static int m_last_player_intent;
     static bool m_logging;
+    static PlayerSide m_player_side;
 
     // Analysis state
     static AttackChain m_p1_chain;
@@ -99,7 +100,6 @@ private:
     static bool loop();
 
     inline static void log_frame();
-    inline static bool flip_player_data(GameFrame &state, const int32_t side_val);
 
     static bool update_game_state();
     inline static bool is_knockdown(const PlayerFrame *const player_frame);

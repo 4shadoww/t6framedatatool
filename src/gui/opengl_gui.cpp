@@ -83,12 +83,15 @@ public:
 void Listener::frame_data(const FrameDataPoint frame_data) {
     g_last_update = std::chrono::steady_clock::now().time_since_epoch().count();
     g_data_point = frame_data;
-    log_info("startup frames: %d (%d~%d), frame advantage: %d, KD: %d",
-             frame_data.startup_frames,
-             frame_data.first_active_frame,
-             frame_data.last_active_frame,
-             frame_data.frame_advantage,
-             frame_data.knock_down);
+
+    const PlayerFrameData &local = frame_data.player_side == PlayerSide::LEFT ? frame_data.p1 : frame_data.p2;
+    log_info("local player: P%d, startup frames: %d (%d~%d), frame advantage: %d, KD: %d",
+             frame_data.player_side == PlayerSide::LEFT ? 1 : 2,
+             local.startup_frames,
+             local.first_active_frame,
+             local.last_active_frame,
+             local.frame_advantage,
+             local.knock_down);
 }
 
 void Listener::distance(const float distance) {
@@ -368,6 +371,7 @@ void analyser_loop() {
 
 void draw_frame_data() {
     char buffer[50];
+    const PlayerFrameData &data = g_data_point.player_side == PlayerSide::LEFT ? g_data_point.p1 : g_data_point.p2;
 
     (void) sprintf(buffer, DISTANCE, g_distance);
     render_line(buffer, 0, TEXT_COLOR_GREEN);
@@ -375,22 +379,18 @@ void draw_frame_data() {
     (void) sprintf(buffer, STATUS, FrameDataAnalyser::player_status(g_status));
     render_line(buffer, 1, TEXT_COLOR_GREEN);
 
-    if (g_data_point.knock_down) {
+    if (data.knock_down) {
         render_line(FRAME_ADVANTAGE_KD, 2, TEXT_COLOR_GREEN);
     } else {
-        (void) sprintf(buffer, FRAME_ADVANTAGE, g_data_point.frame_advantage);
-        if (g_data_point.frame_advantage < 0) {
+        (void) sprintf(buffer, FRAME_ADVANTAGE, data.frame_advantage);
+        if (data.frame_advantage < 0) {
             render_line(buffer, 2, TEXT_COLOR_RED);
         } else {
             render_line(buffer, 2, TEXT_COLOR_GREEN);
         }
     }
 
-    (void) sprintf(buffer,
-                   STARTUP_FRAMES,
-                   g_data_point.startup_frames,
-                   g_data_point.first_active_frame,
-                   g_data_point.last_active_frame);
+    (void) sprintf(buffer, STARTUP_FRAMES, data.startup_frames, data.first_active_frame, data.last_active_frame);
     render_line(buffer, 3, TEXT_COLOR_GREEN);
 }
 

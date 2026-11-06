@@ -53,6 +53,7 @@ EventListener *FrameDataAnalyser::m_listener = nullptr;
 // Avoid log spam
 int FrameDataAnalyser::m_last_player_intent = 0;
 bool FrameDataAnalyser::m_logging = false;
+PlayerSide FrameDataAnalyser::m_player_side = PlayerSide::LEFT;
 
 void FrameDataAnalyser::log_frame() {
     const GameFrame *const state = m_frame_buffer.head();
@@ -265,26 +266,28 @@ void FrameDataAnalyser::report_replaced_string(const PlayerFrame *const previous
 // defender recorded on the last connection
 void FrameDataAnalyser::report_chain(AttackChain *const chain, const bool p2, const uint32_t recovery) {
     const uint32_t attacker_free = chain->anim_start + recovery;
+    const int32_t frame_advantage = (int32_t) chain->defender_free - (int32_t) attacker_free;
 
-    int32_t frame_advantage = (int32_t) chain->defender_free - (int32_t) attacker_free;
-    auto startup_frames = (int32_t) (chain->first_connection - chain->start_frame);
-    uint32_t first_active_frame = chain->first_active_frame;
-    uint32_t last_active_frame = chain->last_active_frame;
+    const struct PlayerFrameData attacker = {
+        .startup_frames = (int32_t) (chain->first_connection - chain->start_frame),
+        .first_active_frame = chain->first_active_frame,
+        .last_active_frame = chain->last_active_frame,
+        .frame_advantage = frame_advantage,
+        .knock_down = false,
+    };
 
-    // Frame data is shown from P1's point of view
-    if (p2) {
-        frame_advantage = -frame_advantage;
-        startup_frames = 0;
-        first_active_frame = 0;
-        last_active_frame = 0;
-    }
+    const struct PlayerFrameData defender = {
+        .startup_frames = 0,
+        .first_active_frame = 0,
+        .last_active_frame = 0,
+        .frame_advantage = -frame_advantage,
+        .knock_down = chain->knock_down,
+    };
 
     const struct FrameDataPoint data_point = {
-        .startup_frames = startup_frames,
-        .first_active_frame = first_active_frame,
-        .last_active_frame = last_active_frame,
-        .frame_advantage = frame_advantage,
-        .knock_down = chain->knock_down,
+        .p1 = p2 ? defender : attacker,
+        .p2 = p2 ? attacker : defender,
+        .player_side = m_player_side,
     };
 
     chain->reported = true;
@@ -390,28 +393,12 @@ void FrameDataAnalyser::handle_distance() {
 
 void FrameDataAnalyser::handle_status() {
     const GameFrame *const current = m_frame_buffer.head();
-    m_listener->status((PlayerState) current->p1.state);
-}
-
-bool FrameDataAnalyser::flip_player_data(GameFrame &state, const int32_t side_val) {
-    const auto side = (enum PlayerSide) side_val;
-    const GameFrame temp_state = state;
-
-    switch (side) {
-    case PlayerSide::LEFT:
-        break;
-
-    case PlayerSide::RIGHT:
-        state.p1 = temp_state.p2;
-        state.p2 = temp_state.p1;
-        break;
-
-    default:
-        log_error("unknown player side value %d", side);
-        return false;
+    if (current == nullptr) {
+        return;
     }
 
-    return true;
+    const int32_t state = m_player_side == PlayerSide::LEFT ? current->p1.state : current->p2.state;
+    m_listener->status((PlayerState) state);
 }
 
 bool FrameDataAnalyser::update_game_state() {
@@ -427,7 +414,6 @@ bool FrameDataAnalyser::update_game_state() {
         return false;
     }
 
-    // Record the frame before flipping so a replay can repeat the flip
     if (frame_dump_write(&state, side_val) != READ_OK) {
         return false;
     }
@@ -436,9 +422,12 @@ bool FrameDataAnalyser::update_game_state() {
 }
 
 bool FrameDataAnalyser::process_frame(GameFrame state, const int32_t side_val) {
-    if (!flip_player_data(state, side_val)) {
+    if (side_val != (int32_t) PlayerSide::LEFT && side_val != (int32_t) PlayerSide::RIGHT) {
+        log_error("unknown player side value %d", side_val);
         return false;
     }
+
+    m_player_side = static_cast<PlayerSide>(side_val);
 
     return process_frame(state);
 }
@@ -558,6 +547,7 @@ void FrameDataAnalyser::reset(EventListener *listener) {
     m_listener = listener;
     m_last_player_intent = 0;
     m_logging = false;
+    m_player_side = PlayerSide::LEFT;
     m_p1_chain = {};
     m_p2_chain = {};
 }

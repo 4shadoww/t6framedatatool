@@ -35,9 +35,16 @@ public:
 };
 
 void Listener::frame_data(const FrameDataPoint frame_data) {
-    std::cout << "startup frames: " << frame_data.startup_frames << "(" << frame_data.first_active_frame << "~"
-              << frame_data.last_active_frame << ")"
-              << ", frame advantage: " << frame_data.frame_advantage << ", KD: " << frame_data.knock_down << std::endl;
+    const PlayerFrameData &p1 = frame_data.p1;
+    const PlayerFrameData &p2 = frame_data.p2;
+
+    std::cout << "player side: " << (frame_data.player_side == PlayerSide::LEFT ? "P1" : "P2") << std::endl
+              << "P1 startup frames: " << p1.startup_frames << "(" << p1.first_active_frame << "~"
+              << p1.last_active_frame << ")"
+              << ", frame advantage: " << p1.frame_advantage << ", KD: " << p1.knock_down << std::endl
+              << "P2 startup frames: " << p2.startup_frames << "(" << p2.first_active_frame << "~"
+              << p2.last_active_frame << ")"
+              << ", frame advantage: " << p2.frame_advantage << ", KD: " << p2.knock_down << std::endl;
 }
 
 void Listener::distance(const float /*distance*/) {

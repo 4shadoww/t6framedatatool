@@ -21,12 +21,24 @@
 #include <cstddef>
 #include <cstdint>
 
-struct FrameDataPoint {
+enum class PlayerSide : uint8_t {
+    RIGHT = 0,
+    LEFT = 1,
+};
+
+struct PlayerFrameData {
     int startup_frames;
     uint32_t first_active_frame;
     uint32_t last_active_frame;
     int frame_advantage;
     bool knock_down;
+};
+
+struct FrameDataPoint {
+    PlayerFrameData p1;
+    PlayerFrameData p2;
+    // Local player side
+    PlayerSide player_side;
 };
 
 // Attack chain tracked from the moveset structs
@@ -103,11 +115,6 @@ enum class PlayerIntent : int {
     LANDING = 528, // While taking damage
     GRAP_INIT = 65539,
     GRAP_CONNECT = 65546,
-};
-
-enum class PlayerSide : uint8_t {
-    RIGHT = 0,
-    LEFT = 1,
 };
 
 #endif
