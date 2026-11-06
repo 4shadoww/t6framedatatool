@@ -19,4 +19,5 @@
 - Only implement code or do any changes when the request has keyword "implement"
 - No filler, answers need to be short and coherent, more details will be asked if necessary
 - No small-talk, no filler
+- If something does not fully match the source data, add a FIXME comment explaining the mismatch
 - The most important goal is to FOLLOW the INSTRUCTIONS EXACTLY and NOT passing tests
