@@ -83,8 +83,7 @@ TEST(frame_data_analyser, jin_hellsweep_block) {
 
     ASSERT_TRUE(harness.replay(test_data("t6_jin_f_n_d_df-4_block.t6dump")));
 
-    // FIXME: advantage does not match CSV f,n,d,df+4 block -31.
-    expect_frame_data_events(harness.frame_data_events(), event(20, 20U, 21U, -10, false, 0, 0U, 0U, 10, false));
+    expect_frame_data_events(harness.frame_data_events(), event(20, 20U, 21U, -31, false, 0, 0U, 0U, 31, false));
 }
 
 TEST(frame_data_analyser, king_d_3_4_hit) {

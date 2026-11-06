@@ -255,9 +255,14 @@ void FrameDataAnalyser::report_replaced_string(const PlayerFrame *const previous
     }
 
     uint32_t recovery = previous->move.cancel_startup;
-    if (current->move.hitlevel == 0 && current->move.anim_addr == previous->move.anim_addr &&
-        current->move.cancel_startup != 0) {
-        recovery = current->move.cancel_startup;
+    if (current->move.hitlevel == 0 && current->move.cancel_startup != 0) {
+        // A shared animation stores the idle from the animation start.
+        // A different animation stores it from the move that just started.
+        if (current->move.anim_addr == previous->move.anim_addr) {
+            recovery = current->move.cancel_startup;
+        } else if (current->move.start_frame >= chain->anim_start) {
+            recovery = current->move.start_frame - chain->anim_start + current->move.cancel_startup;
+        }
     }
     report_chain(chain, chain == &m_p2_chain, recovery);
 }
