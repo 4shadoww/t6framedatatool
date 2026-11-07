@@ -4,6 +4,7 @@ project(Tekken6FrameDataTool)
 option(DEBUG "Debug build" OFF)
 option(UNIT_TESTING "Unit testing" OFF) # Build tests
 option(GUI "Build GUI" OFF)
+option(STATIC_RUNTIME "Link C++ runtime statically" ON)
 
 # Project level properties
 set(CMAKE_CXX_STANDARD 20)
@@ -62,6 +63,10 @@ if(DEBUG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+endif()
+
+if(STATIC_RUNTIME AND UNIX AND NOT APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_link_options(-static-libgcc -static-libstdc++)
 endif()
 
 add_subdirectory(src)
