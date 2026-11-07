@@ -108,3 +108,42 @@ TEST(frame_data_analyser, yoshimitsu_db_2_block) {
     ASSERT_TRUE(harness.replay(test_data("t6_yoshimitsu_db-2_block.t6dump")));
     expect_frame_data_events(harness.frame_data_events(), event(15, 15U, 15U, -5, false, 0, 0U, 0U, 5, false));
 }
+
+TEST(frame_data_analyser, yoshimitsu_dgf_2_hit) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_yoshimitsu_dgf-2_hit.t6dump")));
+    expect_frame_data_events(harness.frame_data_events(), event(24, 24U, 28U, -31, false, 0, 0U, 0U, 31, true));
+}
+
+TEST(frame_data_analyser, alisa_ub_1_2_hit) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_alisa_ub_1-2_hit.t6dump")));
+    expect_frame_data_events(harness.frame_data_events(),
+                             event(20, 20U, 21U, -33, false, 0, 0U, 0U, 33, true),
+                             event(20, 17U, 22U, -39, false, 0, 0U, 0U, 39, true));
+}
+
+TEST(frame_data_analyser, alisa_ub_1_2_block) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_alisa_ub_1-2_block.t6dump")));
+    expect_frame_data_events(harness.frame_data_events(),
+                             event(20, 20U, 21U, -8, false, 0, 0U, 0U, 8, false),
+                             event(17, 17U, 22U, -1, false, 0, 0U, 0U, 1, false));
+}
+
+TEST(frame_data_analyser, alisa_des_f_f_1_2_hit) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_alisa_des_f_f_1-2_hit.t6dump")));
+    expect_frame_data_events(harness.frame_data_events(), event(12, 12U, 30U, -55, false, 0, 0U, 0U, 55, true));
+}
+
+TEST(frame_data_analyser, alisa_des_f_f_1_2_block) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_alisa_des_f_f_1-2_block.t6dump")));
+    expect_frame_data_events(harness.frame_data_events(), event(12, 12U, 30U, -5, false, 0, 0U, 0U, 5, false));
+}
