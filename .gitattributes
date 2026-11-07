@@ -9,3 +9,4 @@
 *.ico binary
 *.woff binary
 *.woff2 binary
+*.t6dump binary

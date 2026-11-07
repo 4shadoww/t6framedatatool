@@ -101,3 +101,10 @@ TEST(frame_data_analyser, king_d_3_4_4_hit) {
                              event(16, 16U, 16U, -13, false, 0, 0U, 0U, 13, false),
                              event(16, 16U, 16U, 12, false, 0, 0U, 0U, -12, false));
 }
+
+TEST(frame_data_analyser, yoshimitsu_db_2_block) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_yoshimitsu_db-2_block.t6dump")));
+    expect_frame_data_events(harness.frame_data_events(), event(15, 15U, 15U, -5, false, 0, 0U, 0U, 5, false));
+}
