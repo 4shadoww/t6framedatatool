@@ -44,12 +44,7 @@ make run_test
 make clean
 ```
 
-Missing features
-----------------
-
-- Edge case logic
-
 Known bugs
 ----------
 
-- There exists a number of strings and multi-hit attacks that don't work correctly
+- Knock downs do not report correct frame advantage
