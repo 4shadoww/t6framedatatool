@@ -141,3 +141,5 @@ clean_3rdaprty:
 clean_all: clean clean_3rdaprty
 
 all: test debug release cli_debug cli_release tools
+
+rat: release check cli_release check test run_test
