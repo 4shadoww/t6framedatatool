@@ -372,6 +372,7 @@ void analyser_loop() {
 void draw_frame_data() {
     char buffer[50];
     const PlayerFrameData &data = g_data_point.player_side == PlayerSide::LEFT ? g_data_point.p1 : g_data_point.p2;
+    const bool knock_down = g_data_point.p1.knock_down || g_data_point.p2.knock_down;
 
     (void) sprintf(buffer, DISTANCE, g_distance);
     render_line(buffer, 0, TEXT_COLOR_GREEN);
@@ -379,7 +380,7 @@ void draw_frame_data() {
     (void) sprintf(buffer, STATUS, FrameDataAnalyser::player_status(g_status));
     render_line(buffer, 1, TEXT_COLOR_GREEN);
 
-    if (data.knock_down) {
+    if (knock_down) {
         render_line(FRAME_ADVANTAGE_KD, 2, TEXT_COLOR_GREEN);
     } else {
         (void) sprintf(buffer, FRAME_ADVANTAGE, data.frame_advantage);
