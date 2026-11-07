@@ -42,7 +42,7 @@ private:
 
 public:
     static Configuration create_default_config();
-    static int parse_arguments(const int argc, const char **argv, Configuration *config);
+    static int parse_arguments(const int argc, const char *const *argv, Configuration *config);
 };
 
 #endif

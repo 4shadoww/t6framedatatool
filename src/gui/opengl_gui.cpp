@@ -324,7 +324,7 @@ bool setup_graphics() {
 }
 
 GLFWwindow *setup_gui() {
-    GLFWwindow *window = create_window();
+    GLFWwindow *const window = create_window();
     if (window == nullptr) {
         log_error("failed to create a window");
         return nullptr;
@@ -426,7 +426,7 @@ void draw_no_game() {
     render_line(NO_STARTUP_FRAMES_NO_GAME, 3, TEXT_COLOR_GREEN);
 }
 
-void gui_loop(GLFWwindow *window) {
+void gui_loop(GLFWwindow *const window) {
     /* Loop until the user closes the window */
     while (glfwWindowShouldClose(window) == 0) {
         // Tick platform functions
@@ -451,7 +451,7 @@ void gui_loop(GLFWwindow *window) {
     glfwTerminate();
 }
 
-void start_gui(GLFWwindow *window) {
+void start_gui(GLFWwindow *const window) {
     std::thread analyser_thread(&analyser_loop);
     set_realtime_prio(analyser_thread);
 
@@ -475,7 +475,7 @@ void apply_config(const Configuration &config) {
 
 } // namespace
 
-int main(const int argc, const char **argv) {
+int main(const int argc, const char *const *const argv) {
     Configuration config = ArgParser::create_default_config();
     const int result = ArgParser::parse_arguments(argc, argv, &config);
     if (result == 1) {
@@ -489,7 +489,7 @@ int main(const int argc, const char **argv) {
 
     log_info("%s %s", PROGRAM_NAME, VERSION);
 
-    GLFWwindow *window = setup_gui();
+    GLFWwindow *const window = setup_gui();
     if (window == nullptr) {
         frame_dump_stop();
         return -1;

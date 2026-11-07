@@ -70,7 +70,7 @@ void apply_config(const Configuration &config) {
 }
 } // namespace
 
-int main(const int argc, const char **const argv) {
+int main(const int argc, const char *const *const argv) {
     Configuration config = ArgParser::create_default_config();
     const int result = ArgParser::parse_arguments(argc, argv, &config);
     if (result == 1) {

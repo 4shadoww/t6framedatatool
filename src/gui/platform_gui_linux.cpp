@@ -36,7 +36,7 @@ Window g_game_window;
 Display *g_display;
 Display *g_event_display;
 
-char *read_string_property(const Window window, const char *property_name, unsigned long *len) {
+char *read_string_property(const Window window, const char *const property_name, unsigned long *const len) {
     const Atom prop = XInternAtom(g_display, property_name, False);
     Atom type = 0;
     int form = 0;
@@ -55,13 +55,13 @@ char *read_string_property(const Window window, const char *property_name, unsig
 
 // WM_CLASS is two NUL-separated strings (instance, then class). AppImage sets
 // instance to "AppRun.wrapped" and class to "RPCS3", so both have to be searched.
-bool property_contains(const char *value, const unsigned long len, const char *needle) {
+bool property_contains(const char *const value, const unsigned long len, const char *const needle) {
     if (value == nullptr || needle == nullptr || len == 0) {
         return false;
     }
 
     const char *cursor = value;
-    const char *end = value + len;
+    const char *const end = value + len;
     while (cursor < end) {
         if (*cursor != '\0' && strcasestr(cursor, needle) != nullptr) {
             return true;
@@ -78,7 +78,7 @@ bool property_contains(const char *value, const unsigned long len, const char *n
     return false;
 }
 
-Window *get_windows(unsigned long *len) {
+Window *get_windows(unsigned long *const len) {
     const Atom prop = XInternAtom(g_display, "_NET_CLIENT_LIST", False);
     Atom type = 0;
     int form = 0;
@@ -102,9 +102,9 @@ Window *get_windows(unsigned long *len) {
     }
     return (Window *) list; // NOLINT
 }
-bool window_match(const char *window_class,
+bool window_match(const char *const window_class,
                   const unsigned long class_len,
-                  const char *window_name,
+                  const char *const window_name,
                   const unsigned long name_len) {
     if (!property_contains(window_class, class_len, RPSC3_CLASS)) {
         return false;
@@ -118,7 +118,7 @@ bool window_match(const char *window_class,
 }
 } // namespace
 
-bool platform_make_overlay(GLFWwindow *window) {
+bool platform_make_overlay(GLFWwindow *const window) {
     g_display = glfwGetX11Display();
     if (g_display == nullptr) {
         log_error("failed to get GLFW X11 display");
@@ -168,7 +168,7 @@ void platform_update_ui_position(const int game_x, const int game_y, const int g
 void platform_find_game_window() {
     unsigned long len = 0;
 
-    Window *windows = get_windows(&len);
+    Window *const windows = get_windows(&len);
 
     if (windows == nullptr) {
         return;
@@ -178,8 +178,8 @@ void platform_find_game_window() {
     for (unsigned long i = 0; i < len; i++) {
         unsigned long class_len = 0;
         unsigned long name_len = 0;
-        char *window_class = read_string_property(windows[i], "WM_CLASS", &class_len);
-        char *window_name = read_string_property(windows[i], "WM_NAME", &name_len);
+        char *const window_class = read_string_property(windows[i], "WM_CLASS", &class_len);
+        char *const window_name = read_string_property(windows[i], "WM_NAME", &name_len);
         if (window_match(window_class, class_len, window_name, name_len)) {
             log_info("found game window %s, %s", window_class, window_name);
             g_game_window = windows[i];

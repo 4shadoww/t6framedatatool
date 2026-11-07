@@ -129,7 +129,7 @@ Configuration ArgParser::create_default_config() {
     };
 }
 
-int ArgParser::parse_arguments(const int argc, const char **argv, Configuration *config) {
+int ArgParser::parse_arguments(const int argc, const char *const *argv, Configuration *config) {
     s_configuration = config;
     s_program_name = argv[0];
 
