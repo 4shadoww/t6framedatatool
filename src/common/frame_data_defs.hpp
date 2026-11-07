@@ -95,6 +95,10 @@ enum class PlayerState : int {
     SLIDE1 = 16806918,
     SLIDE2 = 36996,
     STAND_SWORD = 2672706,
+    DRAGONFLY = 53314,
+    MANJI_DRAGONFLY_JUMP = 2148418,
+    MANJI_DRAGONFLY_FLIP1 = 2716674, // flip on ground
+    MANJI_DRAGONFLY_FLIP2 = 2623554, // flip on ground
 };
 
 enum class PlayerIntent : int {

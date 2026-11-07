@@ -15,6 +15,7 @@
   along with this program.    If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "frame_data_defs.hpp"
 #include "refl_struct.h"
 #include "ring_buffer.hpp"
 
@@ -134,13 +135,17 @@ const char *FrameDataAnalyser::player_status(const PlayerState state) {
     case PlayerState::CROUCHING_ATTACK:
     case PlayerState::CROUCHING_BACKWARDS:
     case PlayerState::CROUCHING_FORWARDS:
+    case PlayerState::MANJI_DRAGONFLY_FLIP1:
+    case PlayerState::MANJI_DRAGONFLY_FLIP2:
         return CROUCHING;
     case PlayerState::JUMPING:
     case PlayerState::JUMPING_FORWARDS:
     case PlayerState::JUMPING_BACKWARDS:
+    case PlayerState::MANJI_DRAGONFLY_JUMP:
         return JUMPING;
     case PlayerState::AIRBORNE1:
     case PlayerState::AIRBORNE2:
+    case PlayerState::DRAGONFLY:
         return AIRBORNE;
     case PlayerState::GROUNDED1:
     case PlayerState::GROUNDED2:
