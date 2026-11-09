@@ -41,20 +41,7 @@ if(GUI)
     add_subdirectory("${3RDPARTY_LIBS}/glad/cmake" glad_cmake)
     glad_add_library(glad_gl_core_33 REPRODUCIBLE API gl:core=3.3)
 
-    # FreeType
-    add_subdirectory("${3RDPARTY_LIBS}/freetype" freetype)
-
-    # Glm
-    # GLM's own lists use PROJECT_SOURCE_DIR, which is this repo when GLM is
-    # added with add_subdirectory. Headers live in 3rdparty/glm and are included
-    # as <glm/...>, so the include directory is 3rdparty/.
-    add_subdirectory("${3RDPARTY_LIBS}/glm")
-    set_property(TARGET glm-header-only PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-        "$<BUILD_INTERFACE:${3RDPARTY_LIBS}>"
-        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
-    )
-
-    foreach(tgt glfw glad_gl_core_33 freetype glm glm-header-only)
+    foreach(tgt glfw glad_gl_core_33)
         mark_includes_as_system(${tgt})
     endforeach()
 endif()

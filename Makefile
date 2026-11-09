@@ -44,15 +44,10 @@ test_deps:
 	mv glad-2.0.8 glad
 	
 	cd $(3RDPARTY_DIR) && \
-	wget https://github.com/freetype/freetype/archive/refs/tags/VER-2-14-1.zip && \
-	rm -rf freetype-VER-2-14-1 freetype && \
-	unzip VER-2-14-1.zip && \
-	mv freetype-VER-2-14-1 freetype
-	
-	cd $(3RDPARTY_DIR) && \
-	wget https://github.com/g-truc/glm/releases/download/1.0.1/glm-1.0.1-light.zip && \
-	rm -rf glm && \
-	unzip glm-1.0.1-light.zip
+	wget https://github.com/ocornut/imgui/archive/refs/tags/v1.93.0.tar.gz && \
+	rm -rf imgui-1.93.0 imgui && \
+	tar -xvf v1.93.0.tar.gz && \
+	mv imgui-1.93.0 imgui
 
 configure_cli: fonts
 	cmake -G "Ninja" -S. -B$(BUILD_DIR_RELEASE)

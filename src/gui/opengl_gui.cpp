@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2025 Noa-Emil Nissinen
+  Copyright (C) 2025-2026 Noa-Emil Nissinen
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -15,62 +15,43 @@
   along with this program.    If not, see <https://www.gnu.org/licenses/>.
 */
 
-// Based on text rendering example from: https://learnopengl.com
-
-#include "arg_parser.hpp"
-#include "frame_dumper.h"
-#include "game_state_reader.h"
-#include <map>
-#include <string>
+#include <chrono>
 #include <thread>
 
 #include <glad/gl.h> // NOLINT
 
-#include <ft2build.h> // NOLINT
-#include <sys/types.h>
-#include FT_FREETYPE_H
-
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <utility>
 
-#include "logging.h"
+#include <imgui.h> // NOLINT
+#include <imgui_impl_glfw.h> // NOLINT
+#include <imgui_impl_opengl3.h> // NOLINT
 
+#include "arg_parser.hpp"
 #include "frame_data_analyser.hpp"
+#include "frame_dumper.h"
+#include "game_state_reader.h"
 #include "gui_constants.hpp"
+#include "logging.h"
 #include "platform_gui.hpp"
 #include "platform_threading.hpp"
-#include "shaders.hpp"
 #include "version.hpp"
-
-#include "fonts.h"
 
 namespace {
 
-// Constants
-#define TEXT_COLOR_GREEN glm::vec3(0.5, 1.0F, 0.2F)
-#define TEXT_COLOR_RED glm::vec3(1.0, 0.2F, 0.2F)
 #define RESET_UI_MILLIS 2500
 
-// Global variables
+constexpr float OVERLAY_FONT_SIZE = 20.0F;
+constexpr float LABEL_COLUMN_WIDTH = 210.0F;
+constexpr ImVec4 POSITIVE_COLOR = ImVec4(0.35F, 1.0F, 0.55F, 1.0F);
+constexpr ImVec4 NEGATIVE_COLOR = ImVec4(1.0F, 0.35F, 0.35F, 1.0F);
+constexpr ImVec4 KNOCKDOWN_COLOR = ImVec4(1.0F, 0.75F, 0.25F, 1.0F);
+constexpr ImVec4 MUTED_COLOR = ImVec4(0.70F, 0.72F, 0.78F, 1.0F);
+
 std::chrono::steady_clock::rep g_last_update = 0;
-struct FrameDataPoint g_data_point = {};
+FrameDataPoint g_data_point = {};
 float g_distance = 0;
 PlayerState g_status = {};
 bool g_game_hooked = false;
-
-struct FontChar {
-    unsigned int texture_id; // ID handle of the glyph texture
-    glm::ivec2 size; // Size of glyph
-    glm::ivec2 bearing; // Offset from baseline to left/top of glyph
-    unsigned int advance; // Horizontal offset to advance to next glyph
-};
-
-std::map<GLchar, FontChar> font_chars;
-unsigned int g_vao, g_vbo;
-unsigned int g_shader_program;
 
 class Listener : public EventListener {
 public:
@@ -109,52 +90,138 @@ void Listener::game_hooked() {
 
 Listener g_listener;
 
-void render_text(unsigned int shader, std::string text, float x, float y, float scale, glm::vec3 color) { // NOLINT
-    glUseProgram(shader);
-    glUniform3f(glGetUniformLocation(shader, "textColor"), color.x, color.y, color.z);
-    glActiveTexture(GL_TEXTURE0);
-    glBindVertexArray(g_vao);
+bool has_recent_frame_data() {
+    const auto now = std::chrono::steady_clock::now();
+    const auto elapsed = now.time_since_epoch() - std::chrono::steady_clock::duration(g_last_update);
+    const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
 
-    // Iterate through all characters
-    std::string::const_iterator c;
-    for (c = text.begin(); c != text.end(); c++) {
-        const FontChar ch = font_chars[*c];
-
-        const float xpos = x + ((float) ch.bearing.x * scale);
-        const float ypos = y - ((float) (ch.size.y - ch.bearing.y) * scale);
-
-        const float w = (float) ch.size.x * scale;
-        const float h = (float) ch.size.y * scale;
-
-        // Update VBO for each character
-        float vertices[6][4] = {
-            {xpos, ypos + h, 0.0F, 0.0F},
-            {xpos, ypos, 0.0F, 1.0F},
-            {xpos + w, ypos, 1.0F, 1.0F},
-
-            {xpos, ypos + h, 0.0F, 0.0F},
-            {xpos + w, ypos, 1.0F, 1.0F},
-            {xpos + w, ypos + h, 1.0F, 0.0F},
-        };
-
-        // Render glyph to quad
-        glBindTexture(GL_TEXTURE_2D, ch.texture_id);
-
-        // Update VBO
-        glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        // Render quad
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        x += (float) (ch.advance >> (unsigned int) 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64)
-    }
-    glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    return millis <= RESET_UI_MILLIS;
 }
 
-void render_line(std::string text, int line, glm::vec3 color) {
-    render_text(g_shader_program, std::move(text), 0, (float) ((FONT_SIZE * line) + TEXT_MARGIN), 1, color);
+const PlayerFrameData &local_player_data() {
+    return g_data_point.player_side == PlayerSide::LEFT ? g_data_point.p1 : g_data_point.p2;
+}
+
+void setup_style() {
+    ImGui::StyleColorsDark();
+
+    ImGuiStyle &style = ImGui::GetStyle();
+    style.WindowRounding = 8.0F;
+    style.FrameRounding = 6.0F;
+    style.ChildRounding = 6.0F;
+    style.PopupRounding = 6.0F;
+    style.ScrollbarRounding = 6.0F;
+    style.GrabRounding = 6.0F;
+    style.WindowPadding = ImVec2(12.0F, 10.0F);
+    style.FramePadding = ImVec2(8.0F, 5.0F);
+    style.ItemSpacing = ImVec2(8.0F, 6.0F);
+    style.WindowBorderSize = 0.0F;
+
+    ImVec4 *const colors = style.Colors;
+    colors[ImGuiCol_WindowBg] = ImVec4(0.04F, 0.05F, 0.07F, 0.92F);
+    colors[ImGuiCol_ChildBg] = ImVec4(0.07F, 0.08F, 0.11F, 0.95F);
+    colors[ImGuiCol_FrameBg] = ImVec4(0.11F, 0.13F, 0.17F, 1.0F);
+    colors[ImGuiCol_Border] = ImVec4(0.18F, 0.22F, 0.28F, 1.0F);
+    colors[ImGuiCol_Separator] = ImVec4(0.18F, 0.22F, 0.28F, 1.0F);
+    colors[ImGuiCol_Text] = ImVec4(0.92F, 0.94F, 0.97F, 1.0F);
+    colors[ImGuiCol_TextDisabled] = MUTED_COLOR;
+}
+
+void draw_advantage(const int advantage) {
+    ImGui::TextColored(advantage < 0 ? NEGATIVE_COLOR : POSITIVE_COLOR, "%+d", advantage);
+}
+
+void draw_label(const char *const label) {
+    ImGui::TextDisabled("%s", label);
+    ImGui::SameLine(LABEL_COLUMN_WIDTH);
+}
+
+void draw_no_game() {
+    ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
+
+    draw_label("Startup Frames");
+    ImGui::TextUnformatted("--- (No game hooked)");
+
+    draw_label("Frame Advantage");
+    ImGui::TextUnformatted("---");
+
+    draw_label("Status");
+    ImGui::TextUnformatted("---");
+
+    draw_label("Distance");
+    ImGui::TextUnformatted("---");
+
+    ImGui::PopFont();
+}
+
+void draw_no_frame_data() {
+    ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
+
+    draw_label("Startup Frames");
+    ImGui::TextUnformatted("---");
+
+    draw_label("Frame Advantage");
+    ImGui::TextUnformatted("---");
+
+    draw_label("Status");
+    ImGui::TextUnformatted(FrameDataAnalyser::player_status(g_status));
+
+    draw_label("Distance");
+    ImGui::Text("%.2f", g_distance);
+
+    ImGui::PopFont();
+}
+
+void draw_frame_data() {
+    ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
+
+    const PlayerFrameData &data = local_player_data();
+    const bool knock_down = g_data_point.p1.knock_down || g_data_point.p2.knock_down;
+
+    draw_label("Startup Frames");
+    ImGui::Text("%d (%u~%u)", data.startup_frames, data.first_active_frame, data.last_active_frame);
+
+    draw_label("Frame Advantage");
+    if (knock_down) {
+        ImGui::TextColored(KNOCKDOWN_COLOR, "KD");
+    } else {
+        draw_advantage(data.frame_advantage);
+    }
+
+    draw_label("Status");
+    ImGui::TextUnformatted(FrameDataAnalyser::player_status(g_status));
+
+    draw_label("Distance");
+    ImGui::Text("%.2f", g_distance);
+
+    ImGui::PopFont();
+}
+
+void draw_overlay() {
+    const ImGuiViewport *const viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+
+    const unsigned int flag_bits = static_cast<unsigned int>(ImGuiWindowFlags_NoDecoration) |
+                                   static_cast<unsigned int>(ImGuiWindowFlags_NoMove) |
+                                   static_cast<unsigned int>(ImGuiWindowFlags_NoResize) |
+                                   static_cast<unsigned int>(ImGuiWindowFlags_NoSavedSettings) |
+                                   static_cast<unsigned int>(ImGuiWindowFlags_NoBringToFrontOnFocus) |
+                                   static_cast<unsigned int>(ImGuiWindowFlags_NoNavFocus) |
+                                   static_cast<unsigned int>(ImGuiWindowFlags_NoScrollbar);
+    const auto flags = static_cast<ImGuiWindowFlags>(flag_bits);
+
+    ImGui::Begin("##overlay", nullptr, flags);
+
+    if (!g_game_hooked) {
+        draw_no_game();
+    } else if (!has_recent_frame_data()) {
+        draw_no_frame_data();
+    } else {
+        draw_frame_data();
+    }
+
+    ImGui::End();
 }
 
 GLFWwindow *create_window() {
@@ -188,135 +255,24 @@ GLFWwindow *create_window() {
     return window;
 }
 
-bool setup_shaders() {
-    g_shader_program = glCreateProgram();
-
-    const unsigned int vs = glCreateShader(GL_VERTEX_SHADER);
-    if (vs == 0) {
-        log_error("failed to create vertex shader");
-        return false;
-    }
-    glShaderSource(vs, 1, &VERTEX_SHADER_SOURCE, nullptr);
-    glCompileShader(vs);
-
-    const unsigned int fs = glCreateShader(GL_FRAGMENT_SHADER);
-    if (fs == 0) {
-        log_error("failed to create fragment shader");
-        return false;
-    }
-    glShaderSource(fs, 1, &FRAGMENT_SHADER_SOURCE, nullptr);
-    glCompileShader(fs);
-
-    glAttachShader(g_shader_program, vs);
-    glAttachShader(g_shader_program, fs);
-    glLinkProgram(g_shader_program);
-
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-
-    const glm::mat4 projection = glm::ortho(0.0F, (float) MAX_WIDTH, 0.0F, (float) MAX_HEIGTH);
-    glUseProgram(g_shader_program);
-    glUniformMatrix4fv(glGetUniformLocation(g_shader_program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
-
-    // Configure VAO/VBO for texture quads
-    glGenVertexArrays(1, &g_vao);
-    glGenBuffers(1, &g_vbo);
-    glBindVertexArray(g_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    return true;
-}
-
-void set_blending() {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-}
-
-bool load_font() {
-    FT_Library ft = nullptr;
-    if (FT_Init_FreeType(&ft) != 0) {
-        return false;
-    }
-
-    FT_Face face = nullptr;
-    if (FT_New_Memory_Face(ft, fonts_DejaVuSansMono_ttf, fonts_DejaVuSansMono_ttf_len, 0, &face) != 0) {
-        log_error("font not found");
-        return false;
-    }
-
-    // Glyph size
-    FT_Set_Pixel_Sizes(face, 0, FONT_SIZE);
-
-    // Disable byte-alignment restriction, as FreeType glyphs aren't aligned to 4-bytes
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    // Load first 128 characters of ASCII set
-    for (unsigned char c = 0; c < 128; c++) {
-        // Load character glyph
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER) != 0) { // NOLINT
-            continue;
-        }
-
-        // Generate texture
-        unsigned int texture = 0;
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(GL_TEXTURE_2D,
-                     0,
-                     GL_RED, // Use GL_RED for single-channel grayscale image
-                     (int) face->glyph->bitmap.width,
-                     (int) face->glyph->bitmap.rows,
-                     0,
-                     GL_RED,
-                     GL_UNSIGNED_BYTE,
-                     face->glyph->bitmap.buffer);
-
-        // Texture parameters
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        const FontChar character = {
-            .texture_id = texture,
-            .size = glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-            .bearing = glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-            .advance = static_cast<unsigned int>(face->glyph->advance.x),
-        };
-
-        font_chars.insert(std::pair<char, FontChar>(c, character));
-    }
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    // Free FT resources
-    FT_Done_Face(face);
-    FT_Done_FreeType(ft);
-
-    return true;
-}
-
-bool setup_graphics() {
+bool setup_graphics(GLFWwindow *const window) {
     if (gladLoadGL(glfwGetProcAddress) == 0) {
         log_error("failed to load glad GL");
         return false;
     }
 
-    if (!setup_shaders()) {
-        log_error("setting up shaders has failed");
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::GetIO().IniFilename = nullptr;
+    setup_style();
+
+    if (!ImGui_ImplGlfw_InitForOpenGL(window, true)) {
+        log_error("failed to initialize imgui GLFW backend");
         return false;
     }
 
-    set_blending();
-
-    if (!load_font()) {
-        log_error("loading font has failed");
+    if (!ImGui_ImplOpenGL3_Init("#version 330")) {
+        log_error("failed to initialize imgui OpenGL backend");
         return false;
     }
 
@@ -339,7 +295,7 @@ GLFWwindow *setup_gui() {
     glfwShowWindow(window);
     glfwMakeContextCurrent(window);
 
-    if (!setup_graphics()) {
+    if (!setup_graphics(window)) {
         log_error("setting up graphics context failed");
         return nullptr;
     }
@@ -369,85 +325,33 @@ void analyser_loop() {
     }
 }
 
-void draw_frame_data() {
-    char buffer[50];
-    const PlayerFrameData &data = g_data_point.player_side == PlayerSide::LEFT ? g_data_point.p1 : g_data_point.p2;
-    const bool knock_down = g_data_point.p1.knock_down || g_data_point.p2.knock_down;
-
-    (void) sprintf(buffer, DISTANCE, g_distance);
-    render_line(buffer, 0, TEXT_COLOR_GREEN);
-
-    (void) sprintf(buffer, STATUS, FrameDataAnalyser::player_status(g_status));
-    render_line(buffer, 1, TEXT_COLOR_GREEN);
-
-    if (knock_down) {
-        render_line(FRAME_ADVANTAGE_KD, 2, TEXT_COLOR_GREEN);
-    } else {
-        (void) sprintf(buffer, FRAME_ADVANTAGE, data.frame_advantage);
-        if (data.frame_advantage < 0) {
-            render_line(buffer, 2, TEXT_COLOR_RED);
-        } else {
-            render_line(buffer, 2, TEXT_COLOR_GREEN);
-        }
-    }
-
-    (void) sprintf(buffer, STARTUP_FRAMES, data.startup_frames, data.first_active_frame, data.last_active_frame);
-    render_line(buffer, 3, TEXT_COLOR_GREEN);
-}
-
-void draw_no_frame_data() {
-    char buffer[50];
-
-    (void) sprintf(buffer, DISTANCE, g_distance);
-    render_line(buffer, 0, TEXT_COLOR_GREEN);
-
-    (void) sprintf(buffer, STATUS, FrameDataAnalyser::player_status(g_status));
-    render_line(buffer, 1, TEXT_COLOR_GREEN);
-
-    render_line(NO_FRAME_ADVANTAGE, 2, TEXT_COLOR_GREEN);
-    render_line(NO_STARTUP_FRAMES, 3, TEXT_COLOR_GREEN);
-}
-
-void draw_game_state() {
-    const auto now = std::chrono::steady_clock::now();
-    const auto elapsed = now.time_since_epoch() - std::chrono::steady_clock::duration(g_last_update);
-    const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
-    if (millis > RESET_UI_MILLIS) {
-        draw_no_frame_data();
-    } else {
-        draw_frame_data();
-    }
-}
-
-void draw_no_game() {
-    render_line(NO_DISTANCE, 0, TEXT_COLOR_GREEN);
-    render_line(NO_STATUS, 1, TEXT_COLOR_GREEN);
-    render_line(NO_FRAME_ADVANTAGE, 2, TEXT_COLOR_GREEN);
-    render_line(NO_STARTUP_FRAMES_NO_GAME, 3, TEXT_COLOR_GREEN);
-}
-
 void gui_loop(GLFWwindow *const window) {
-    /* Loop until the user closes the window */
     while (glfwWindowShouldClose(window) == 0) {
-        // Tick platform functions
+        glfwPollEvents();
         platform_update();
 
-        /* Render here */
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        draw_overlay();
+
+        ImGui::Render();
+
+        int framebuffer_width = 0;
+        int framebuffer_height = 0;
+        glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
+        glViewport(0, 0, framebuffer_width, framebuffer_height);
+        glClearColor(0.0F, 0.0F, 0.0F, 0.0F);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        if (g_game_hooked) {
-            draw_game_state();
-        } else {
-            draw_no_game();
-        }
-
-        /* Swap front and back buffers */
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
-
-        /* Poll for and process events */
-        glfwPollEvents();
     }
 
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
 }
 
