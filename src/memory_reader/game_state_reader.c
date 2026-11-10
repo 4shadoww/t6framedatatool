@@ -906,6 +906,23 @@ uint64_t player_side_address(void) {
     return g_player_side_address;
 }
 
+int read_raw_player_input(struct RawPlayerInput *input) {
+    if (input == NULL) {
+        log_error("read_raw_player_input called with no output");
+        return READ_ERROR;
+    }
+
+    int32_t value = 0;
+    if (read_4bytes(CURRENT_INPUT, &value) == READ_ERROR) {
+        log_debug("readed invalid current input");
+        return READ_ERROR;
+    }
+
+    input->bits = (uint32_t) value;
+
+    return READ_OK;
+}
+
 int read_game_state(struct GameFrame *state) {
     int32_t value = 0;
     struct PlayerCoordinate coords = {0, 0, 0};

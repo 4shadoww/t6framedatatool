@@ -26,6 +26,24 @@ enum class PlayerSide : uint8_t {
     LEFT = 1,
 };
 
+enum class InputDirection : uint8_t {
+    NEUTRAL = 0,
+    UP = 1,
+    DOWN = 2,
+    BACK = 4,
+    FORWARD = 8,
+    UP_BACK = 5,
+    UP_FORWARD = 9,
+    DOWN_BACK = 6,
+    DOWN_FORWARD = 10,
+};
+
+struct InputState {
+    uint32_t game_frame;
+    InputDirection direction;
+    uint8_t buttons;
+};
+
 struct PlayerFrameData {
     int startup_frames;
     uint32_t first_active_frame;

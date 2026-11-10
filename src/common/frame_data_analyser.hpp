@@ -36,6 +36,7 @@ public:
     virtual void frame_data(FrameDataPoint frame_data) = 0;
     virtual void distance(float distance) = 0;
     virtual void status(PlayerState status) = 0;
+    virtual void input(InputState input) = 0;
     virtual void game_hooked() = 0;
 };
 
@@ -102,6 +103,7 @@ private:
     inline static void log_frame();
 
     static bool update_game_state();
+    static void handle_input(const uint32_t game_frame);
     inline static bool is_knockdown(const PlayerFrame *const player_frame);
     static void track_chain(const PlayerFrame *const previous,
                             const PlayerFrame *const current,

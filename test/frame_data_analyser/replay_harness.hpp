@@ -51,6 +51,7 @@ public:
     void frame_data(FrameDataPoint data) override;
     void distance(float distance) override;
     void status(PlayerState status) override;
+    void input(InputState input) override;
     void game_hooked() override;
 
 private:

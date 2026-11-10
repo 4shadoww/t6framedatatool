@@ -75,6 +75,10 @@ void ReplayHarness::status(const PlayerState status) {
     m_status_events.push_back({.game_frame = m_game_frame, .status = status});
 }
 
+void ReplayHarness::input(const InputState /*input*/) {
+    // NOP
+}
+
 void ReplayHarness::game_hooked() {
     // NOP
 }

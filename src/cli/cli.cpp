@@ -31,6 +31,7 @@ public:
     void frame_data(FrameDataPoint frame_data) override;
     void distance(float /*distance*/) override;
     void status(PlayerState /*status*/) override;
+    void input(InputState /*input*/) override;
     void game_hooked() override;
 };
 
@@ -52,6 +53,10 @@ void Listener::distance(const float /*distance*/) {
 }
 
 void Listener::status(const PlayerState /*status*/) {
+    // NOP
+}
+
+void Listener::input(const InputState /*input*/) {
     // NOP
 }
 

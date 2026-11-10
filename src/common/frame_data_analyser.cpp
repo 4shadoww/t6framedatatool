@@ -411,6 +411,25 @@ void FrameDataAnalyser::handle_status() {
     m_listener->status((PlayerState) state);
 }
 
+void FrameDataAnalyser::handle_input(const uint32_t game_frame) {
+    RawPlayerInput raw{};
+    if (read_raw_player_input(&raw) != READ_OK) {
+        return;
+    }
+
+    const InputState input = {
+        .game_frame = game_frame,
+        .direction = static_cast<InputDirection>((raw.bits >> 20U) & 0xFU),
+        .buttons = static_cast<uint8_t>(
+            ((raw.bits & 0x04000000U) != 0U ? 1U : 0U) | ((raw.bits & 0x01000000U) != 0U ? 2U : 0U) |
+            ((raw.bits & 0x00040000U) != 0U ? 4U : 0U) | ((raw.bits & 0x00020000U) != 0U ? 8U : 0U)),
+    };
+
+    if (m_listener != nullptr) {
+        m_listener->input(input);
+    }
+}
+
 bool FrameDataAnalyser::update_game_state() {
     // Read the game's state
     GameFrame state{};
@@ -428,7 +447,13 @@ bool FrameDataAnalyser::update_game_state() {
         return false;
     }
 
-    return process_frame(state, side_val);
+    if (!process_frame(state, side_val)) {
+        return false;
+    }
+
+    handle_input(state.game_frame);
+
+    return true;
 }
 
 bool FrameDataAnalyser::process_frame(GameFrame state, const int32_t side_val) {

@@ -58,6 +58,7 @@ public:
     void frame_data(const FrameDataPoint frame_data) override;
     void distance(const float distance) override;
     void status(const PlayerState state) override;
+    void input(const InputState input) override;
     void game_hooked() override;
 };
 
@@ -81,6 +82,10 @@ void Listener::distance(const float distance) {
 
 void Listener::status(const PlayerState state) {
     g_status = state;
+}
+
+void Listener::input(const InputState /*input*/) {
+    // NOP
 }
 
 void Listener::game_hooked() {

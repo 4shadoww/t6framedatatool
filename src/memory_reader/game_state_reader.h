@@ -60,6 +60,10 @@ struct GameFrame {
     struct PlayerFrame p2;
 };
 
+struct RawPlayerInput {
+    uint32_t bits;
+};
+
 int init_memory_reader(void);
 
 int p1_frames_last_action(int32_t *value);
@@ -92,6 +96,13 @@ uint64_t player_side_address(void);
  * @return 0 on success, -1 on error
  */
 int read_game_state(struct GameFrame *state);
+
+/*
+ * Read player 1 raw input bits
+ * @param input output raw input
+ * @return 0 on success, -1 on error
+ */
+int read_raw_player_input(struct RawPlayerInput *input);
 
 void set_memory_reader_logging(const bool enabled);
 
