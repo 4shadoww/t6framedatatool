@@ -7,3 +7,4 @@ __cmake_systeminformation
 .clangd
 run-clang-tidy.py
 logs
+docs
