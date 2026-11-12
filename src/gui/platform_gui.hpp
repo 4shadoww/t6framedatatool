@@ -20,7 +20,7 @@
 struct GLFWwindow;
 
 bool platform_make_overlay(GLFWwindow *window);
-void platform_update_ui_position(const int game_x, const int game_y, const int game_height, const bool margin);
+void platform_update_ui_bounds(const int game_x, const int game_y, const int game_width, const int game_height);
 void platform_find_game_window();
 void platform_update();
 

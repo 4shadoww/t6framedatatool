@@ -53,7 +53,7 @@ VOID CALLBACK WinEventProc(HWINEVENTHOOK /*hWinEventHook*/,
         return;
     }
 
-    platform_update_ui_position(rect.left, rect.top, rect.bottom - rect.top, true);
+    platform_update_ui_bounds(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
 }
 
 bool window_match(const wchar_t *window_name) {
@@ -115,18 +115,12 @@ bool platform_make_overlay(GLFWwindow *window) {
     return true;
 }
 
-void platform_update_ui_position(const int game_x, const int game_y, const int game_height, const bool margin) {
-    int x = 0;
-    int y = 0;
-    if (margin) {
-        x = game_x + BORDER_MARGIN_X;
-        y = game_y - BORDER_MARGIN_Y + game_height - MAX_HEIGTH;
-    } else {
-        x = game_x;
-        y = game_y + game_height - MAX_HEIGTH;
+void platform_update_ui_bounds(const int game_x, const int game_y, const int game_width, const int game_height) {
+    if (game_width <= 0 || game_height <= 0) {
+        return;
     }
 
-    SetWindowPos(g_window, HWND_TOPMOST, x, y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
+    SetWindowPos(g_window, HWND_TOPMOST, game_x, game_y, game_width, game_height, SWP_NOACTIVATE);
 }
 
 void platform_find_game_window() {
@@ -142,7 +136,7 @@ void platform_find_game_window() {
         return;
     }
 
-    platform_update_ui_position(rect.left, rect.top, rect.bottom - rect.top, true);
+    platform_update_ui_bounds(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
 }
 
 void platform_update() {

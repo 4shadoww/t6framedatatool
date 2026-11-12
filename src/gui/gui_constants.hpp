@@ -19,29 +19,11 @@
 #define GUI_CONSTANTS_HPP
 
 #define WINDOW_NAME "T6FDTOOL"
-#define STAT_LINES 4
-#define FONT_SIZE 25
-#define TEXT_MARGIN 5
-#define LINE_HEIGHT (FONT_SIZE + TEXT_MARGIN)
 #define MAX_WIDTH 400
-#define MAX_HEIGTH (STAT_LINES * LINE_HEIGHT)
+#define MAX_HEIGTH 300
 #define ANALYSER_START_INTERVAL 1
 
-// UI
-#define NO_STARTUP_FRAMES_NO_GAME "Startup Frames --- (No game hooked)"
-#define NO_STARTUP_FRAMES "Startup Frames ---"
-#define NO_FRAME_ADVANTAGE "Frame Advantage ---"
-#define NO_STATUS "Status ---"
-#define NO_DISTANCE "Distance ---"
-
-#define BORDER_MARGIN_X 25
-#define BORDER_MARGIN_Y 15
-
-#define STARTUP_FRAMES "Startup Frames %d (%d~%d)"
-#define FRAME_ADVANTAGE "Frame Advantage %d"
-#define FRAME_ADVANTAGE_KD "Frame Advantage KD"
-#define STATUS "Status %s"
-#define DISTANCE "Distance %.2f"
+constexpr float OVERLAY_FONT_SIZE = 20.0F;
 
 // RPSC3 Window properties
 #define RPSC3_CLASS "rpcs3"

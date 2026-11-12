@@ -26,6 +26,7 @@
 #include <imgui_impl_glfw.h> // NOLINT
 #include <imgui_impl_opengl3.h> // NOLINT
 
+#include "analyser_event_router.hpp"
 #include "arg_parser.hpp"
 #include "frame_data_analyser.hpp"
 #include "frame_dumper.h"
@@ -36,76 +37,21 @@
 #include "platform_threading.hpp"
 #include "version.hpp"
 
+#include "component/overlay_canvas.hpp"
+
+#include "view/command_history_view.hpp"
+#include "view/frame_data_view.hpp"
+#include "viewmodel/frame_data_view_model.hpp"
+
 namespace {
 
-#define RESET_UI_MILLIS 2500
+constexpr ImVec4 MUTED_COLOR = ImVec4(0.65F, 0.65F, 0.65F, 1.0F);
 
-constexpr float OVERLAY_FONT_SIZE = 20.0F;
-constexpr float LABEL_COLUMN_WIDTH = 210.0F;
-constexpr ImVec4 POSITIVE_COLOR = ImVec4(0.35F, 1.0F, 0.55F, 1.0F);
-constexpr ImVec4 NEGATIVE_COLOR = ImVec4(1.0F, 0.35F, 0.35F, 1.0F);
-constexpr ImVec4 KNOCKDOWN_COLOR = ImVec4(1.0F, 0.75F, 0.25F, 1.0F);
-constexpr ImVec4 MUTED_COLOR = ImVec4(0.70F, 0.72F, 0.78F, 1.0F);
+struct {
+    FrameDataViewModel frame_data;
+} view_models;
 
-std::chrono::steady_clock::rep g_last_update = 0;
-FrameDataPoint g_data_point = {};
-float g_distance = 0;
-PlayerState g_status = {};
-bool g_game_hooked = false;
-
-class Listener : public EventListener {
-public:
-    void frame_data(const FrameDataPoint frame_data) override;
-    void distance(const float distance) override;
-    void status(const PlayerState state) override;
-    void input(const InputState input) override;
-    void game_hooked() override;
-};
-
-void Listener::frame_data(const FrameDataPoint frame_data) {
-    g_last_update = std::chrono::steady_clock::now().time_since_epoch().count();
-    g_data_point = frame_data;
-
-    const PlayerFrameData &local = frame_data.player_side == PlayerSide::LEFT ? frame_data.p1 : frame_data.p2;
-    log_info("local player: P%d, startup frames: %d (%d~%d), frame advantage: %d, KD: %d",
-             frame_data.player_side == PlayerSide::LEFT ? 1 : 2,
-             local.startup_frames,
-             local.first_active_frame,
-             local.last_active_frame,
-             local.frame_advantage,
-             local.knock_down);
-}
-
-void Listener::distance(const float distance) {
-    g_distance = distance;
-}
-
-void Listener::status(const PlayerState state) {
-    g_status = state;
-}
-
-void Listener::input(const InputState /*input*/) {
-    // NOP
-}
-
-void Listener::game_hooked() {
-    g_game_hooked = true;
-    platform_find_game_window();
-}
-
-Listener g_listener;
-
-bool has_recent_frame_data() {
-    const auto now = std::chrono::steady_clock::now();
-    const auto elapsed = now.time_since_epoch() - std::chrono::steady_clock::duration(g_last_update);
-    const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
-
-    return millis <= RESET_UI_MILLIS;
-}
-
-const PlayerFrameData &local_player_data() {
-    return g_data_point.player_side == PlayerSide::LEFT ? g_data_point.p1 : g_data_point.p2;
-}
+AnalyserEventRouter g_event_router(&view_models.frame_data);
 
 void setup_style() {
     ImGui::StyleColorsDark();
@@ -120,113 +66,22 @@ void setup_style() {
     style.WindowPadding = ImVec2(12.0F, 10.0F);
     style.FramePadding = ImVec2(8.0F, 5.0F);
     style.ItemSpacing = ImVec2(8.0F, 6.0F);
-    style.WindowBorderSize = 0.0F;
+    style.WindowBorderSize = 1.0F;
 
     ImVec4 *const colors = style.Colors;
-    colors[ImGuiCol_WindowBg] = ImVec4(0.04F, 0.05F, 0.07F, 0.92F);
-    colors[ImGuiCol_ChildBg] = ImVec4(0.07F, 0.08F, 0.11F, 0.95F);
-    colors[ImGuiCol_FrameBg] = ImVec4(0.11F, 0.13F, 0.17F, 1.0F);
-    colors[ImGuiCol_Border] = ImVec4(0.18F, 0.22F, 0.28F, 1.0F);
-    colors[ImGuiCol_Separator] = ImVec4(0.18F, 0.22F, 0.28F, 1.0F);
-    colors[ImGuiCol_Text] = ImVec4(0.92F, 0.94F, 0.97F, 1.0F);
+    colors[ImGuiCol_WindowBg] = ImVec4(0.02F, 0.02F, 0.02F, 0.92F);
+    colors[ImGuiCol_ChildBg] = ImVec4(0.04F, 0.04F, 0.04F, 0.95F);
+    colors[ImGuiCol_FrameBg] = ImVec4(0.08F, 0.08F, 0.08F, 1.0F);
+    colors[ImGuiCol_Border] = ImVec4(0.16F, 0.16F, 0.16F, 1.0F);
+    colors[ImGuiCol_Separator] = ImVec4(0.16F, 0.16F, 0.16F, 1.0F);
+    colors[ImGuiCol_Text] = ImVec4(0.92F, 0.92F, 0.92F, 1.0F);
     colors[ImGuiCol_TextDisabled] = MUTED_COLOR;
 }
 
-void draw_advantage(const int advantage) {
-    ImGui::TextColored(advantage < 0 ? NEGATIVE_COLOR : POSITIVE_COLOR, "%+d", advantage);
-}
-
-void draw_label(const char *const label) {
-    ImGui::TextDisabled("%s", label);
-    ImGui::SameLine(LABEL_COLUMN_WIDTH);
-}
-
-void draw_no_game() {
-    ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
-
-    draw_label("Startup Frames");
-    ImGui::TextUnformatted("--- (No game hooked)");
-
-    draw_label("Frame Advantage");
-    ImGui::TextUnformatted("---");
-
-    draw_label("Status");
-    ImGui::TextUnformatted("---");
-
-    draw_label("Distance");
-    ImGui::TextUnformatted("---");
-
-    ImGui::PopFont();
-}
-
-void draw_no_frame_data() {
-    ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
-
-    draw_label("Startup Frames");
-    ImGui::TextUnformatted("---");
-
-    draw_label("Frame Advantage");
-    ImGui::TextUnformatted("---");
-
-    draw_label("Status");
-    ImGui::TextUnformatted(FrameDataAnalyser::player_status(g_status));
-
-    draw_label("Distance");
-    ImGui::Text("%.2f", g_distance);
-
-    ImGui::PopFont();
-}
-
-void draw_frame_data() {
-    ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
-
-    const PlayerFrameData &data = local_player_data();
-    const bool knock_down = g_data_point.p1.knock_down || g_data_point.p2.knock_down;
-
-    draw_label("Startup Frames");
-    ImGui::Text("%d (%u~%u)", data.startup_frames, data.first_active_frame, data.last_active_frame);
-
-    draw_label("Frame Advantage");
-    if (knock_down) {
-        ImGui::TextColored(KNOCKDOWN_COLOR, "KD");
-    } else {
-        draw_advantage(data.frame_advantage);
-    }
-
-    draw_label("Status");
-    ImGui::TextUnformatted(FrameDataAnalyser::player_status(g_status));
-
-    draw_label("Distance");
-    ImGui::Text("%.2f", g_distance);
-
-    ImGui::PopFont();
-}
-
 void draw_overlay() {
-    const ImGuiViewport *const viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->WorkPos);
-    ImGui::SetNextWindowSize(viewport->WorkSize);
-
-    const unsigned int flag_bits = static_cast<unsigned int>(ImGuiWindowFlags_NoDecoration) |
-                                   static_cast<unsigned int>(ImGuiWindowFlags_NoMove) |
-                                   static_cast<unsigned int>(ImGuiWindowFlags_NoResize) |
-                                   static_cast<unsigned int>(ImGuiWindowFlags_NoSavedSettings) |
-                                   static_cast<unsigned int>(ImGuiWindowFlags_NoBringToFrontOnFocus) |
-                                   static_cast<unsigned int>(ImGuiWindowFlags_NoNavFocus) |
-                                   static_cast<unsigned int>(ImGuiWindowFlags_NoScrollbar);
-    const auto flags = static_cast<ImGuiWindowFlags>(flag_bits);
-
-    ImGui::Begin("##overlay", nullptr, flags);
-
-    if (!g_game_hooked) {
-        draw_no_game();
-    } else if (!has_recent_frame_data()) {
-        draw_no_frame_data();
-    } else {
-        draw_frame_data();
-    }
-
-    ImGui::End();
+    const ImVec2 canvas = OverlayCanvas::size();
+    FrameDataPanel::draw(canvas, view_models.frame_data);
+    CommandHistoryView::draw(canvas);
 }
 
 GLFWwindow *create_window() {
@@ -309,13 +164,13 @@ GLFWwindow *setup_gui() {
 }
 
 void gui_state_no_game() {
-    platform_update_ui_position(0, 0, MAX_HEIGTH, false);
-    g_game_hooked = false;
+    platform_update_ui_bounds(0, 0, MAX_WIDTH, MAX_HEIGTH);
+    view_models.frame_data.on_game_hooked(false);
 }
 
 void analyser_loop() {
     while (true) {
-        if (FrameDataAnalyser::start(&g_listener)) {
+        if (FrameDataAnalyser::start(&g_event_router)) {
             break;
         }
 

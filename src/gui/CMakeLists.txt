@@ -21,7 +21,13 @@ target_link_libraries(imgui PUBLIC
     glad_gl_core_33
 )
 
-set(SRCS opengl_gui.cpp)
+set(SRCS opengl_gui.cpp
+         analyser_event_router.cpp
+         component/overlay_canvas.cpp
+         view/command_history_view.cpp
+         view/frame_data_view.cpp
+         viewmodel/frame_data_view_model.cpp
+)
 set(LIBS glfw glad_gl_core_33 imgui)
 
 if(WIN32)
@@ -37,6 +43,7 @@ if(DEBUG)
 endif()
 
 add_executable(${TARGET} ${SRCS})
+target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${TARGET}
     PRIVATE utils
     PRIVATE memoryreader

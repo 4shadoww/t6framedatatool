@@ -150,18 +150,12 @@ bool platform_make_overlay(GLFWwindow *const window) {
     return true;
 }
 
-void platform_update_ui_position(const int game_x, const int game_y, const int game_height, const bool margin) {
-    int x = 0;
-    int y = 0;
-    if (margin) {
-        x = game_x + BORDER_MARGIN_X;
-        y = game_y - BORDER_MARGIN_Y + game_height - MAX_HEIGTH;
-    } else {
-        x = game_x;
-        y = game_y + game_height - MAX_HEIGTH;
+void platform_update_ui_bounds(const int game_x, const int game_y, const int game_width, const int game_height) {
+    if (game_width <= 0 || game_height <= 0) {
+        return;
     }
 
-    XMoveWindow(g_display, g_window, x, y);
+    XMoveResizeWindow(g_display, g_window, game_x, game_y, (unsigned int) game_width, (unsigned int) game_height);
     XMapRaised(g_display, g_window);
 }
 
@@ -208,7 +202,7 @@ void platform_find_game_window() {
 
     XWindowAttributes xwa;
     XGetWindowAttributes(g_display, g_game_window, &xwa);
-    platform_update_ui_position(xwa.x, xwa.y, xwa.height, true);
+    platform_update_ui_bounds(xwa.x, xwa.y, xwa.width, xwa.height);
 }
 
 void platform_update() {
@@ -218,7 +212,7 @@ void platform_update() {
 
         if (e.type == ConfigureNotify && e.xconfigure.window == g_game_window) {
             const XConfigureEvent xce = e.xconfigure;
-            platform_update_ui_position(xce.x, xce.y, xce.height, true);
+            platform_update_ui_bounds(xce.x, xce.y, xce.width, xce.height);
         }
     }
 }
