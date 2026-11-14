@@ -60,6 +60,8 @@ void print_player(const char *const name, const PlayerFrame &player) {
               << "    cancel startup: " << player.move.cancel_startup << '\n'
               << "    string next: " << player.move.string_next << '\n'
               << "    hitlevel: " << player.move.hitlevel << '\n'
+              << "    hit level: " << player.move.hit_level << '\n'
+              << "    damage: " << player.move.damage << '\n'
               << "    anim_addr: " << player.move.anim_addr << '\n';
 }
 

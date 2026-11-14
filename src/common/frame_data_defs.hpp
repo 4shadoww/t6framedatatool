@@ -26,6 +26,15 @@ enum class PlayerSide : uint8_t {
     LEFT = 1,
 };
 
+enum class HitLevel : uint8_t {
+    NONE = 0,
+    LOW = 1,
+    MID = 2,
+    SPECIAL_MID = 3,
+    SPECIAL_LOW = 4,
+    HIGH = 5,
+};
+
 enum class InputDirection : uint8_t {
     NEUTRAL = 0,
     UP = 1,
@@ -49,6 +58,8 @@ struct PlayerFrameData {
     int startup_frames;
     uint32_t first_active_frame;
     uint32_t last_active_frame;
+    HitLevel hit_level;
+    uint32_t damage;
     int frame_advantage;
     bool knock_down;
 };
@@ -70,6 +81,8 @@ struct AttackChain {
     uint32_t first_connection;
     uint32_t first_active_frame;
     uint32_t last_active_frame;
+    HitLevel hit_level;
+    uint32_t damage;
     // Game frame when the defender can act again, from the last connection
     uint32_t defender_free;
     bool knock_down;

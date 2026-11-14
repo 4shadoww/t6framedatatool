@@ -494,6 +494,8 @@ static void clear_move_frame(struct PlayerFrame *player_frame) {
     player_frame->move.index = -1;
     player_frame->move.string_next = -1;
     player_frame->move.hitlevel = 0;
+    player_frame->move.hit_level = 0;
+    player_frame->move.damage = 0;
     player_frame->move.anim_addr = 0;
     player_frame->move.start_frame = 0;
 }
@@ -704,6 +706,8 @@ static void fill_move_frame(struct PlayerFrame *player_frame, const struct Playe
         guest_index(guest, owner->moveset_info->table.move, owner->move_count, sizeof(struct Move));
     player_frame->move.string_next = move->cancel_addr == 0 ? -1 : auto_string_next(owner, move->cancel_addr);
     player_frame->move.hitlevel = move->hitlevel;
+    player_frame->move.hit_level = (move->hitlevel >> 8U) & 0xFU;
+    player_frame->move.damage = 0;
     player_frame->move.anim_addr = move->anim_addr;
     player_frame->move.start_frame = player->current_start;
 
@@ -999,6 +1003,13 @@ int read_game_state(struct GameFrame *state) {
         return READ_ERROR;
     }
 
+    result = read_4bytes(P1_DAMAGE_DEALT, &value);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p1 damage dealt");
+        return READ_ERROR;
+    }
+    state->p1.move.damage = (uint32_t) value;
+
     result = p2_frames_last_action(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p2 last action frames");
@@ -1063,6 +1074,13 @@ int read_game_state(struct GameFrame *state) {
         log_debug("failed to read p2 move");
         return READ_ERROR;
     }
+
+    result = read_4bytes(P2_DAMAGE_DEALT, &value);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p2 damage dealt");
+        return READ_ERROR;
+    }
+    state->p2.move.damage = (uint32_t) value;
 
     return 0;
 }

@@ -18,7 +18,7 @@
 #include "viewmodel/frame_data_view_model.hpp"
 #include "logging.h"
 
-#define RESET_FRAME_DATA_MILLIS 2500
+#define RESET_FRAME_DATA_MILLIS 5000
 
 // Event receiver
 void FrameDataViewModel::on_frame_data(const FrameDataPoint &frame_data) {
@@ -26,11 +26,13 @@ void FrameDataViewModel::on_frame_data(const FrameDataPoint &frame_data) {
     m_model.frame_data = frame_data;
 
     const PlayerFrameData &local = frame_data.player_side == PlayerSide::LEFT ? frame_data.p1 : frame_data.p2;
-    log_info("local player: P%d, startup frames: %d (%d~%d), frame advantage: %d, KD: %d",
+    log_info("local player: P%d, startup frames: %d (%d~%d), hit level: %d, damage: %u, frame advantage: %d, KD: %d",
              frame_data.player_side == PlayerSide::LEFT ? 1 : 2,
              local.startup_frames,
              local.first_active_frame,
              local.last_active_frame,
+             static_cast<int>(local.hit_level),
+             local.damage,
              local.frame_advantage,
              local.knock_down);
 }

@@ -48,6 +48,8 @@ struct PlayerFrame {
         int32_t index;
         int32_t string_next;
         uint32_t hitlevel;
+        uint32_t hit_level;
+        uint32_t damage;
         uint32_t anim_addr;
         // Game frame when this move became current
         uint32_t start_frame;

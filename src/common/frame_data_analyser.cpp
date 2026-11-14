@@ -71,6 +71,8 @@ void FrameDataAnalyser::log_frame() {
            << std::endl
            << "P1 attack seq: " << state->p1.attack_seq << std::endl
            << "P1 move index: " << state->p1.move.index << std::endl
+           << "P1 hit level: " << state->p1.move.hit_level << std::endl
+           << "P1 damage: " << state->p1.move.damage << std::endl
            << "P1 move start: " << state->p1.move.start_frame << std::endl
            << "P1 idle starting_frame: " << state->p1.move.cancel_startup << std::endl
            << "P1 string next: " << state->p1.move.string_next << std::endl
@@ -86,6 +88,8 @@ void FrameDataAnalyser::log_frame() {
            << std::endl
            << "P2 attack seq: " << state->p2.attack_seq << std::endl
            << "P2 move index: " << state->p2.move.index << std::endl
+           << "P2 hit level: " << state->p2.move.hit_level << std::endl
+           << "P2 damage: " << state->p2.move.damage << std::endl
            << "P2 move start: " << state->p2.move.start_frame << std::endl
            << "P2 idle starting_frame: " << state->p2.move.cancel_startup << std::endl
            << "P2 string next: " << state->p2.move.string_next << std::endl
@@ -216,6 +220,11 @@ void FrameDataAnalyser::track_chain(const PlayerFrame *const previous,
         chain->last_active_frame = current->move.last_active_frame;
     }
 
+    if (current->move.hit_level != 0) {
+        chain->hit_level = static_cast<HitLevel>(current->move.hit_level);
+        chain->damage = current->move.damage;
+    }
+
     // The animation frame continues only through an automatic string in the same animation
     if (!auto_string || previous->move.anim_addr != current->move.anim_addr) {
         chain->anim_start = game_frame;
@@ -282,6 +291,8 @@ void FrameDataAnalyser::report_chain(AttackChain *const chain, const bool p2, co
         .startup_frames = (int32_t) (chain->first_connection - chain->start_frame),
         .first_active_frame = chain->first_active_frame,
         .last_active_frame = chain->last_active_frame,
+        .hit_level = chain->hit_level,
+        .damage = chain->damage,
         .frame_advantage = frame_advantage,
         .knock_down = false,
     };
@@ -290,6 +301,8 @@ void FrameDataAnalyser::report_chain(AttackChain *const chain, const bool p2, co
         .startup_frames = 0,
         .first_active_frame = 0,
         .last_active_frame = 0,
+        .hit_level = HitLevel::NONE,
+        .damage = 0,
         .frame_advantage = -frame_advantage,
         .knock_down = chain->knock_down,
     };
@@ -340,6 +353,11 @@ void FrameDataAnalyser::calculate_connection(const GameFrame *const previous,
     chain->defender_free = defender->move.start_frame + defender->move.cancel_startup;
     chain->knock_down = is_knockdown(defender);
     chain->reported = false;
+
+    const uint32_t damage = p2 ? current->p2.move.damage : current->p1.move.damage;
+    if (damage != 0) {
+        chain->damage = damage;
+    }
 
     // More hits of an automatic string are scheduled, wait for the finisher
     if (attacker->move.string_next >= 0) {

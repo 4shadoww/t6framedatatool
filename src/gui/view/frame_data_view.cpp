@@ -21,6 +21,7 @@
 
 #include "frame_data_analyser.hpp"
 #include "gui_constants.hpp"
+#include "logging.h"
 
 namespace {
 
@@ -31,6 +32,31 @@ constexpr ImVec4 KNOCKDOWN_COLOR = ImVec4(1.0F, 0.75F, 0.25F, 1.0F);
 
 const PlayerFrameData &local_player_data(const FrameDataPoint &data) {
     return data.player_side == PlayerSide::LEFT ? data.p1 : data.p2;
+}
+
+struct HitLevelStyle {
+    const char *name = nullptr;
+    ImVec4 color;
+};
+
+HitLevelStyle hit_level_style(const HitLevel level) {
+    switch (level) {
+    case HitLevel::HIGH:
+        return {.name = "High", .color = ImVec4(1.0F, 0.30F, 0.30F, 1.0F)};
+    case HitLevel::MID:
+        return {.name = "Mid", .color = ImVec4(1.0F, 0.85F, 0.25F, 1.0F)};
+    case HitLevel::LOW:
+        return {.name = "Low", .color = ImVec4(0.35F, 0.65F, 1.0F, 1.0F)};
+    case HitLevel::SPECIAL_LOW:
+        return {.name = "Special Low", .color = ImVec4(1.0F, 0.55F, 0.20F, 1.0F)};
+    case HitLevel::SPECIAL_MID:
+        return {.name = "Special Mid", .color = ImVec4(0.35F, 0.90F, 0.90F, 1.0F)};
+    default:
+        log_warn("unknown hit level %d", level);
+        [[fallthrough]];
+    case HitLevel::NONE:
+        return {.name = "---", .color = ImVec4(0.70F, 0.70F, 0.70F, 1.0F)};
+    }
 }
 
 void draw_label(const char *const label) {
@@ -48,6 +74,12 @@ void draw_no_game() {
     draw_label("Startup Frames");
     ImGui::TextUnformatted("--- (No game hooked)");
 
+    draw_label("Hit Level");
+    ImGui::TextUnformatted("---");
+
+    draw_label("Damage");
+    ImGui::TextUnformatted("---");
+
     draw_label("Frame Advantage");
     ImGui::TextUnformatted("---");
 
@@ -64,6 +96,12 @@ void draw_no_frame_data(const FrameDataViewModel &viewModel) {
     ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
 
     draw_label("Startup Frames");
+    ImGui::TextUnformatted("---");
+
+    draw_label("Hit Level");
+    ImGui::TextUnformatted("---");
+
+    draw_label("Damage");
     ImGui::TextUnformatted("---");
 
     draw_label("Frame Advantage");
@@ -88,6 +126,13 @@ void draw_frame_data(const FrameDataViewModel &viewModel) {
     draw_label("Startup Frames");
     ImGui::Text("%d (%u~%u)", data.startup_frames, data.first_active_frame, data.last_active_frame);
 
+    draw_label("Hit Level");
+    const HitLevelStyle hit_level = hit_level_style(data.hit_level);
+    ImGui::TextColored(hit_level.color, "%s", hit_level.name);
+
+    draw_label("Damage");
+    ImGui::Text("%u", data.damage);
+
     draw_label("Frame Advantage");
     if (knock_down) {
         ImGui::TextColored(KNOCKDOWN_COLOR, "KD");
@@ -108,7 +153,7 @@ void draw_frame_data(const FrameDataViewModel &viewModel) {
 
 RelativePanel FrameDataPanel::panel(const ImVec2 /*canvas*/) {
     constexpr float SIZE_X = 400;
-    constexpr float SIZE_Y = 150;
+    constexpr float SIZE_Y = 200;
 
     constexpr float PADDING_LEFT = 200;
     constexpr float PADDING_BOTTOM = 100;

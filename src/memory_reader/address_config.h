@@ -34,6 +34,8 @@
 #define P1_STATE (GAME_BASE_ADDRESS + 172)
 // Player 1 coordinates
 #define P1_POSITION (GAME_BASE_ADDRESS + 2192)
+// Player 1 damage dealt
+#define P1_DAMAGE_DEALT (GAME_BASE_ADDRESS + 3508)
 // Player 1 attack sequence number pointer
 #define P1_ATTACK_SEQ_PTR (GAME_BASE_ADDRESS + 342632)
 // Offset from pointer to attack seq value
@@ -57,6 +59,8 @@
 #define P2_STATE (GAME_BASE_ADDRESS + 3308)
 // Player 2 coordinates
 #define P2_POSITION (GAME_BASE_ADDRESS + 5248)
+// Player 1 damage dealt
+#define P2_DAMAGE_DEALT (GAME_BASE_ADDRESS + 3504)
 // Player 2 attack sequence number pointer
 #define P2_ATTACK_SEQ_PTR (GAME_BASE_ADDRESS + 342636)
 // Offset from pointer to attack seq value
