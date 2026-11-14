@@ -33,7 +33,7 @@ public:
     EventListener &operator=(const EventListener &) = default;
     EventListener &operator=(EventListener &&) = default;
 
-    virtual void frame_data(FrameDataPoint frame_data) = 0;
+    virtual void frame_data(const FrameDataPoint &frame_data) = 0;
     virtual void distance(float distance) = 0;
     virtual void status(PlayerState status) = 0;
     virtual void input(InputState input) = 0;

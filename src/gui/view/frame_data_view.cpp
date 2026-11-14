@@ -24,7 +24,7 @@
 
 namespace {
 
-constexpr float LABEL_COLUMN_WIDTH = 210.0F;
+constexpr float LABEL_COLUMN_WIDTH = 250.0F;
 constexpr ImVec4 POSITIVE_COLOR = ImVec4(0.35F, 1.0F, 0.55F, 1.0F);
 constexpr ImVec4 NEGATIVE_COLOR = ImVec4(1.0F, 0.35F, 0.35F, 1.0F);
 constexpr ImVec4 KNOCKDOWN_COLOR = ImVec4(1.0F, 0.75F, 0.25F, 1.0F);

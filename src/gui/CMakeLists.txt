@@ -27,6 +27,7 @@ set(SRCS opengl_gui.cpp
          view/command_history_view.cpp
          view/frame_data_view.cpp
          viewmodel/frame_data_view_model.cpp
+         viewmodel/command_history_view_model.cpp
 )
 set(LIBS glfw glad_gl_core_33 imgui)
 

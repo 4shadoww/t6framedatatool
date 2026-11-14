@@ -18,7 +18,7 @@
 #include "analyser_event_router.hpp"
 #include "platform_gui.hpp"
 
-void AnalyserEventRouter::frame_data(const FrameDataPoint frame_data) {
+void AnalyserEventRouter::frame_data(const FrameDataPoint &frame_data) {
     m_frame_data->on_frame_data(frame_data);
 }
 
@@ -30,11 +30,12 @@ void AnalyserEventRouter::status(const PlayerState state) {
     m_frame_data->on_player_status(state);
 }
 
-void AnalyserEventRouter::input(const InputState /*input*/) {
-    // NOP
+void AnalyserEventRouter::input(const InputState input) {
+    m_command_history->on_input(input);
 }
 
 void AnalyserEventRouter::game_hooked() {
     m_frame_data->on_game_hooked(true);
+    m_command_history->on_game_hooked();
     platform_find_game_window();
 }

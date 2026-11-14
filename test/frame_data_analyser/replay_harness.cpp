@@ -63,7 +63,7 @@ const std::vector<StatusEvent> &ReplayHarness::status_events() const {
     return m_status_events;
 }
 
-void ReplayHarness::frame_data(const FrameDataPoint data) {
+void ReplayHarness::frame_data(const FrameDataPoint &data) {
     m_frame_data_events.push_back({.game_frame = m_game_frame, .data = data});
 }
 

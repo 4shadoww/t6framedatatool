@@ -419,10 +419,11 @@ void FrameDataAnalyser::handle_input(const uint32_t game_frame) {
 
     const InputState input = {
         .game_frame = game_frame,
+        .raw = raw.bits,
         .direction = static_cast<InputDirection>((raw.bits >> 20U) & 0xFU),
-        .buttons = static_cast<uint8_t>(
-            ((raw.bits & 0x04000000U) != 0U ? 1U : 0U) | ((raw.bits & 0x01000000U) != 0U ? 2U : 0U) |
-            ((raw.bits & 0x00040000U) != 0U ? 4U : 0U) | ((raw.bits & 0x00020000U) != 0U ? 8U : 0U)),
+        .buttons =
+            static_cast<uint8_t>(((raw.bits & 0x8000U) != 0U ? 1U : 0U) | ((raw.bits & 0x1000U) != 0U ? 2U : 0U) |
+                                 ((raw.bits & 0x4000U) != 0U ? 4U : 0U) | ((raw.bits & 0x2000U) != 0U ? 8U : 0U)),
     };
 
     if (m_listener != nullptr) {

@@ -40,6 +40,7 @@ enum class InputDirection : uint8_t {
 
 struct InputState {
     uint32_t game_frame;
+    uint32_t raw;
     InputDirection direction;
     uint8_t buttons;
 };

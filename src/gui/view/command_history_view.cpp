@@ -17,13 +17,160 @@
 
 #include "view/command_history_view.hpp"
 
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+
 #include "gui_constants.hpp"
 
-namespace {} // namespace
+namespace {
+
+void draw_outlined_text(ImDrawList *const draw_list,
+                        const ImVec2 position,
+                        const ImU32 color,
+                        const char *const text,
+                        const float outline) {
+    constexpr ImU32 OUTLINE_COLOR = IM_COL32(0, 0, 0, 255);
+
+    for (int y = -1; y <= 1; y++) {
+        for (int x = -1; x <= 1; x++) {
+            if (x == 0 && y == 0) {
+                continue;
+            }
+
+            draw_list->AddText(
+                ImVec2(position.x + (static_cast<float>(x) * outline), position.y + (static_cast<float>(y) * outline)),
+                OUTLINE_COLOR,
+                text);
+        }
+    }
+
+    draw_list->AddText(position, color, text);
+}
+
+void draw_arrow(ImDrawList *const draw_list,
+                const ImVec2 center,
+                const float radius,
+                const uint8_t dirs,
+                const ImU32 color,
+                const float outline) {
+    constexpr float NEUTRAL_RADIUS = 0.18F;
+    constexpr float TAIL_SCALE = 0.8F;
+    constexpr float BASE_SCALE = 0.15F;
+    constexpr float SHAFT_SCALE = 0.32F;
+    constexpr float HEAD_SCALE = 0.55F;
+
+    float x = ((dirs & 8U) != 0U ? 1.0F : 0.0F) - ((dirs & 4U) != 0U ? 1.0F : 0.0F);
+    float y = ((dirs & 2U) != 0U ? 1.0F : 0.0F) - ((dirs & 1U) != 0U ? 1.0F : 0.0F);
+
+    if (x == 0.0F && y == 0.0F) {
+        draw_list->AddCircleFilled(center, (radius * NEUTRAL_RADIUS) + outline, IM_COL32(0, 0, 0, 255));
+        draw_list->AddCircleFilled(center, radius * NEUTRAL_RADIUS, color);
+        return;
+    }
+
+    const float length = std::sqrt((x * x) + (y * y));
+    x /= length;
+    y /= length;
+
+    const ImVec2 tip(center.x + (x * radius), center.y + (y * radius));
+    const ImVec2 tail(center.x - (x * radius * TAIL_SCALE), center.y - (y * radius * TAIL_SCALE));
+    const ImVec2 base(center.x + (x * radius * BASE_SCALE), center.y + (y * radius * BASE_SCALE));
+
+    draw_list->AddLine(tail, base, IM_COL32(0, 0, 0, 255), (radius * SHAFT_SCALE) + (outline * 2.0F));
+
+    const float width = radius * HEAD_SCALE;
+    const ImVec2 left(base.x - (y * width), base.y + (x * width));
+    const ImVec2 right(base.x + (y * width), base.y - (x * width));
+
+    draw_list->AddLine(tip, left, IM_COL32(0, 0, 0, 255), outline * 2.0F);
+    draw_list->AddLine(tip, right, IM_COL32(0, 0, 0, 255), outline * 2.0F);
+
+    draw_list->AddLine(tail, base, color, radius * SHAFT_SCALE);
+    draw_list->AddTriangleFilled(tip, left, right, color);
+}
+
+void draw_buttons(ImDrawList *const draw_list,
+                  const ImVec2 position,
+                  const float size,
+                  const uint8_t buttons,
+                  const float outline) {
+    constexpr float BUTTON_OFFSET = 0.24F;
+    constexpr float BUTTON_RADIUS = 0.19F;
+    constexpr uint32_t BUTTON_COUNT = 4U;
+    constexpr auto BUTTON_COLORS = std::to_array<ImU32>({
+        IM_COL32(70, 140, 255, 255),
+        IM_COL32(255, 205, 60, 255),
+        IM_COL32(80, 210, 110, 255),
+        IM_COL32(240, 80, 80, 255),
+    });
+
+    const float offset = size * BUTTON_OFFSET;
+    const float radius = size * BUTTON_RADIUS;
+
+    for (uint32_t i = 0; i < BUTTON_COUNT; i++) {
+        const ImVec2 center(position.x + ((i & 1U) != 0 ? offset : -offset),
+                            position.y + ((i & 2U) != 0 ? offset : -offset));
+
+        if ((buttons & (1U << i)) != 0U) {
+            draw_list->AddCircleFilled(center, radius + outline, IM_COL32(0, 0, 0, 255));
+            draw_list->AddCircleFilled(center, radius, BUTTON_COLORS.at(i));
+        } else {
+            draw_list->AddCircle(center, radius, IM_COL32(0, 0, 0, 80), 0, 1.0F);
+            draw_list->AddCircle(center, radius, IM_COL32(170, 170, 170, 180), 0, 1.0F);
+        }
+    }
+}
+
+void draw_input_row(const CommandHistoryEntry &entry, const ImU32 text_color) {
+    constexpr float ROW_HEIGHT_SCALE = 1.25F;
+    constexpr float ROW_CENTER_SCALE = 0.5F;
+    constexpr float ARROW_RADIUS_SCALE = 0.38F;
+    constexpr float ARROW_CENTER_X = 0.75F;
+    constexpr float ARROW_TO_BUTTONS = 1.05F;
+    constexpr float BUTTON_OFFSET = 0.24F;
+    constexpr float BUTTON_RADIUS = 0.19F;
+    constexpr float BUTTONS_RIGHT = BUTTON_OFFSET + BUTTON_RADIUS;
+    constexpr float FRAME_GAP = 0.50F;
+
+    ImDrawList *const draw_list = ImGui::GetWindowDrawList();
+    const ImVec2 position = ImGui::GetCursorScreenPos();
+    const float height = ImGui::GetFontSize() * ROW_HEIGHT_SCALE;
+    const float radius = height * ARROW_RADIUS_SCALE;
+
+    char frames[8] = {};
+    (void) std::snprintf(frames, sizeof(frames), "%u", entry.frames);
+
+    const float center_y = position.y + (height * ROW_CENTER_SCALE);
+    const float outline = std::max(1.0F, height * 0.05F);
+    float cursor_x = position.x + (height * ARROW_CENTER_X);
+
+    draw_arrow(draw_list,
+               ImVec2(cursor_x, center_y),
+               radius,
+               static_cast<uint8_t>(entry.input.direction),
+               text_color,
+               outline);
+    cursor_x += height * ARROW_TO_BUTTONS;
+
+    draw_buttons(draw_list, ImVec2(cursor_x, center_y), height, entry.input.buttons, outline);
+    cursor_x += (height * BUTTONS_RIGHT) + (height * FRAME_GAP);
+
+    const float frame_width = ImGui::CalcTextSize(frames).x;
+    const ImVec2 frame_text_position(cursor_x, position.y + ((height - ImGui::GetFontSize()) * ROW_CENTER_SCALE));
+    draw_outlined_text(draw_list, frame_text_position, text_color, frames, outline);
+
+    ImGui::Dummy(ImVec2((cursor_x - position.x) + frame_width, height));
+}
+
+} // namespace
 
 RelativePanel CommandHistoryView::panel(const ImVec2 /*canvas*/) {
-    constexpr float SIZE_X = 250.0F;
-    constexpr float SIZE_Y = 500.0F;
+    constexpr float SIZE_X = 150.0F;
+    constexpr float SIZE_Y = 950.0F;
     constexpr float PADDING_LEFT = 50;
     return {
         .id = "##command_history",
@@ -31,16 +178,27 @@ RelativePanel CommandHistoryView::panel(const ImVec2 /*canvas*/) {
         .vertical = VerticalAnchor::CENTER,
         .offset = {PADDING_LEFT, 0.0F},
         .size = {SIZE_X, SIZE_Y},
+        .background_alpha = 0.0F,
+        .border_size = 0.0F,
     };
 }
 
-void CommandHistoryView::draw(const ImVec2 canvas) {
+void CommandHistoryView::draw(const ImVec2 canvas, const CommandHistoryViewModel &viewModel) {
     OverlayCanvas::begin_panel(panel(canvas), canvas);
 
     ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
-    ImGui::TextDisabled("Command History");
-    ImGui::Separator();
-    ImGui::TextDisabled("No input history");
+
+    const CommandHistorySnapshot history = viewModel.snapshot();
+    if (history.count == 0) {
+        ImGui::TextDisabled("No input history");
+    } else {
+        for (std::size_t i = history.count; i-- > 0;) {
+            const ImU32 text_color =
+                i == history.count - 1 ? IM_COL32(255, 255, 255, 255) : IM_COL32(200, 200, 200, 220);
+            draw_input_row(history.entries.at(i), text_color);
+        }
+    }
+
     ImGui::PopFont();
 
     OverlayCanvas::end_panel();

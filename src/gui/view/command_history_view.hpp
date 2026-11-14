@@ -19,10 +19,11 @@
 #define COMMAND_HISTORY_PANEL_HPP
 
 #include "component/overlay_canvas.hpp"
+#include "viewmodel/command_history_view_model.hpp"
 
 class CommandHistoryView {
 public:
-    static void draw(const ImVec2 canvas);
+    static void draw(const ImVec2 canvas, const CommandHistoryViewModel &viewModel);
 
 private:
     static RelativePanel panel(const ImVec2 canvas);

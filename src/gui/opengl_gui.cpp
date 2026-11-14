@@ -41,6 +41,7 @@
 
 #include "view/command_history_view.hpp"
 #include "view/frame_data_view.hpp"
+#include "viewmodel/command_history_view_model.hpp"
 #include "viewmodel/frame_data_view_model.hpp"
 
 namespace {
@@ -48,10 +49,11 @@ namespace {
 constexpr ImVec4 MUTED_COLOR = ImVec4(0.65F, 0.65F, 0.65F, 1.0F);
 
 struct {
-    FrameDataViewModel frame_data;
+    FrameDataViewModel frame_data{};
+    CommandHistoryViewModel command_history{};
 } view_models;
 
-AnalyserEventRouter g_event_router(&view_models.frame_data);
+AnalyserEventRouter g_event_router(&view_models.frame_data, &view_models.command_history);
 
 void setup_style() {
     ImGui::StyleColorsDark();
@@ -81,7 +83,7 @@ void setup_style() {
 void draw_overlay() {
     const ImVec2 canvas = OverlayCanvas::size();
     FrameDataPanel::draw(canvas, view_models.frame_data);
-    CommandHistoryView::draw(canvas);
+    CommandHistoryView::draw(canvas, view_models.command_history);
 }
 
 GLFWwindow *create_window() {

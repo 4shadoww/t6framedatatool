@@ -28,14 +28,14 @@ namespace {
 
 class Listener : public EventListener {
 public:
-    void frame_data(FrameDataPoint frame_data) override;
+    void frame_data(const FrameDataPoint &frame_data) override;
     void distance(float /*distance*/) override;
     void status(PlayerState /*status*/) override;
     void input(InputState /*input*/) override;
     void game_hooked() override;
 };
 
-void Listener::frame_data(const FrameDataPoint frame_data) {
+void Listener::frame_data(const FrameDataPoint &frame_data) {
     const PlayerFrameData &p1 = frame_data.p1;
     const PlayerFrameData &p2 = frame_data.p2;
 

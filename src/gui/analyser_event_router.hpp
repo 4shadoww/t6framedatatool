@@ -20,12 +20,16 @@
 #define EVENT_ROUTER_HPP
 
 #include "frame_data_analyser.hpp"
+#include "viewmodel/command_history_view_model.hpp"
 #include "viewmodel/frame_data_view_model.hpp"
 class AnalyserEventRouter : public EventListener {
 public:
-    explicit AnalyserEventRouter(FrameDataViewModel *const frame_data) noexcept : m_frame_data(frame_data) {}
+    explicit AnalyserEventRouter(FrameDataViewModel *const frame_data,
+                                 CommandHistoryViewModel *const command_history) noexcept
+        : m_frame_data(frame_data)
+        , m_command_history(command_history) {}
 
-    void frame_data(const FrameDataPoint frame_data) override;
+    void frame_data(const FrameDataPoint &frame_data) override;
     void distance(const float distance) override;
     void status(const PlayerState state) override;
     void input(const InputState input) override;
@@ -33,6 +37,7 @@ public:
 
 private:
     FrameDataViewModel *m_frame_data;
+    CommandHistoryViewModel *m_command_history;
 };
 
 #endif

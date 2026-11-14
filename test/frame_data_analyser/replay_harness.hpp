@@ -48,7 +48,7 @@ public:
     [[nodiscard]] const std::vector<DistanceEvent> &distance_events() const;
     [[nodiscard]] const std::vector<StatusEvent> &status_events() const;
 
-    void frame_data(FrameDataPoint data) override;
+    void frame_data(const FrameDataPoint &data) override;
     void distance(float distance) override;
     void status(PlayerState status) override;
     void input(InputState input) override;

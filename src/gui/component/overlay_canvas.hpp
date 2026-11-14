@@ -38,6 +38,8 @@ struct OverlayPanel {
     const char *id = nullptr;
     ImVec2 size;
     ImVec2 position;
+    float background_alpha = 0.92F;
+    float border_size = 1.0F;
 };
 
 struct RelativePanel {
@@ -46,6 +48,8 @@ struct RelativePanel {
     VerticalAnchor vertical = VerticalAnchor::TOP;
     ImVec2 offset;
     ImVec2 size;
+    float background_alpha = 0.92F;
+    float border_size = 1.0F;
 };
 
 class OverlayCanvas {

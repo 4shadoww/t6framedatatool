@@ -23,7 +23,7 @@
 #define MAX_HEIGTH 300
 #define ANALYSER_START_INTERVAL 1
 
-constexpr float OVERLAY_FONT_SIZE = 20.0F;
+constexpr float OVERLAY_FONT_SIZE = 25.0F;
 
 // RPSC3 Window properties
 #define RPSC3_CLASS "rpcs3"

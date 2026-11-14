@@ -53,13 +53,16 @@ OverlayPanel OverlayCanvas::resolve(const RelativePanel &panel, const ImVec2 can
         .id = panel.id,
         .size = panel.size,
         .position = ImVec2(x, y),
+        .background_alpha = panel.background_alpha,
+        .border_size = panel.border_size,
     };
 }
 
 void OverlayCanvas::begin_panel(const OverlayPanel &panel) {
     ImGui::SetNextWindowPos(panel.position);
     ImGui::SetNextWindowSize(panel.size);
-    ImGui::SetNextWindowBgAlpha(0.92F);
+    ImGui::SetNextWindowBgAlpha(panel.background_alpha);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, panel.border_size);
 
     const unsigned int flag_bits = static_cast<unsigned int>(ImGuiWindowFlags_NoDecoration) |
                                    static_cast<unsigned int>(ImGuiWindowFlags_NoMove) |
@@ -80,4 +83,5 @@ void OverlayCanvas::begin_panel(const RelativePanel &panel, const ImVec2 canvas)
 
 void OverlayCanvas::end_panel() {
     ImGui::End();
+    ImGui::PopStyleVar();
 }
