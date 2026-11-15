@@ -24,6 +24,8 @@
 #include <cstdint>
 #include <mutex>
 
+#include "event_bus.hpp"
+#include "events.hpp"
 #include "frame_data_defs.hpp"
 #include "ring_buffer.hpp"
 
@@ -48,6 +50,18 @@ struct CommandHistorySnapshot {
 
 class CommandHistoryViewModel {
 public:
+    CommandHistoryViewModel() noexcept {
+        EventBus::subscribe<InputEvent>(this);
+        EventBus::subscribe<GameHookedEvent>(this);
+    }
+
+    void on_event(const InputEvent &event) {
+        on_input(event.input);
+    }
+    void on_event(const GameHookedEvent & /*event*/) {
+        on_game_hooked();
+    }
+
     void on_input(const InputState input);
     void on_game_hooked();
 

@@ -22,7 +22,6 @@ target_link_libraries(imgui PUBLIC
 )
 
 set(SRCS opengl_gui.cpp
-         analyser_event_router.cpp
          component/overlay_canvas.cpp
          view/command_history_view.cpp
          view/frame_data_view.cpp

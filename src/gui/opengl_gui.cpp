@@ -26,8 +26,8 @@
 #include <imgui_impl_glfw.h> // NOLINT
 #include <imgui_impl_opengl3.h> // NOLINT
 
-#include "analyser_event_router.hpp"
 #include "arg_parser.hpp"
+#include "event_bus.hpp"
 #include "frame_data_analyser.hpp"
 #include "frame_dumper.h"
 #include "game_state_reader.h"
@@ -48,12 +48,23 @@ namespace {
 
 constexpr ImVec4 MUTED_COLOR = ImVec4(0.65F, 0.65F, 0.65F, 1.0F);
 
+class GuiEventReceiver {
+public:
+    GuiEventReceiver() noexcept {
+        EventBus::subscribe<GameHookedEvent>(this);
+    }
+
+    static void on_event(const GameHookedEvent & /*event*/) {
+        platform_find_game_window();
+    }
+};
+
 struct {
-    FrameDataViewModel frame_data{};
-    CommandHistoryViewModel command_history{};
+    FrameDataViewModel frame_data;
+    CommandHistoryViewModel command_history;
 } view_models;
 
-AnalyserEventRouter g_event_router(&view_models.frame_data, &view_models.command_history);
+GuiEventReceiver gui_event_receiver;
 
 void setup_style() {
     ImGui::StyleColorsDark();
@@ -172,7 +183,7 @@ void gui_state_no_game() {
 
 void analyser_loop() {
     while (true) {
-        if (FrameDataAnalyser::start(&g_event_router)) {
+        if (FrameDataAnalyser::start()) {
             break;
         }
 
@@ -240,6 +251,7 @@ void apply_config(const Configuration &config) {
 }
 
 } // namespace
+
 
 int main(const int argc, const char *const *const argv) {
     Configuration config = ArgParser::create_default_config();

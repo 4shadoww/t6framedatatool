@@ -15,6 +15,10 @@
   along with this program.    If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "frame_data_analyser.hpp"
+
+#include "event_bus.hpp"
+
 #include "frame_data_defs.hpp"
 #include "refl_struct.h"
 #include "ring_buffer.hpp"
@@ -32,7 +36,6 @@
 #include "logging.h"
 #include "memory_reader_types.h"
 
-#include "frame_data_analyser.hpp"
 
 // Constants
 
@@ -45,15 +48,17 @@
 //// frame_data_analyser
 ///
 volatile bool FrameDataAnalyser::m_stop = false;
+
 RingBuffer<GameFrame> FrameDataAnalyser::m_frame_buffer(FRAME_BUFFER_SIZE);
+
 AttackChain FrameDataAnalyser::m_p1_chain{};
+
 AttackChain FrameDataAnalyser::m_p2_chain{};
 
-EventListener *FrameDataAnalyser::m_listener = nullptr;
-
-// Avoid log spam
-int FrameDataAnalyser::m_last_player_intent = 0;
 bool FrameDataAnalyser::m_logging = false;
+
+int FrameDataAnalyser::m_last_player_intent = 0;
+
 PlayerSide FrameDataAnalyser::m_player_side = PlayerSide::LEFT;
 
 void FrameDataAnalyser::log_frame() {
@@ -168,7 +173,6 @@ const char *FrameDataAnalyser::player_status(const PlayerState state) {
     return UNDETERMINABLE;
 }
 
-// A reaction move without an idle return does not recover on its own
 bool FrameDataAnalyser::is_knockdown(const PlayerFrame *const player_frame) {
     if (player_frame->move.cancel_startup == 0) {
         return true;
@@ -340,7 +344,7 @@ void FrameDataAnalyser::report_chain(AttackChain *const chain, const bool p2, co
     };
 
     chain->reported = true;
-    m_listener->frame_data(data_point);
+    EventBus::dispatch(FrameDataEvent{data_point});
 }
 
 // Records the defender's recovery on a hit. Called before the chain is updated
@@ -456,7 +460,10 @@ void FrameDataAnalyser::update_throw_damage(const PlayerFrame *const attacker, A
         chain->damage = attacker->throw_damage;
     }
     if (chain->damage != previous) {
-        m_listener->damage_dealt(chain->damage, chain == &m_p2_chain ? PlayerSide::RIGHT : PlayerSide::LEFT);
+        EventBus::dispatch(DamageDealtEvent{
+            .damage = chain->damage,
+            .side = chain == &m_p2_chain ? PlayerSide::RIGHT : PlayerSide::LEFT,
+        });
     }
 }
 
@@ -475,7 +482,7 @@ float FrameDataAnalyser::calculate_distance(const GameFrame *const state) {
 void FrameDataAnalyser::handle_distance() {
     const GameFrame *const current = m_frame_buffer.head();
     const float distance = calculate_distance(current);
-    m_listener->distance(distance);
+    EventBus::dispatch(DistanceEvent{distance});
 }
 
 void FrameDataAnalyser::handle_status() {
@@ -485,7 +492,7 @@ void FrameDataAnalyser::handle_status() {
     }
 
     const int32_t state = m_player_side == PlayerSide::LEFT ? current->p1.state : current->p2.state;
-    m_listener->status((PlayerState) state);
+    EventBus::dispatch(StatusEvent{static_cast<PlayerState>(state)});
 }
 
 void FrameDataAnalyser::handle_input(const uint32_t game_frame) {
@@ -503,9 +510,7 @@ void FrameDataAnalyser::handle_input(const uint32_t game_frame) {
                                  ((raw.bits & 0x4000U) != 0U ? 4U : 0U) | ((raw.bits & 0x2000U) != 0U ? 8U : 0U)),
     };
 
-    if (m_listener != nullptr) {
-        m_listener->input(input);
-    }
+    EventBus::dispatch(InputEvent{input});
 }
 
 bool FrameDataAnalyser::update_game_state() {
@@ -594,12 +599,7 @@ bool FrameDataAnalyser::loop() {
     return true;
 }
 
-bool FrameDataAnalyser::init(EventListener *listener) {
-    if (listener == nullptr) {
-        return false;
-    }
-    FrameDataAnalyser::m_listener = listener;
-
+bool FrameDataAnalyser::init() {
     const int result = init_memory_reader();
     if (result != MR_INIT_OK) {
         return false;
@@ -614,13 +614,13 @@ bool FrameDataAnalyser::init(EventListener *listener) {
     return true;
 }
 
-bool FrameDataAnalyser::start(EventListener *listener) {
-    if (!init(listener)) {
+bool FrameDataAnalyser::start() {
+    if (!init()) {
         log_error("failed to init analyser");
         return false;
     }
 
-    m_listener->game_hooked();
+    EventBus::dispatch(GameHookedEvent{});
 
     // Main loop
     while (!m_stop) {
@@ -656,12 +656,11 @@ bool FrameDataAnalyser::should_stop() {
     return m_stop;
 }
 
-void FrameDataAnalyser::reset(EventListener *listener) {
+void FrameDataAnalyser::reset() {
     m_stop = false;
     m_frame_buffer.clear();
-    m_listener = listener;
-    m_last_player_intent = 0;
     m_logging = false;
+    m_last_player_intent = 0;
     m_player_side = PlayerSide::LEFT;
     m_p1_chain = {};
     m_p2_chain = {};
@@ -670,3 +669,6 @@ void FrameDataAnalyser::reset(EventListener *listener) {
 void FrameDataAnalyser::set_logging(const bool enabled) {
     m_logging = enabled;
 }
+
+#undef TICK_LENGTH
+#undef FRAME_BUFFER_SIZE

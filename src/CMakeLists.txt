@@ -7,6 +7,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror -Wall -Wextra -pedantic")
 add_subdirectory(utils) # C code
 add_subdirectory(refl) # C code
 add_subdirectory(memory_reader) # C code
+add_subdirectory(dispatcher) # C++ headers
 add_subdirectory(common) # C++ code
 
 if(GUI)

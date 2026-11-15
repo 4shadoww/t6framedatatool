@@ -65,7 +65,7 @@ ExpectedFrameData event(const int p1_startup,
             make_player_frame_data(p2_startup, p2_first_active, p2_last_active, p2_advantage, p2_knock_down)};
 }
 
-void expect_frame_data_sequence(const std::vector<FrameDataEvent> &actual,
+void expect_frame_data_sequence(const std::vector<RecordedFrameDataEvent> &actual,
                                 const std::vector<ExpectedFrameData> &expected) {
     ASSERT_EQ(actual.size(), expected.size());
 

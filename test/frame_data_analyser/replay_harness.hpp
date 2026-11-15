@@ -22,45 +22,43 @@
 #include <string>
 #include <vector>
 
+#include "events.hpp"
 #include "frame_data_analyser.hpp"
 
-struct FrameDataEvent {
+struct RecordedFrameDataEvent {
     uint32_t game_frame;
     FrameDataPoint data;
 };
 
-struct DistanceEvent {
+struct RecordedDistanceEvent {
     uint32_t game_frame;
     float distance;
 };
 
-struct StatusEvent {
+struct RecordedStatusEvent {
     uint32_t game_frame;
     PlayerState status;
 };
 
-class ReplayHarness : public EventListener {
+class ReplayHarness {
 public:
     bool replay(const std::string &path);
 
     [[nodiscard]] uint64_t frame_count() const;
-    [[nodiscard]] const std::vector<FrameDataEvent> &frame_data_events() const;
-    [[nodiscard]] const std::vector<DistanceEvent> &distance_events() const;
-    [[nodiscard]] const std::vector<StatusEvent> &status_events() const;
+    [[nodiscard]] const std::vector<RecordedFrameDataEvent> &frame_data_events() const;
+    [[nodiscard]] const std::vector<RecordedDistanceEvent> &distance_events() const;
+    [[nodiscard]] const std::vector<RecordedStatusEvent> &status_events() const;
 
-    void frame_data(const FrameDataPoint &data) override;
-    void damage_dealt(uint32_t damage, PlayerSide side) override;
-    void distance(float distance) override;
-    void status(PlayerState status) override;
-    void input(InputState input) override;
-    void game_hooked() override;
+    void on_event(const FrameDataEvent &event);
+    void on_event(const DistanceEvent &event);
+    void on_event(const StatusEvent &event);
 
 private:
     uint32_t m_game_frame = 0;
     uint64_t m_frame_count = 0;
-    std::vector<FrameDataEvent> m_frame_data_events;
-    std::vector<DistanceEvent> m_distance_events;
-    std::vector<StatusEvent> m_status_events;
+    std::vector<RecordedFrameDataEvent> m_frame_data_events;
+    std::vector<RecordedDistanceEvent> m_distance_events;
+    std::vector<RecordedStatusEvent> m_status_events;
 };
 
 #endif

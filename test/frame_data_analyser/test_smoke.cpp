@@ -30,7 +30,7 @@ TEST(frame_data_analyser, replay_metadata) {
     ASSERT_EQ(harness.status_events().size(), 169U);
     ASSERT_EQ(harness.frame_data_events().size(), 1U);
 
-    const FrameDataEvent &event = harness.frame_data_events().front();
+    const RecordedFrameDataEvent &event = harness.frame_data_events().front();
     EXPECT_EQ(event.game_frame, 272929U);
     EXPECT_EQ(event.data.player_side, PlayerSide::LEFT);
     EXPECT_NEAR(harness.distance_events().front().distance, 1.84F, 0.01F);

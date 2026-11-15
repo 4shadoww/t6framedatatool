@@ -20,6 +20,8 @@
 
 #include <chrono>
 
+#include "event_bus.hpp"
+#include "events.hpp"
 #include "frame_data_defs.hpp"
 
 struct FrameDataModel {
@@ -32,7 +34,31 @@ struct FrameDataModel {
 
 class FrameDataViewModel {
 public:
+    FrameDataViewModel() noexcept {
+        EventBus::subscribe<FrameDataEvent>(this);
+        EventBus::subscribe<DamageDealtEvent>(this);
+        EventBus::subscribe<DistanceEvent>(this);
+        EventBus::subscribe<StatusEvent>(this);
+        EventBus::subscribe<GameHookedEvent>(this);
+    }
+
     // Event receiver
+    void on_event(const FrameDataEvent &event) {
+        on_frame_data(event.data);
+    }
+    void on_event(const DamageDealtEvent &event) {
+        on_damage_dealt(event.damage, event.side);
+    }
+    void on_event(const DistanceEvent &event) {
+        on_distance(event.distance);
+    }
+    void on_event(const StatusEvent &event) {
+        on_player_status(event.status);
+    }
+    void on_event(const GameHookedEvent & /*event*/) {
+        on_game_hooked(true);
+    }
+
     void on_frame_data(const FrameDataPoint &frame_data);
     void on_damage_dealt(uint32_t damage, PlayerSide side);
     void on_distance(const float distance);
@@ -55,7 +81,7 @@ public:
     }
 
 private:
-    FrameDataModel m_model;
+    FrameDataModel m_model{};
 };
 
 #endif

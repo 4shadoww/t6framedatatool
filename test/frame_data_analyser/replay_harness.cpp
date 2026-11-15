@@ -17,7 +17,9 @@
 
 #include "replay_harness.hpp"
 
+#include "event_bus.hpp"
 #include "frame_dump_reader.hpp"
+
 
 bool ReplayHarness::replay(const std::string &path) {
     FrameDumpReader reader;
@@ -31,7 +33,13 @@ bool ReplayHarness::replay(const std::string &path) {
     m_distance_events.clear();
     m_status_events.clear();
 
-    FrameDataAnalyser::reset(this);
+    EventBus::clear<FrameDataEvent>();
+    EventBus::clear<DistanceEvent>();
+    EventBus::clear<StatusEvent>();
+    EventBus::subscribe<FrameDataEvent>(this);
+    EventBus::subscribe<DistanceEvent>(this);
+    EventBus::subscribe<StatusEvent>(this);
+    FrameDataAnalyser::reset();
 
     FrameDumpRecord record{};
     while (reader.read(record)) {
@@ -51,38 +59,26 @@ uint64_t ReplayHarness::frame_count() const {
     return m_frame_count;
 }
 
-const std::vector<FrameDataEvent> &ReplayHarness::frame_data_events() const {
+const std::vector<RecordedFrameDataEvent> &ReplayHarness::frame_data_events() const {
     return m_frame_data_events;
 }
 
-const std::vector<DistanceEvent> &ReplayHarness::distance_events() const {
+const std::vector<RecordedDistanceEvent> &ReplayHarness::distance_events() const {
     return m_distance_events;
 }
 
-const std::vector<StatusEvent> &ReplayHarness::status_events() const {
+const std::vector<RecordedStatusEvent> &ReplayHarness::status_events() const {
     return m_status_events;
 }
 
-void ReplayHarness::frame_data(const FrameDataPoint &data) {
-    m_frame_data_events.push_back({.game_frame = m_game_frame, .data = data});
+void ReplayHarness::on_event(const FrameDataEvent &event) {
+    m_frame_data_events.push_back({.game_frame = m_game_frame, .data = event.data});
 }
 
-void ReplayHarness::damage_dealt(const uint32_t /*damage*/, const PlayerSide /*side*/) {
-    // NOP
+void ReplayHarness::on_event(const DistanceEvent &event) {
+    m_distance_events.push_back({.game_frame = m_game_frame, .distance = event.distance});
 }
 
-void ReplayHarness::distance(const float distance) {
-    m_distance_events.push_back({.game_frame = m_game_frame, .distance = distance});
-}
-
-void ReplayHarness::status(const PlayerState status) {
-    m_status_events.push_back({.game_frame = m_game_frame, .status = status});
-}
-
-void ReplayHarness::input(const InputState /*input*/) {
-    // NOP
-}
-
-void ReplayHarness::game_hooked() {
-    // NOP
+void ReplayHarness::on_event(const StatusEvent &event) {
+    m_status_events.push_back({.game_frame = m_game_frame, .status = event.status});
 }

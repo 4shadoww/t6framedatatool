@@ -10,6 +10,7 @@ endif()
 
 add_library(${TARGET} ${COMMON_LIB_TYPE} ${SRCS})
 target_link_libraries(${TARGET}
+    PUBLIC dispatcher
     PRIVATE utils
     PRIVATE memoryreader
 )

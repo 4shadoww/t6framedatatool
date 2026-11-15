@@ -18,6 +18,7 @@
 #include <iostream>
 
 #include "arg_parser.hpp"
+#include "event_bus.hpp"
 #include "logging.h"
 
 #include "frame_data_analyser.hpp"
@@ -26,48 +27,26 @@
 
 namespace {
 
-class Listener : public EventListener {
+class Listener {
 public:
-    void frame_data(const FrameDataPoint &frame_data) override;
-    void damage_dealt(uint32_t /*damage*/, PlayerSide /*side*/) override;
-    void distance(float /*distance*/) override;
-    void status(PlayerState /*status*/) override;
-    void input(InputState /*input*/) override;
-    void game_hooked() override;
+    Listener() {
+        EventBus::subscribe<FrameDataEvent>(this);
+    }
+
+    static void on_event(const FrameDataEvent &event) {
+        const PlayerFrameData &p1 = event.data.p1;
+        const PlayerFrameData &p2 = event.data.p2;
+
+        std::cout << "player side: " << (event.data.player_side == PlayerSide::LEFT ? "P1" : "P2") << std::endl
+                  << "P1 startup frames: " << p1.startup_frames << "(" << p1.first_active_frame << "~"
+                  << p1.last_active_frame << ")"
+                  << ", frame advantage: " << p1.frame_advantage << ", KD: " << p1.knock_down << std::endl
+                  << "P2 startup frames: " << p2.startup_frames << "(" << p2.first_active_frame << "~"
+                  << p2.last_active_frame << ")"
+                  << ", frame advantage: " << p2.frame_advantage << ", KD: " << p2.knock_down << std::endl;
+    }
 };
 
-void Listener::frame_data(const FrameDataPoint &frame_data) {
-    const PlayerFrameData &p1 = frame_data.p1;
-    const PlayerFrameData &p2 = frame_data.p2;
-
-    std::cout << "player side: " << (frame_data.player_side == PlayerSide::LEFT ? "P1" : "P2") << std::endl
-              << "P1 startup frames: " << p1.startup_frames << "(" << p1.first_active_frame << "~"
-              << p1.last_active_frame << ")"
-              << ", frame advantage: " << p1.frame_advantage << ", KD: " << p1.knock_down << std::endl
-              << "P2 startup frames: " << p2.startup_frames << "(" << p2.first_active_frame << "~"
-              << p2.last_active_frame << ")"
-              << ", frame advantage: " << p2.frame_advantage << ", KD: " << p2.knock_down << std::endl;
-}
-
-void Listener::damage_dealt(const uint32_t /*damage*/, const PlayerSide /*side*/) {
-    // NOP
-}
-
-void Listener::distance(const float /*distance*/) {
-    // NOP
-}
-
-void Listener::status(const PlayerState /*status*/) {
-    // NOP
-}
-
-void Listener::input(const InputState /*input*/) {
-    // NOP
-}
-
-void Listener::game_hooked() {
-    // NOP
-}
 
 void apply_config(const Configuration &config) {
     log_set_level(config.log_level);
@@ -79,6 +58,7 @@ void apply_config(const Configuration &config) {
     }
 }
 } // namespace
+
 
 int main(const int argc, const char *const *const argv) {
     Configuration config = ArgParser::create_default_config();
@@ -93,8 +73,8 @@ int main(const int argc, const char *const *const argv) {
 
     log_info("%s %s", PROGRAM_NAME, VERSION);
 
-    Listener listener;
-    FrameDataAnalyser::start(&listener);
+    Listener listener; // NOLINT(misc-const-correctness)
+    FrameDataAnalyser::start();
 
     frame_dump_stop();
 

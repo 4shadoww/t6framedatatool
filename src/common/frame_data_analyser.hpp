@@ -20,26 +20,9 @@
 
 #include "ring_buffer.hpp"
 
+#include "events.hpp"
 #include "frame_data_defs.hpp"
 #include "game_state_reader.h"
-
-
-class EventListener {
-public:
-    virtual ~EventListener() = default;
-    EventListener() = default;
-    EventListener(const EventListener &) = default;
-    EventListener(EventListener &&) = default;
-    EventListener &operator=(const EventListener &) = default;
-    EventListener &operator=(EventListener &&) = default;
-
-    virtual void frame_data(const FrameDataPoint &frame_data) = 0;
-    virtual void damage_dealt(uint32_t damage, PlayerSide side) = 0;
-    virtual void distance(float distance) = 0;
-    virtual void status(PlayerState status) = 0;
-    virtual void input(InputState input) = 0;
-    virtual void game_hooked() = 0;
-};
 
 class FrameDataAnalyser {
 public:
@@ -53,10 +36,8 @@ public:
 
     /**
      * Hook-up to game's memory and start analysing frames
-     *
-     * @param callback callback pointer
      */
-    static bool start(EventListener *listener);
+    static bool start();
     /**
      * Stop the analyser loop
      */
@@ -64,11 +45,9 @@ public:
     static bool should_stop();
 
     /**
-     * Reset analysis state and attach a listener for replay
-     *
-     * @param listener event listener
+     * Reset analysis state for replay
      */
-    static void reset(EventListener *listener);
+    static void reset();
     /**
      * Push and analyse a frame
      *
@@ -89,16 +68,15 @@ public:
 private:
     static volatile bool m_stop;
     static RingBuffer<GameFrame> m_frame_buffer;
-    static EventListener *m_listener;
-    static int m_last_player_intent;
     static bool m_logging;
+    static int m_last_player_intent;
     static PlayerSide m_player_side;
 
     // Analysis state
     static AttackChain m_p1_chain;
     static AttackChain m_p2_chain;
 
-    static bool init(EventListener *listener);
+    static bool init();
     static bool loop();
 
     inline static void log_frame();

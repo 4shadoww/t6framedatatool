@@ -41,11 +41,11 @@ ExpectedFrameData event(int p1_startup,
                         int p2_advantage,
                         bool p2_knock_down);
 
-void expect_frame_data_sequence(const std::vector<FrameDataEvent> &actual,
+void expect_frame_data_sequence(const std::vector<RecordedFrameDataEvent> &actual,
                                 const std::vector<ExpectedFrameData> &expected);
 
 template<typename... T>
-void expect_frame_data_events(const std::vector<FrameDataEvent> &actual, const T &...events) {
+void expect_frame_data_events(const std::vector<RecordedFrameDataEvent> &actual, const T &...events) {
     static_assert((std::is_same_v<std::decay_t<T>, ExpectedFrameData> && ...),
                   "expected events must be ExpectedFrameData");
     expect_frame_data_sequence(actual, {events...});
