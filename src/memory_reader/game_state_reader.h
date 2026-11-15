@@ -40,6 +40,8 @@ struct PlayerFrame {
     int32_t state;
     struct PlayerCoordinate position;
     int32_t attack_seq;
+    // Cumulative damage dealt during a throw
+    uint32_t throw_damage;
     // Current move, kept until the next move becomes current
     struct {
         uint32_t first_active_frame;

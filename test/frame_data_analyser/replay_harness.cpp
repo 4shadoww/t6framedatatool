@@ -67,6 +67,10 @@ void ReplayHarness::frame_data(const FrameDataPoint &data) {
     m_frame_data_events.push_back({.game_frame = m_game_frame, .data = data});
 }
 
+void ReplayHarness::damage_dealt(const uint32_t /*damage*/, const PlayerSide /*side*/) {
+    // NOP
+}
+
 void ReplayHarness::distance(const float distance) {
     m_distance_events.push_back({.game_frame = m_game_frame, .distance = distance});
 }

@@ -73,6 +73,7 @@ void FrameDataAnalyser::log_frame() {
            << "P1 move index: " << state->p1.move.index << std::endl
            << "P1 hit level: " << state->p1.move.hit_level << std::endl
            << "P1 damage: " << state->p1.move.damage << std::endl
+           << "P1 throw damage: " << state->p1.throw_damage << std::endl
            << "P1 move start: " << state->p1.move.start_frame << std::endl
            << "P1 idle starting_frame: " << state->p1.move.cancel_startup << std::endl
            << "P1 string next: " << state->p1.move.string_next << std::endl
@@ -90,6 +91,7 @@ void FrameDataAnalyser::log_frame() {
            << "P2 move index: " << state->p2.move.index << std::endl
            << "P2 hit level: " << state->p2.move.hit_level << std::endl
            << "P2 damage: " << state->p2.move.damage << std::endl
+           << "P2 throw damage: " << state->p2.throw_damage << std::endl
            << "P2 move start: " << state->p2.move.start_frame << std::endl
            << "P2 idle starting_frame: " << state->p2.move.cancel_startup << std::endl
            << "P2 string next: " << state->p2.move.string_next << std::endl
@@ -184,6 +186,12 @@ bool FrameDataAnalyser::is_knockdown(const PlayerFrame *const player_frame) {
     }
 }
 
+bool FrameDataAnalyser::is_throw_move(const PlayerFrame *const player_frame) {
+    constexpr uint32_t THROW_HITLEVEL_FLAG = 0x00400000;
+    return (player_frame->move.hitlevel & THROW_HITLEVEL_FLAG) != 0 ||
+           player_frame->move.hit_level == static_cast<uint32_t>(HitLevel::THROW);
+}
+
 // Updates the chain when a move became current on this frame.
 // A move is chained when it was entered from an attack that had not reached
 // its idle cancel yet, or through an automatic string cancel.
@@ -200,7 +208,9 @@ void FrameDataAnalyser::track_chain(const PlayerFrame *const previous,
     const bool cancelled = previous_attack && (game_frame - previous->move.start_frame) < previous->move.cancel_startup;
     const bool chained = chain->start_frame != 0 && (auto_string || cancelled);
 
-    report_replaced_string(previous, current, chain, auto_string);
+    if (!is_throw_move(current)) {
+        report_replaced_string(previous, current, chain, auto_string);
+    }
 
     if (!chained || left_before_hitbox(previous, current, chain, auto_string, game_frame)) {
         if (current->move.hitlevel == 0) {
@@ -241,6 +251,22 @@ void FrameDataAnalyser::track_chains() {
 
     track_chain(&previous->p1, &current->p1, &m_p1_chain, current->game_frame);
     track_chain(&previous->p2, &current->p2, &m_p2_chain, current->game_frame);
+}
+
+void FrameDataAnalyser::report_throw_connection(const PlayerFrame *const attacker,
+                                                AttackChain *const chain,
+                                                const bool p2) {
+    if (!is_throw_move(attacker) || chain->reported || chain->first_connection == 0) {
+        return;
+    }
+
+    report_chain(chain, p2, attacker->move.cancel_startup);
+}
+
+void FrameDataAnalyser::report_throw_connections() {
+    const GameFrame *const current = m_frame_buffer.head();
+    report_throw_connection(&current->p1, &m_p1_chain, false);
+    report_throw_connection(&current->p2, &m_p2_chain, true);
 }
 
 bool FrameDataAnalyser::new_connection(const PlayerFrame *const previous, const PlayerFrame *const current) {
@@ -328,10 +354,13 @@ void FrameDataAnalyser::calculate_connection(const GameFrame *const previous,
     AttackChain *const chain = p2 ? &m_p2_chain : &m_p1_chain;
     const uint32_t frame = current->game_frame;
 
-    // A cancel fired on the hit frame, the connecting move is the previous one
-    if (attacker->move.start_frame == frame) {
+    // A cancel fired on the hit frame, the connecting move is the previous one.
+    // A throw connects on its start frame, so keep the current move.
+    const bool current_throw = is_throw_move(attacker);
+    if (!current_throw && attacker->move.start_frame == frame) {
         attacker = p2 ? &previous->p2 : &previous->p1;
     }
+    const bool throw_move = is_throw_move(attacker);
 
     if (m_logging) {
         log_info("MARK CONNECTION P%d: %u", p2 ? 2 : 1, frame);
@@ -342,7 +371,8 @@ void FrameDataAnalyser::calculate_connection(const GameFrame *const previous,
         return;
     }
 
-    if (defender->move.index < 0) {
+    // Throws have no normal defender move
+    if (!throw_move && defender->move.index < 0) {
         log_debug("connection without defender move");
         return;
     }
@@ -350,9 +380,18 @@ void FrameDataAnalyser::calculate_connection(const GameFrame *const previous,
     if (chain->first_connection == 0) {
         chain->first_connection = frame;
     }
+
     chain->defender_free = defender->move.start_frame + defender->move.cancel_startup;
     chain->knock_down = is_knockdown(defender);
     chain->reported = false;
+
+    // Throw damage is cumulative, report it after the chain is updated
+    if (throw_move) {
+        if (attacker->throw_damage != 0) {
+            chain->damage = attacker->throw_damage;
+        }
+        return;
+    }
 
     const uint32_t damage = p2 ? current->p2.move.damage : current->p1.move.damage;
     if (damage != 0) {
@@ -405,6 +444,26 @@ void FrameDataAnalyser::handle_connection() {
     if (new_connection(&previous->p2, &current->p2)) {
         calculate_connection(previous, current, true);
     }
+}
+
+void FrameDataAnalyser::update_throw_damage(const PlayerFrame *const attacker, AttackChain *const chain) {
+    if (!is_throw_move(attacker) || !chain->reported) {
+        return;
+    }
+
+    const uint32_t previous = chain->damage;
+    if (attacker->throw_damage != 0) {
+        chain->damage = attacker->throw_damage;
+    }
+    if (chain->damage != previous) {
+        m_listener->damage_dealt(chain->damage, chain == &m_p2_chain ? PlayerSide::RIGHT : PlayerSide::LEFT);
+    }
+}
+
+void FrameDataAnalyser::update_throw_damages() {
+    const GameFrame *const current = m_frame_buffer.head();
+    update_throw_damage(&current->p1, &m_p1_chain);
+    update_throw_damage(&current->p2, &m_p2_chain);
 }
 
 float FrameDataAnalyser::calculate_distance(const GameFrame *const state) {
@@ -490,7 +549,9 @@ bool FrameDataAnalyser::process_frame(GameFrame state) {
     m_frame_buffer.push(state);
 
     handle_connection();
+    update_throw_damages();
     track_chains();
+    report_throw_connections();
     handle_whiffs();
     handle_distance();
     handle_status();

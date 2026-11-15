@@ -1010,6 +1010,13 @@ int read_game_state(struct GameFrame *state) {
     }
     state->p1.move.damage = (uint32_t) value;
 
+    result = read_4bytes(P1_CUMULATIVE_DAMAGE_DEALT, &value);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p1 cumulative damage");
+        return READ_ERROR;
+    }
+    state->p1.throw_damage = (uint32_t) value;
+
     result = p2_frames_last_action(&value);
     if (result == READ_ERROR) {
         log_debug("readed invalid p2 last action frames");
@@ -1081,6 +1088,13 @@ int read_game_state(struct GameFrame *state) {
         return READ_ERROR;
     }
     state->p2.move.damage = (uint32_t) value;
+
+    result = read_4bytes(P2_CUMULATIVE_DAMAGE_DEALT, &value);
+    if (result == READ_ERROR) {
+        log_debug("readed invalid p2 cumulative damage");
+        return READ_ERROR;
+    }
+    state->p2.throw_damage = (uint32_t) value;
 
     return 0;
 }

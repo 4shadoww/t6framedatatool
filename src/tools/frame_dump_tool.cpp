@@ -62,6 +62,7 @@ void print_player(const char *const name, const PlayerFrame &player) {
               << "    hitlevel: " << player.move.hitlevel << '\n'
               << "    hit level: " << player.move.hit_level << '\n'
               << "    damage: " << player.move.damage << '\n'
+              << "    throw damage: " << player.throw_damage << '\n'
               << "    anim_addr: " << player.move.anim_addr << '\n';
 }
 

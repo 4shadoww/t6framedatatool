@@ -33,6 +33,7 @@ enum class HitLevel : uint8_t {
     SPECIAL_MID = 3,
     SPECIAL_LOW = 4,
     HIGH = 5,
+    THROW = 10,
 };
 
 enum class InputDirection : uint8_t {

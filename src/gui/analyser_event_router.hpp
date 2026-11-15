@@ -30,6 +30,7 @@ public:
         , m_command_history(command_history) {}
 
     void frame_data(const FrameDataPoint &frame_data) override;
+    void damage_dealt(uint32_t damage, PlayerSide side) override;
     void distance(const float distance) override;
     void status(const PlayerState state) override;
     void input(const InputState input) override;

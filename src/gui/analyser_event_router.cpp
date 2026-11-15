@@ -22,6 +22,10 @@ void AnalyserEventRouter::frame_data(const FrameDataPoint &frame_data) {
     m_frame_data->on_frame_data(frame_data);
 }
 
+void AnalyserEventRouter::damage_dealt(const uint32_t damage, const PlayerSide side) {
+    m_frame_data->on_damage_dealt(damage, side);
+}
+
 void AnalyserEventRouter::distance(const float distance) {
     m_frame_data->on_distance(distance);
 }

@@ -36,6 +36,15 @@ void FrameDataViewModel::on_frame_data(const FrameDataPoint &frame_data) {
              local.frame_advantage,
              local.knock_down);
 }
+void FrameDataViewModel::on_damage_dealt(const uint32_t damage, const PlayerSide side) {
+    m_model.last_update = std::chrono::steady_clock::now().time_since_epoch().count();
+    if (side == PlayerSide::LEFT) {
+        m_model.frame_data.p1.damage = damage;
+    } else {
+        m_model.frame_data.p2.damage = damage;
+    }
+}
+
 void FrameDataViewModel::on_distance(const float distance) {
     m_model.distance = distance;
 }

@@ -34,6 +34,7 @@ public:
     EventListener &operator=(EventListener &&) = default;
 
     virtual void frame_data(const FrameDataPoint &frame_data) = 0;
+    virtual void damage_dealt(uint32_t damage, PlayerSide side) = 0;
     virtual void distance(float distance) = 0;
     virtual void status(PlayerState status) = 0;
     virtual void input(InputState input) = 0;
@@ -105,11 +106,14 @@ private:
     static bool update_game_state();
     static void handle_input(const uint32_t game_frame);
     inline static bool is_knockdown(const PlayerFrame *const player_frame);
+    inline static bool is_throw_move(const PlayerFrame *const player_frame);
     static void track_chain(const PlayerFrame *const previous,
                             const PlayerFrame *const current,
                             AttackChain *const chain,
                             const uint32_t game_frame);
     static void track_chains();
+    static void report_throw_connection(const PlayerFrame *const attacker, AttackChain *const chain, const bool p2);
+    static void report_throw_connections();
     static bool new_connection(const PlayerFrame *const previous, const PlayerFrame *const current);
     static bool left_before_hitbox(const PlayerFrame *const previous,
                                    const PlayerFrame *const current,
@@ -122,6 +126,8 @@ private:
                                        const bool auto_string);
     static void report_chain(AttackChain *const chain, const bool p2, const uint32_t recovery);
     static void calculate_connection(const GameFrame *const previous, const GameFrame *const current, const bool p2);
+    static void update_throw_damage(const PlayerFrame *const attacker, AttackChain *const chain);
+    static void update_throw_damages();
     static void handle_connection();
     static void handle_whiff(const PlayerFrame *const attacker, AttackChain *const chain, const bool p2);
     static void handle_whiffs();

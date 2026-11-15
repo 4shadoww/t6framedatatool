@@ -20,6 +20,7 @@
 #include <imgui.h> // NOLINT
 
 #include "frame_data_analyser.hpp"
+#include "frame_data_defs.hpp"
 #include "gui_constants.hpp"
 #include "logging.h"
 
@@ -42,6 +43,7 @@ struct HitLevelStyle {
 HitLevelStyle hit_level_style(const HitLevel level) {
     switch (level) {
     case HitLevel::HIGH:
+    case HitLevel::THROW:
         return {.name = "High", .color = ImVec4(1.0F, 0.30F, 0.30F, 1.0F)};
     case HitLevel::MID:
         return {.name = "Mid", .color = ImVec4(1.0F, 0.85F, 0.25F, 1.0F)};

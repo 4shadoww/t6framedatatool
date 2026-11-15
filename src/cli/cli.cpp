@@ -29,6 +29,7 @@ namespace {
 class Listener : public EventListener {
 public:
     void frame_data(const FrameDataPoint &frame_data) override;
+    void damage_dealt(uint32_t /*damage*/, PlayerSide /*side*/) override;
     void distance(float /*distance*/) override;
     void status(PlayerState /*status*/) override;
     void input(InputState /*input*/) override;
@@ -46,6 +47,10 @@ void Listener::frame_data(const FrameDataPoint &frame_data) {
               << "P2 startup frames: " << p2.startup_frames << "(" << p2.first_active_frame << "~"
               << p2.last_active_frame << ")"
               << ", frame advantage: " << p2.frame_advantage << ", KD: " << p2.knock_down << std::endl;
+}
+
+void Listener::damage_dealt(const uint32_t /*damage*/, const PlayerSide /*side*/) {
+    // NOP
 }
 
 void Listener::distance(const float /*distance*/) {

@@ -34,6 +34,7 @@ class FrameDataViewModel {
 public:
     // Event receiver
     void on_frame_data(const FrameDataPoint &frame_data);
+    void on_damage_dealt(uint32_t damage, PlayerSide side);
     void on_distance(const float distance);
     void on_player_status(const PlayerState state);
     void on_game_hooked(const bool hooked);
