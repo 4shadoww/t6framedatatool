@@ -93,7 +93,7 @@ void setup_style() {
 
 void draw_overlay() {
     const ImVec2 canvas = OverlayCanvas::size();
-    FrameDataPanel::draw(canvas, view_models.frame_data);
+    FrameDataView::draw(canvas, view_models.frame_data);
     CommandHistoryView::draw(canvas, view_models.command_history);
 }
 

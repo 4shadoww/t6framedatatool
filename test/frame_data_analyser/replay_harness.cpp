@@ -80,5 +80,5 @@ void ReplayHarness::on_event(const DistanceEvent &event) {
 }
 
 void ReplayHarness::on_event(const StatusEvent &event) {
-    m_status_events.push_back({.game_frame = m_game_frame, .status = event.status});
+    m_status_events.push_back({.game_frame = m_game_frame, .p1 = event.p1, .p2 = event.p2});
 }

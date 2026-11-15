@@ -29,10 +29,9 @@ namespace {
 constexpr float LABEL_COLUMN_WIDTH = ui::em(10.0F);
 constexpr ImVec4 POSITIVE_COLOR = ImVec4(0.35F, 1.0F, 0.55F, 1.0F);
 constexpr ImVec4 NEGATIVE_COLOR = ImVec4(1.0F, 0.35F, 0.35F, 1.0F);
-constexpr ImVec4 KNOCKDOWN_COLOR = ImVec4(1.0F, 0.75F, 0.25F, 1.0F);
 
-const PlayerFrameData &local_player_data(const FrameDataPoint &data) {
-    return data.player_side == PlayerSide::LEFT ? data.p1 : data.p2;
+const PlayerFrameData &player_data(const FrameDataPoint &data, const PlayerSide side) {
+    return side == PlayerSide::LEFT ? data.p1 : data.p2;
 }
 
 struct HitLevelStyle {
@@ -45,6 +44,8 @@ HitLevelStyle hit_level_style(const HitLevel level) {
     case HitLevel::HIGH:
     case HitLevel::THROW:
         return {.name = "High", .color = ImVec4(1.0F, 0.30F, 0.30F, 1.0F)};
+    case HitLevel::UNBLOCKABLE_HIGH:
+        return {.name = "Unblockable High", .color = ImVec4(1.0F, 0.30F, 0.30F, 1.0F)};
     case HitLevel::MID:
         return {.name = "Mid", .color = ImVec4(1.0F, 0.85F, 0.25F, 1.0F)};
     case HitLevel::LOW:
@@ -94,7 +95,7 @@ void draw_no_game() {
     ImGui::PopFont();
 }
 
-void draw_no_frame_data(const FrameDataViewModel &viewModel) {
+void draw_no_frame_data(const FrameDataViewModel &viewModel, const PlayerSide side) {
     ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
 
     draw_label("Startup Frames");
@@ -110,7 +111,7 @@ void draw_no_frame_data(const FrameDataViewModel &viewModel) {
     ImGui::TextUnformatted("---");
 
     draw_label("Status");
-    ImGui::TextUnformatted(FrameDataAnalyser::player_status(viewModel.get_player_state()));
+    ImGui::TextUnformatted(FrameDataAnalyser::player_status(viewModel.get_player_state(side)));
 
     draw_label("Distance");
     ImGui::Text("%.2f", viewModel.get_distance());
@@ -118,12 +119,12 @@ void draw_no_frame_data(const FrameDataViewModel &viewModel) {
     ImGui::PopFont();
 }
 
-void draw_frame_data(const FrameDataViewModel &viewModel) {
+void draw_frame_data(const FrameDataViewModel &viewModel, const PlayerSide side) {
     ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
 
     const FrameDataPoint frame_data_point = viewModel.get_frame_data();
-    const PlayerFrameData &data = local_player_data(frame_data_point);
-    const bool knock_down = frame_data_point.p1.knock_down || frame_data_point.p2.knock_down;
+    const PlayerFrameData &data = player_data(frame_data_point, side);
+    const bool knock_down = data.knock_down;
 
     draw_label("Startup Frames");
     ImGui::Text("%d (%u~%u)", data.startup_frames, data.first_active_frame, data.last_active_frame);
@@ -137,13 +138,13 @@ void draw_frame_data(const FrameDataViewModel &viewModel) {
 
     draw_label("Frame Advantage");
     if (knock_down) {
-        ImGui::TextColored(KNOCKDOWN_COLOR, "KD");
+        ImGui::TextColored(data.is_attacker ? POSITIVE_COLOR : NEGATIVE_COLOR, "KD");
     } else {
         draw_advantage(data.frame_advantage);
     }
 
     draw_label("Status");
-    ImGui::TextUnformatted(FrameDataAnalyser::player_status(viewModel.get_player_state()));
+    ImGui::TextUnformatted(FrameDataAnalyser::player_status(viewModel.get_player_state(side)));
 
     draw_label("Distance");
     ImGui::Text("%.2f", viewModel.get_distance());
@@ -153,31 +154,36 @@ void draw_frame_data(const FrameDataViewModel &viewModel) {
 
 } // namespace
 
-RelativePanel FrameDataPanel::panel(const ImVec2 /*canvas*/) {
-    constexpr float SIZE_X = ui::em(18.0F);
+RelativePanel FrameDataView::panel(const ImVec2 /*canvas*/, const PlayerSide side) {
+    constexpr float SIZE_X = ui::em(19.0F);
     constexpr float SIZE_Y = ui::em(8.0F);
 
-    constexpr float PADDING_LEFT = ui::em(8.0F);
+    constexpr float PADDING_SIDE = ui::em(8.0F);
     constexpr float PADDING_BOTTOM = ui::em(4.0F);
 
     return {
-        .id = "##frame_data",
-        .horizontal = HorizontalAnchor::LEFT,
+        .id = side == PlayerSide::LEFT ? "##frame_data_p1" : "##frame_data_p2",
+        .horizontal = side == PlayerSide::LEFT ? HorizontalAnchor::LEFT : HorizontalAnchor::RIGHT,
         .vertical = VerticalAnchor::BOTTOM,
-        .offset = {PADDING_LEFT, PADDING_BOTTOM},
+        .offset = {PADDING_SIDE, PADDING_BOTTOM},
         .size = {SIZE_X, SIZE_Y},
     };
 }
 
-void FrameDataPanel::draw(const ImVec2 canvas, const FrameDataViewModel &viewModel) {
-    OverlayCanvas::begin_panel(panel(canvas), canvas);
+void FrameDataView::draw(const ImVec2 canvas, const FrameDataViewModel &viewModel) {
+    draw_panel(canvas, viewModel, PlayerSide::LEFT);
+    draw_panel(canvas, viewModel, PlayerSide::RIGHT);
+}
+
+void FrameDataView::draw_panel(const ImVec2 canvas, const FrameDataViewModel &viewModel, const PlayerSide side) {
+    OverlayCanvas::begin_panel(panel(canvas, side), canvas);
 
     if (!viewModel.is_game_hooked()) {
         draw_no_game();
     } else if (!viewModel.has_frame_data()) {
-        draw_no_frame_data(viewModel);
+        draw_no_frame_data(viewModel, side);
     } else {
-        draw_frame_data(viewModel);
+        draw_frame_data(viewModel, side);
     }
 
     OverlayCanvas::end_panel();

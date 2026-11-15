@@ -48,8 +48,9 @@ void FrameDataViewModel::on_damage_dealt(const uint32_t damage, const PlayerSide
 void FrameDataViewModel::on_distance(const float distance) {
     m_model.distance = distance;
 }
-void FrameDataViewModel::on_player_status(const PlayerState state) {
-    m_model.status = state;
+void FrameDataViewModel::on_player_status(const StatusEvent &status) {
+    m_model.p1_status = status.p1;
+    m_model.p2_status = status.p2;
 }
 void FrameDataViewModel::on_game_hooked(const bool hooked) {
     m_model.game_hooked = hooked;

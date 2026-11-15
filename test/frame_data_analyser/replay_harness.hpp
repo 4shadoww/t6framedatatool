@@ -37,7 +37,8 @@ struct RecordedDistanceEvent {
 
 struct RecordedStatusEvent {
     uint32_t game_frame;
-    PlayerState status;
+    PlayerState p1;
+    PlayerState p2;
 };
 
 class ReplayHarness {

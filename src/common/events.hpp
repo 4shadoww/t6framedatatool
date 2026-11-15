@@ -36,7 +36,8 @@ struct DistanceEvent {
 };
 
 struct StatusEvent {
-    PlayerState status;
+    PlayerState p1;
+    PlayerState p2;
 };
 
 struct InputEvent {

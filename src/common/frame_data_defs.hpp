@@ -33,6 +33,7 @@ enum class HitLevel : uint8_t {
     SPECIAL_MID = 3,
     SPECIAL_LOW = 4,
     HIGH = 5,
+    UNBLOCKABLE_HIGH = 8,
     THROW = 10,
 };
 
@@ -63,6 +64,7 @@ struct PlayerFrameData {
     uint32_t damage;
     int frame_advantage;
     bool knock_down;
+    bool is_attacker;
 };
 
 struct FrameDataPoint {
@@ -94,6 +96,7 @@ struct AttackChain {
 enum class PlayerState : int {
     UNKNOWN = 0,
     STANDING = 6482,
+    STANDING_TRAINING = 6466,
     CROUCH = 538921,
     CROUCHING = 14633,
     MOVE_BACKWARDS = 135250,

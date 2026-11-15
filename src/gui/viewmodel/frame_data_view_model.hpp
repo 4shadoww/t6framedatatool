@@ -27,7 +27,8 @@
 struct FrameDataModel {
     FrameDataPoint frame_data;
     float distance;
-    PlayerState status;
+    PlayerState p1_status;
+    PlayerState p2_status;
     bool game_hooked;
     std::chrono::steady_clock::rep last_update;
 };
@@ -53,7 +54,7 @@ public:
         on_distance(event.distance);
     }
     void on_event(const StatusEvent &event) {
-        on_player_status(event.status);
+        on_player_status(event);
     }
     void on_event(const GameHookedEvent & /*event*/) {
         on_game_hooked(true);
@@ -62,7 +63,7 @@ public:
     void on_frame_data(const FrameDataPoint &frame_data);
     void on_damage_dealt(uint32_t damage, PlayerSide side);
     void on_distance(const float distance);
-    void on_player_status(const PlayerState state);
+    void on_player_status(const StatusEvent &status);
     void on_game_hooked(const bool hooked);
 
     // Accessors for view
@@ -73,8 +74,8 @@ public:
     [[nodiscard]] float get_distance() const {
         return m_model.distance;
     }
-    [[nodiscard]] PlayerState get_player_state() const {
-        return m_model.status;
+    [[nodiscard]] PlayerState get_player_state(const PlayerSide side) const {
+        return side == PlayerSide::LEFT ? m_model.p1_status : m_model.p2_status;
     }
     [[nodiscard]] bool is_game_hooked() const {
         return m_model.game_hooked;

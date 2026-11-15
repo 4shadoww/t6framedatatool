@@ -117,6 +117,7 @@ const char *FrameDataAnalyser::player_status(const PlayerState state) {
 
     switch (state) {
     case PlayerState::STANDING:
+    case PlayerState::STANDING_TRAINING:
     case PlayerState::MOVE_BACKWARDS:
     case PlayerState::MOVE_FORWARDS:
     case PlayerState::DASH_BACKWARDS:
@@ -324,7 +325,8 @@ void FrameDataAnalyser::report_chain(AttackChain *const chain, const bool p2, co
         .hit_level = chain->hit_level,
         .damage = chain->damage,
         .frame_advantage = frame_advantage,
-        .knock_down = false,
+        .knock_down = chain->knock_down,
+        .is_attacker = true,
     };
 
     const struct PlayerFrameData defender = {
@@ -335,6 +337,7 @@ void FrameDataAnalyser::report_chain(AttackChain *const chain, const bool p2, co
         .damage = 0,
         .frame_advantage = -frame_advantage,
         .knock_down = chain->knock_down,
+        .is_attacker = false,
     };
 
     const struct FrameDataPoint data_point = {
@@ -491,8 +494,10 @@ void FrameDataAnalyser::handle_status() {
         return;
     }
 
-    const int32_t state = m_player_side == PlayerSide::LEFT ? current->p1.state : current->p2.state;
-    EventBus::dispatch(StatusEvent{static_cast<PlayerState>(state)});
+    EventBus::dispatch(StatusEvent{
+        .p1 = static_cast<PlayerState>(current->p1.state),
+        .p2 = static_cast<PlayerState>(current->p2.state),
+    });
 }
 
 void FrameDataAnalyser::handle_input(const uint32_t game_frame) {

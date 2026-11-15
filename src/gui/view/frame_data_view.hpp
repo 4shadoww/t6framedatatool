@@ -22,12 +22,13 @@
 #include "viewmodel/frame_data_view_model.hpp"
 
 
-class FrameDataPanel {
+class FrameDataView {
 public:
     static void draw(const ImVec2 canvas, const FrameDataViewModel &viewModel);
 
 private:
-    static RelativePanel panel(const ImVec2 canvas);
+    static void draw_panel(const ImVec2 canvas, const FrameDataViewModel &viewModel, PlayerSide side);
+    static RelativePanel panel(const ImVec2 canvas, PlayerSide side);
 };
 
 #endif
