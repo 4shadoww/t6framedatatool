@@ -139,15 +139,18 @@ const char *FrameDataAnalyser::player_status(const PlayerState state) {
     case PlayerState::SLIDE1:
     case PlayerState::SLIDE2:
     case PlayerState::STAND_SWORD:
+    case PlayerState::DES1_STANDING:
+    case PlayerState::DES2_STANDING:
+    case PlayerState::DES3_STANDING:
         return STANDING;
     case PlayerState::CROUCH:
-    case PlayerState::CROUCH_STANCE:
+    case PlayerState::AOP_CROUCH:
     case PlayerState::SITTING:
         return CROUCH;
     case PlayerState::CROUCHING:
     case PlayerState::CROUCHING_TRAINING:
-    case PlayerState::CROUCHING_STANCE1:
-    case PlayerState::CROUCHING_STANCE2:
+    case PlayerState::AOP_CROUCHING1:
+    case PlayerState::AOP_CROUCHING2:
     case PlayerState::CROUCHING_ATTACK:
     case PlayerState::CROUCHING_BACKWARDS:
     case PlayerState::CROUCHING_FORWARDS:
@@ -241,7 +244,9 @@ void FrameDataAnalyser::track_chain(const PlayerFrame *const previous,
 
     if (current->move.hit_level != 0) {
         chain->hit_level = static_cast<HitLevel>(current->move.hit_level);
-        chain->damage = current->move.damage;
+        if (chain->start_frame == game_frame) {
+            chain->damage = current->move.damage;
+        }
     }
 
     // The animation frame continues only through an automatic string in the same animation
@@ -406,7 +411,7 @@ void FrameDataAnalyser::calculate_connection(const GameFrame *const previous,
 
     const uint32_t damage = p2 ? current->p2.move.damage : current->p1.move.damage;
     if (damage != 0) {
-        chain->damage = damage;
+        chain->damage += damage;
     }
 
     // More hits of an automatic string are scheduled, wait for the finisher
