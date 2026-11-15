@@ -190,7 +190,7 @@ void CommandHistoryView::draw(const ImVec2 canvas, const CommandHistoryViewModel
 
     const CommandHistorySnapshot history = viewModel.snapshot();
     if (history.count == 0) {
-        ImGui::TextDisabled("No input history");
+        ImGui::TextDisabled("No history");
     } else {
         for (std::size_t i = history.count; i-- > 0;) {
             const ImU32 text_color =
