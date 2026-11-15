@@ -154,7 +154,7 @@ void draw_frame_data(const FrameDataViewModel &viewModel) {
 } // namespace
 
 RelativePanel FrameDataPanel::panel(const ImVec2 /*canvas*/) {
-    constexpr float SIZE_X = 400;
+    constexpr float SIZE_X = 450;
     constexpr float SIZE_Y = 200;
 
     constexpr float PADDING_LEFT = 200;
