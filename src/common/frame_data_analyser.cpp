@@ -141,9 +141,13 @@ const char *FrameDataAnalyser::player_status(const PlayerState state) {
     case PlayerState::STAND_SWORD:
         return STANDING;
     case PlayerState::CROUCH:
+    case PlayerState::CROUCH_STANCE:
     case PlayerState::SITTING:
         return CROUCH;
     case PlayerState::CROUCHING:
+    case PlayerState::CROUCHING_TRAINING:
+    case PlayerState::CROUCHING_STANCE1:
+    case PlayerState::CROUCHING_STANCE2:
     case PlayerState::CROUCHING_ATTACK:
     case PlayerState::CROUCHING_BACKWARDS:
     case PlayerState::CROUCHING_FORWARDS:

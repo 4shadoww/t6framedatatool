@@ -48,11 +48,12 @@ HitLevelStyle hit_level_style(const HitLevel level) {
         return {.name = "Unblockable High", .color = ImVec4(1.0F, 0.30F, 0.30F, 1.0F)};
     case HitLevel::MID:
         return {.name = "Mid", .color = ImVec4(1.0F, 0.85F, 0.25F, 1.0F)};
+    case HitLevel::UNBLOCKABLE_MID:
+        return {.name = "Unblockable Mid", .color = ImVec4(1.0F, 0.85F, 0.25F, 1.0F)};
     case HitLevel::LOW:
         return {.name = "Low", .color = ImVec4(0.35F, 0.65F, 1.0F, 1.0F)};
-    case HitLevel::SPECIAL_LOW:
-        return {.name = "Special Low", .color = ImVec4(1.0F, 0.55F, 0.20F, 1.0F)};
-    case HitLevel::SPECIAL_MID:
+    case HitLevel::SPECIAL_MID1:
+    case HitLevel::SPECIAL_MID2:
         return {.name = "Special Mid", .color = ImVec4(0.35F, 0.90F, 0.90F, 1.0F)};
     default:
         log_warn("unknown hit level %d", level);
