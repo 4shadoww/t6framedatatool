@@ -26,7 +26,7 @@
 
 namespace {
 
-constexpr float LABEL_COLUMN_WIDTH = 250.0F;
+constexpr float LABEL_COLUMN_WIDTH = ui::em(10.0F);
 constexpr ImVec4 POSITIVE_COLOR = ImVec4(0.35F, 1.0F, 0.55F, 1.0F);
 constexpr ImVec4 NEGATIVE_COLOR = ImVec4(1.0F, 0.35F, 0.35F, 1.0F);
 constexpr ImVec4 KNOCKDOWN_COLOR = ImVec4(1.0F, 0.75F, 0.25F, 1.0F);
@@ -154,11 +154,11 @@ void draw_frame_data(const FrameDataViewModel &viewModel) {
 } // namespace
 
 RelativePanel FrameDataPanel::panel(const ImVec2 /*canvas*/) {
-    constexpr float SIZE_X = 450;
-    constexpr float SIZE_Y = 200;
+    constexpr float SIZE_X = ui::em(18.0F);
+    constexpr float SIZE_Y = ui::em(8.0F);
 
-    constexpr float PADDING_LEFT = 200;
-    constexpr float PADDING_BOTTOM = 100;
+    constexpr float PADDING_LEFT = ui::em(8.0F);
+    constexpr float PADDING_BOTTOM = ui::em(4.0F);
 
     return {
         .id = "##frame_data",

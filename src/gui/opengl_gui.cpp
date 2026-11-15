@@ -70,16 +70,16 @@ void setup_style() {
     ImGui::StyleColorsDark();
 
     ImGuiStyle &style = ImGui::GetStyle();
-    style.WindowRounding = 8.0F;
-    style.FrameRounding = 6.0F;
-    style.ChildRounding = 6.0F;
-    style.PopupRounding = 6.0F;
-    style.ScrollbarRounding = 6.0F;
-    style.GrabRounding = 6.0F;
-    style.WindowPadding = ImVec2(12.0F, 10.0F);
-    style.FramePadding = ImVec2(8.0F, 5.0F);
-    style.ItemSpacing = ImVec2(8.0F, 6.0F);
-    style.WindowBorderSize = 1.0F;
+    style.WindowRounding = ui::em(0.32F);
+    style.FrameRounding = ui::em(0.24F);
+    style.ChildRounding = ui::em(0.24F);
+    style.PopupRounding = ui::em(0.24F);
+    style.ScrollbarRounding = ui::em(0.24F);
+    style.GrabRounding = ui::em(0.24F);
+    style.WindowPadding = ui::em(0.48F, 0.40F);
+    style.FramePadding = ui::em(0.32F, 0.20F);
+    style.ItemSpacing = ui::em(0.32F, 0.24F);
+    style.WindowBorderSize = ui::hairline();
 
     ImVec4 *const colors = style.Colors;
     colors[ImGuiCol_WindowBg] = ImVec4(0.02F, 0.02F, 0.02F, 0.92F);

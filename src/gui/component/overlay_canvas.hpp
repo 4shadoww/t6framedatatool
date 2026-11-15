@@ -18,9 +18,28 @@
 #ifndef OVERLAY_CANVAS_HPP
 #define OVERLAY_CANVAS_HPP
 
+#include <algorithm>
 #include <cstdint>
 
 #include <imgui.h> // NOLINT
+
+#include "gui_constants.hpp"
+
+namespace ui {
+
+constexpr float em(const float value) {
+    return OVERLAY_FONT_SIZE * value;
+}
+
+inline ImVec2 em(const float x, const float y) {
+    return {em(x), em(y)};
+}
+
+constexpr float hairline() {
+    return std::max(1.0F, em(0.04F));
+}
+
+} // namespace ui
 
 enum class HorizontalAnchor : uint8_t {
     LEFT,
@@ -39,7 +58,7 @@ struct OverlayPanel {
     ImVec2 size;
     ImVec2 position;
     float background_alpha = 0.92F;
-    float border_size = 1.0F;
+    float border_size = ui::hairline();
 };
 
 struct RelativePanel {
@@ -49,7 +68,7 @@ struct RelativePanel {
     ImVec2 offset;
     ImVec2 size;
     float background_alpha = 0.92F;
-    float border_size = 1.0F;
+    float border_size = ui::hairline();
 };
 
 class OverlayCanvas {

@@ -19,11 +19,11 @@
 #define GUI_CONSTANTS_HPP
 
 #define WINDOW_NAME "T6FDTOOL"
-#define MAX_WIDTH 400
-#define MAX_HEIGTH 300
 #define ANALYSER_START_INTERVAL 1
 
 constexpr float OVERLAY_FONT_SIZE = 25.0F;
+constexpr int MAX_WIDTH = static_cast<int>(OVERLAY_FONT_SIZE * 16.0F);
+constexpr int MAX_HEIGTH = static_cast<int>(OVERLAY_FONT_SIZE * 12.0F);
 
 // RPSC3 Window properties
 #define RPSC3_CLASS "rpcs3"

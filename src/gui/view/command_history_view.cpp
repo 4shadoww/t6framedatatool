@@ -119,8 +119,8 @@ void draw_buttons(ImDrawList *const draw_list,
             draw_list->AddCircleFilled(center, radius + outline, IM_COL32(0, 0, 0, 255));
             draw_list->AddCircleFilled(center, radius, BUTTON_COLORS.at(i));
         } else {
-            draw_list->AddCircle(center, radius, IM_COL32(0, 0, 0, 80), 0, 1.0F);
-            draw_list->AddCircle(center, radius, IM_COL32(170, 170, 170, 180), 0, 1.0F);
+            draw_list->AddCircle(center, radius, IM_COL32(0, 0, 0, 80), 0, ui::hairline());
+            draw_list->AddCircle(center, radius, IM_COL32(170, 170, 170, 180), 0, ui::hairline());
         }
     }
 }
@@ -145,7 +145,7 @@ void draw_input_row(const CommandHistoryEntry &entry, const ImU32 text_color) {
     (void) std::snprintf(frames, sizeof(frames), "%u", entry.frames);
 
     const float center_y = position.y + (height * ROW_CENTER_SCALE);
-    const float outline = std::max(1.0F, height * 0.05F);
+    const float outline = std::max(ui::hairline(), height * 0.05F);
     float cursor_x = position.x + (height * ARROW_CENTER_X);
 
     draw_arrow(draw_list,
@@ -169,9 +169,9 @@ void draw_input_row(const CommandHistoryEntry &entry, const ImU32 text_color) {
 } // namespace
 
 RelativePanel CommandHistoryView::panel(const ImVec2 /*canvas*/) {
-    constexpr float SIZE_X = 150.0F;
-    constexpr float SIZE_Y = 950.0F;
-    constexpr float PADDING_LEFT = 50;
+    constexpr float SIZE_X = ui::em(6.0F);
+    constexpr float SIZE_Y = ui::em(38.0F);
+    constexpr float PADDING_LEFT = ui::em(2.0F);
     return {
         .id = "##command_history",
         .horizontal = HorizontalAnchor::LEFT,
