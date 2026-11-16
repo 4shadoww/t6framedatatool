@@ -10,6 +10,7 @@
 ## Style
 
 - Keep comments/docstrings simple, no extraneous detail, no links, no code blocks, no html tags, only short comments
+- No magic numbers
 
 ## Behaviour
 
