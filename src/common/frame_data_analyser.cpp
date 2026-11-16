@@ -33,6 +33,7 @@
 
 #include "frame_dumper.h"
 #include "game_state_reader.h"
+#include "input_decoding.hpp"
 #include "input_dumper.h"
 #include "logging.h"
 #include "memory_reader_types.h"
@@ -519,10 +520,8 @@ void FrameDataAnalyser::handle_input(const uint32_t game_frame) {
     const InputState input = {
         .game_frame = game_frame,
         .raw = raw.bits,
-        .direction = static_cast<InputDirection>((raw.bits >> 20U) & 0xFU),
-        .buttons =
-            static_cast<uint8_t>(((raw.bits & 0x8000U) != 0U ? 1U : 0U) | ((raw.bits & 0x1000U) != 0U ? 2U : 0U) |
-                                 ((raw.bits & 0x4000U) != 0U ? 4U : 0U) | ((raw.bits & 0x2000U) != 0U ? 8U : 0U)),
+        .direction = input_decoding::direction(raw.bits),
+        .buttons = input_decoding::buttons(raw.bits),
     };
 
     (void) input_dump_write(input.game_frame, input.raw);

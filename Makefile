@@ -86,7 +86,7 @@ cli_release: configure_cli ignore_build
 	cmake --build $(BUILD_DIR_RELEASE)
 
 tools: configure_tools ignore_build
-	cmake --build $(BUILD_DIR_TOOLS) --target t6framedump
+	cmake --build $(BUILD_DIR_TOOLS) --target t6framedump t6inputdump
 
 $(GENERATED_SRC_DIR):
 	mkdir -p $(GENERATED_SRC_DIR)

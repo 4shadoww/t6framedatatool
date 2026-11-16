@@ -42,7 +42,7 @@ int input_dump_start(const char *base_path) {
         return READ_ERROR;
     }
 
-    char path[1024];
+    char path[INPUT_DUMP_PATH_MAX];
     const size_t base_len = strlen(base_path);
     const size_t extension_len = strlen(INPUT_DUMP_EXTENSION);
     bool has_extension = false;

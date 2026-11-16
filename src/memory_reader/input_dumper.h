@@ -27,6 +27,7 @@ extern "C" {
 #define INPUT_DUMP_MAGIC "T6MS"
 #define INPUT_DUMP_VERSION 1
 #define INPUT_DUMP_EXTENSION ".t6ms"
+#define INPUT_DUMP_PATH_MAX 1024
 
 struct InputDumpHeader {
     char magic[4];
