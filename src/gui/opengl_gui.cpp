@@ -32,6 +32,7 @@
 #include "frame_dumper.h"
 #include "game_state_reader.h"
 #include "gui_constants.hpp"
+#include "input_dumper.h"
 #include "logging.h"
 #include "platform_gui.hpp"
 #include "platform_threading.hpp"
@@ -237,6 +238,7 @@ void start_gui(GLFWwindow *const window) {
     // GUI has exited
     FrameDataAnalyser::stop();
     analyser_thread.join();
+    input_dump_stop();
     frame_dump_stop();
 }
 
@@ -247,6 +249,9 @@ void apply_config(const Configuration &config) {
 
     if (config.frame_dump_path != nullptr) {
         (void) frame_dump_start(config.frame_dump_path);
+    }
+    if (config.input_dump_path != nullptr) {
+        (void) input_dump_start(config.input_dump_path);
     }
 }
 
@@ -269,6 +274,7 @@ int main(const int argc, const char *const *const argv) {
 
     GLFWwindow *const window = setup_gui();
     if (window == nullptr) {
+        input_dump_stop();
         frame_dump_stop();
         return -1;
     }

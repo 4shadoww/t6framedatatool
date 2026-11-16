@@ -23,6 +23,7 @@
 
 #include "frame_data_analyser.hpp"
 #include "frame_dumper.h"
+#include "input_dumper.h"
 #include "version.hpp"
 
 namespace {
@@ -56,6 +57,9 @@ void apply_config(const Configuration &config) {
     if (config.frame_dump_path != nullptr) {
         (void) frame_dump_start(config.frame_dump_path);
     }
+    if (config.input_dump_path != nullptr) {
+        (void) input_dump_start(config.input_dump_path);
+    }
 }
 } // namespace
 
@@ -76,6 +80,7 @@ int main(const int argc, const char *const *const argv) {
     Listener listener; // NOLINT(misc-const-correctness)
     FrameDataAnalyser::start();
 
+    input_dump_stop();
     frame_dump_stop();
 
     return 0;

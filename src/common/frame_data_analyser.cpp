@@ -33,6 +33,7 @@
 
 #include "frame_dumper.h"
 #include "game_state_reader.h"
+#include "input_dumper.h"
 #include "logging.h"
 #include "memory_reader_types.h"
 
@@ -524,6 +525,7 @@ void FrameDataAnalyser::handle_input(const uint32_t game_frame) {
                                  ((raw.bits & 0x4000U) != 0U ? 4U : 0U) | ((raw.bits & 0x2000U) != 0U ? 8U : 0U)),
     };
 
+    (void) input_dump_write(input.game_frame, input.raw);
     EventBus::dispatch(InputEvent{input});
 }
 

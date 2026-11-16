@@ -27,7 +27,7 @@ extern "C" {
 #include "game_state_reader.h"
 
 #define FRAME_DUMP_MAGIC "T6FD"
-#define FRAME_DUMP_VERSION 1
+#define FRAME_DUMP_VERSION 2
 
 // Header of a recorded frame dump
 struct FrameDumpHeader {
