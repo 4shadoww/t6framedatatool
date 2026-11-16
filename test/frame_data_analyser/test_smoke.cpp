@@ -25,14 +25,14 @@ TEST(frame_data_analyser, replay_metadata) {
     ReplayHarness harness;
 
     ASSERT_TRUE(harness.replay(test_data("t6_king_34_3_kd.t6dump")));
-    EXPECT_EQ(harness.frame_count(), 169U);
-    ASSERT_EQ(harness.distance_events().size(), 169U);
-    ASSERT_EQ(harness.status_events().size(), 169U);
+    EXPECT_EQ(harness.frame_count(), 142U);
+    ASSERT_EQ(harness.distance_events().size(), 142U);
+    ASSERT_EQ(harness.status_events().size(), 142U);
     ASSERT_EQ(harness.frame_data_events().size(), 1U);
 
     const RecordedFrameDataEvent &event = harness.frame_data_events().front();
-    EXPECT_EQ(event.game_frame, 272929U);
+    EXPECT_EQ(event.game_frame, 71836U);
     EXPECT_EQ(event.data.player_side, PlayerSide::LEFT);
-    EXPECT_NEAR(harness.distance_events().front().distance, 1.84F, 0.01F);
+    EXPECT_NEAR(harness.distance_events().front().distance, 0.99F, 0.01F);
     EXPECT_EQ(harness.status_events().front().p1, PlayerState::STANDING);
 }

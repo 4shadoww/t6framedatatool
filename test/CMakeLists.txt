@@ -8,5 +8,4 @@ set(UTILS_SRC ${SRCS}/utils)
 add_subdirectory(ringbuffer)
 add_subdirectory(print_framedata)
 add_subdirectory(memory_reader)
-# Disabled until the frame dumps are re-recorded for the new record layout.
-# add_subdirectory(frame_data_analyser)
+add_subdirectory(frame_data_analyser)
