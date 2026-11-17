@@ -27,6 +27,7 @@
 #include <imgui_impl_opengl3.h> // NOLINT
 
 #include "arg_parser.hpp"
+#include "color_scheme.hpp"
 #include "event_bus.hpp"
 #include "frame_data_analyser.hpp"
 #include "frame_dumper.h"
@@ -41,13 +42,14 @@
 #include "component/overlay_canvas.hpp"
 
 #include "view/command_history_view.hpp"
+#include "view/configuration_button_view.hpp"
+#include "view/configuration_view.hpp"
 #include "view/frame_data_view.hpp"
 #include "viewmodel/command_history_view_model.hpp"
+#include "viewmodel/configuration_view_model.hpp"
 #include "viewmodel/frame_data_view_model.hpp"
 
 namespace {
-
-constexpr ImVec4 MUTED_COLOR = ImVec4(0.65F, 0.65F, 0.65F, 1.0F);
 
 class GuiEventReceiver {
 public:
@@ -63,6 +65,7 @@ public:
 struct {
     FrameDataViewModel frame_data;
     CommandHistoryViewModel command_history;
+    ConfigurationViewModel configuration;
 } view_models;
 
 GuiEventReceiver gui_event_receiver;
@@ -83,19 +86,21 @@ void setup_style() {
     style.WindowBorderSize = ui::hairline();
 
     ImVec4 *const colors = style.Colors;
-    colors[ImGuiCol_WindowBg] = ImVec4(0.02F, 0.02F, 0.02F, 0.92F);
-    colors[ImGuiCol_ChildBg] = ImVec4(0.04F, 0.04F, 0.04F, 0.95F);
-    colors[ImGuiCol_FrameBg] = ImVec4(0.08F, 0.08F, 0.08F, 1.0F);
-    colors[ImGuiCol_Border] = ImVec4(0.16F, 0.16F, 0.16F, 1.0F);
-    colors[ImGuiCol_Separator] = ImVec4(0.16F, 0.16F, 0.16F, 1.0F);
-    colors[ImGuiCol_Text] = ImVec4(0.92F, 0.92F, 0.92F, 1.0F);
-    colors[ImGuiCol_TextDisabled] = MUTED_COLOR;
+    colors[ImGuiCol_WindowBg] = color_scheme::WINDOW_BACKGROUND;
+    colors[ImGuiCol_ChildBg] = color_scheme::CHILD_BACKGROUND;
+    colors[ImGuiCol_FrameBg] = color_scheme::FRAME_BACKGROUND;
+    colors[ImGuiCol_Border] = color_scheme::BORDER;
+    colors[ImGuiCol_Separator] = color_scheme::SEPARATOR;
+    colors[ImGuiCol_Text] = color_scheme::TEXT;
+    colors[ImGuiCol_TextDisabled] = color_scheme::MUTED_TEXT;
 }
 
 void draw_overlay() {
     const ImVec2 canvas = OverlayCanvas::size();
     FrameDataView::draw(canvas, view_models.frame_data);
     CommandHistoryView::draw(canvas, view_models.command_history);
+    ConfigurationButtonView::draw(canvas, view_models.configuration);
+    ConfigurationView::draw(canvas, view_models.configuration);
 }
 
 GLFWwindow *create_window() {
@@ -199,8 +204,28 @@ void analyser_loop() {
     }
 }
 
+void set_mouse_passthrough(GLFWwindow *const window, bool &passthrough, const bool enabled) {
+    if (passthrough == enabled) {
+        return;
+    }
+
+    glfwSetWindowAttrib(window, GLFW_MOUSE_PASSTHROUGH, enabled ? GLFW_TRUE : GLFW_FALSE);
+    passthrough = enabled;
+}
+
 void gui_loop(GLFWwindow *const window) {
+    bool passthrough = true;
+
     while (glfwWindowShouldClose(window) == 0) {
+        const ImVec2 canvas = OverlayCanvas::size();
+        double mouse_x = 0.0;
+        double mouse_y = 0.0;
+        glfwGetCursorPos(window, &mouse_x, &mouse_y);
+        const bool over_button =
+            ConfigurationButtonView::contains(canvas, ImVec2(static_cast<float>(mouse_x), static_cast<float>(mouse_y)));
+        const bool interactive = view_models.configuration.is_open() || over_button;
+        set_mouse_passthrough(window, passthrough, !interactive);
+
         glfwPollEvents();
         platform_update();
 

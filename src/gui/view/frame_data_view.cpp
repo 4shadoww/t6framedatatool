@@ -19,6 +19,7 @@
 
 #include <imgui.h> // NOLINT
 
+#include "color_scheme.hpp"
 #include "frame_data_analyser.hpp"
 #include "frame_data_defs.hpp"
 #include "gui_constants.hpp"
@@ -27,9 +28,6 @@
 namespace {
 
 constexpr float LABEL_COLUMN_WIDTH = ui::em(10.0F);
-constexpr ImVec4 POSITIVE_COLOR = ImVec4(0.35F, 1.0F, 0.55F, 1.0F);
-constexpr ImVec4 NEGATIVE_COLOR = ImVec4(1.0F, 0.35F, 0.35F, 1.0F);
-constexpr ImVec4 CORRECTION_MARKER_COLOR = ImVec4(0.55F, 0.55F, 0.55F, 1.0F);
 
 const PlayerFrameData &player_data(const FrameDataPoint &data, const PlayerSide side) {
     return side == PlayerSide::LEFT ? data.p1 : data.p2;
@@ -44,23 +42,23 @@ HitLevelStyle hit_level_style(const HitLevel level) {
     switch (level) {
     case HitLevel::HIGH:
     case HitLevel::THROW:
-        return {.name = "High", .color = ImVec4(1.0F, 0.30F, 0.30F, 1.0F)};
+        return {.name = "High", .color = color_scheme::HIT_LEVEL_HIGH};
     case HitLevel::UNBLOCKABLE_HIGH:
-        return {.name = "Unblockable High", .color = ImVec4(1.0F, 0.30F, 0.30F, 1.0F)};
+        return {.name = "Unblockable High", .color = color_scheme::HIT_LEVEL_HIGH};
     case HitLevel::MID:
-        return {.name = "Mid", .color = ImVec4(1.0F, 0.85F, 0.25F, 1.0F)};
+        return {.name = "Mid", .color = color_scheme::HIT_LEVEL_MID};
     case HitLevel::UNBLOCKABLE_MID:
-        return {.name = "Unblockable Mid", .color = ImVec4(1.0F, 0.85F, 0.25F, 1.0F)};
+        return {.name = "Unblockable Mid", .color = color_scheme::HIT_LEVEL_MID};
     case HitLevel::LOW:
-        return {.name = "Low", .color = ImVec4(0.35F, 0.65F, 1.0F, 1.0F)};
+        return {.name = "Low", .color = color_scheme::HIT_LEVEL_LOW};
     case HitLevel::SPECIAL_MID1:
     case HitLevel::SPECIAL_MID2:
-        return {.name = "Special Mid", .color = ImVec4(0.35F, 0.90F, 0.90F, 1.0F)};
+        return {.name = "Special Mid", .color = color_scheme::HIT_LEVEL_SPECIAL_MID};
     default:
         log_warn("unknown hit level %d", level);
         [[fallthrough]];
     case HitLevel::NONE:
-        return {.name = "---", .color = ImVec4(0.70F, 0.70F, 0.70F, 1.0F)};
+        return {.name = "---", .color = color_scheme::HIT_LEVEL_UNKNOWN};
     }
 }
 
@@ -70,7 +68,7 @@ void draw_label(const char *const label) {
 }
 
 void draw_advantage(const int advantage) {
-    ImGui::TextColored(advantage < 0 ? NEGATIVE_COLOR : POSITIVE_COLOR, "%+d", advantage);
+    ImGui::TextColored(advantage < 0 ? color_scheme::NEGATIVE : color_scheme::POSITIVE, "%+d", advantage);
 }
 
 void draw_no_game() {
@@ -130,7 +128,7 @@ void draw_correction_marker() {
     const float padding_x = ui::em(0.3F);
 
     draw_list->AddText(ImVec2(window_pos.x + window_size.x - text_size.x - padding_x, window_pos.y),
-                       ImGui::GetColorU32(CORRECTION_MARKER_COLOR),
+                       ImGui::GetColorU32(color_scheme::CORRECTION_MARKER),
                        marker);
 }
 
@@ -153,7 +151,7 @@ void draw_frame_data(const FrameDataViewModel &viewModel, const PlayerSide side)
 
     draw_label("Frame Advantage");
     if (knock_down) {
-        ImGui::TextColored(data.is_attacker ? POSITIVE_COLOR : NEGATIVE_COLOR, "KD");
+        ImGui::TextColored(data.is_attacker ? color_scheme::POSITIVE : color_scheme::NEGATIVE, "KD");
     } else {
         draw_advantage(data.frame_advantage);
     }

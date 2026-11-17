@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <cstdio>
 
+#include "color_scheme.hpp"
 #include "gui_constants.hpp"
 
 namespace {
@@ -33,8 +34,6 @@ void draw_outlined_text(ImDrawList *const draw_list,
                         const ImU32 color,
                         const char *const text,
                         const float outline) {
-    constexpr ImU32 OUTLINE_COLOR = IM_COL32(0, 0, 0, 255);
-
     for (int y = -1; y <= 1; y++) {
         for (int x = -1; x <= 1; x++) {
             if (x == 0 && y == 0) {
@@ -43,7 +42,7 @@ void draw_outlined_text(ImDrawList *const draw_list,
 
             draw_list->AddText(
                 ImVec2(position.x + (static_cast<float>(x) * outline), position.y + (static_cast<float>(y) * outline)),
-                OUTLINE_COLOR,
+                color_scheme::OUTLINE,
                 text);
         }
     }
@@ -67,7 +66,7 @@ void draw_arrow(ImDrawList *const draw_list,
     float y = ((dirs & 2U) != 0U ? 1.0F : 0.0F) - ((dirs & 1U) != 0U ? 1.0F : 0.0F);
 
     if (x == 0.0F && y == 0.0F) {
-        draw_list->AddCircleFilled(center, (radius * NEUTRAL_RADIUS) + outline, IM_COL32(0, 0, 0, 255));
+        draw_list->AddCircleFilled(center, (radius * NEUTRAL_RADIUS) + outline, color_scheme::OUTLINE);
         draw_list->AddCircleFilled(center, radius * NEUTRAL_RADIUS, color);
         return;
     }
@@ -80,14 +79,14 @@ void draw_arrow(ImDrawList *const draw_list,
     const ImVec2 tail(center.x - (x * radius * TAIL_SCALE), center.y - (y * radius * TAIL_SCALE));
     const ImVec2 base(center.x + (x * radius * BASE_SCALE), center.y + (y * radius * BASE_SCALE));
 
-    draw_list->AddLine(tail, base, IM_COL32(0, 0, 0, 255), (radius * SHAFT_SCALE) + (outline * 2.0F));
+    draw_list->AddLine(tail, base, color_scheme::OUTLINE, (radius * SHAFT_SCALE) + (outline * 2.0F));
 
     const float width = radius * HEAD_SCALE;
     const ImVec2 left(base.x - (y * width), base.y + (x * width));
     const ImVec2 right(base.x + (y * width), base.y - (x * width));
 
-    draw_list->AddLine(tip, left, IM_COL32(0, 0, 0, 255), outline * 2.0F);
-    draw_list->AddLine(tip, right, IM_COL32(0, 0, 0, 255), outline * 2.0F);
+    draw_list->AddLine(tip, left, color_scheme::OUTLINE, outline * 2.0F);
+    draw_list->AddLine(tip, right, color_scheme::OUTLINE, outline * 2.0F);
 
     draw_list->AddLine(tail, base, color, radius * SHAFT_SCALE);
     draw_list->AddTriangleFilled(tip, left, right, color);
@@ -101,13 +100,6 @@ void draw_buttons(ImDrawList *const draw_list,
     constexpr float BUTTON_OFFSET = 0.24F;
     constexpr float BUTTON_RADIUS = 0.19F;
     constexpr uint32_t BUTTON_COUNT = 4U;
-    constexpr auto BUTTON_COLORS = std::to_array<ImU32>({
-        IM_COL32(70, 140, 255, 255),
-        IM_COL32(255, 205, 60, 255),
-        IM_COL32(80, 210, 110, 255),
-        IM_COL32(240, 80, 80, 255),
-    });
-
     const float offset = size * BUTTON_OFFSET;
     const float radius = size * BUTTON_RADIUS;
 
@@ -116,11 +108,11 @@ void draw_buttons(ImDrawList *const draw_list,
                             position.y + ((i & 2U) != 0 ? offset : -offset));
 
         if ((buttons & (1U << i)) != 0U) {
-            draw_list->AddCircleFilled(center, radius + outline, IM_COL32(0, 0, 0, 255));
-            draw_list->AddCircleFilled(center, radius, BUTTON_COLORS.at(i));
+            draw_list->AddCircleFilled(center, radius + outline, color_scheme::OUTLINE);
+            draw_list->AddCircleFilled(center, radius, color_scheme::INPUT_BUTTON_COLORS.at(i));
         } else {
-            draw_list->AddCircle(center, radius, IM_COL32(0, 0, 0, 80), 0, ui::hairline());
-            draw_list->AddCircle(center, radius, IM_COL32(170, 170, 170, 180), 0, ui::hairline());
+            draw_list->AddCircle(center, radius, color_scheme::BUTTON_INACTIVE_OUTLINE, 0, ui::hairline());
+            draw_list->AddCircle(center, radius, color_scheme::BUTTON_INACTIVE, 0, ui::hairline());
         }
     }
 }
@@ -193,8 +185,7 @@ void CommandHistoryView::draw(const ImVec2 canvas, const CommandHistoryViewModel
         ImGui::TextDisabled("No history");
     } else {
         for (std::size_t i = history.count; i-- > 0;) {
-            const ImU32 text_color =
-                i == history.count - 1 ? IM_COL32(255, 255, 255, 255) : IM_COL32(200, 200, 200, 220);
+            const ImU32 text_color = i == history.count - 1 ? color_scheme::TEXT_BRIGHT : color_scheme::TEXT_DIM;
             draw_input_row(history.entries.at(i), text_color);
         }
     }

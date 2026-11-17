@@ -138,9 +138,6 @@ bool platform_make_overlay(GLFWwindow *const window) {
         return false;
     }
 
-    // Event mask
-    XSelectInput(g_display, g_window, ExposureMask);
-
     // Set override_redirect true to make WM not manage this window
     XSetWindowAttributes attrs;
     attrs.override_redirect = True;

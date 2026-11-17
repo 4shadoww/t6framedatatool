@@ -68,7 +68,6 @@ void OverlayCanvas::begin_panel(const OverlayPanel &panel) {
                                    static_cast<unsigned int>(ImGuiWindowFlags_NoMove) |
                                    static_cast<unsigned int>(ImGuiWindowFlags_NoResize) |
                                    static_cast<unsigned int>(ImGuiWindowFlags_NoSavedSettings) |
-                                   static_cast<unsigned int>(ImGuiWindowFlags_NoBringToFrontOnFocus) |
                                    static_cast<unsigned int>(ImGuiWindowFlags_NoNavFocus) |
                                    static_cast<unsigned int>(ImGuiWindowFlags_NoScrollbar) |
                                    static_cast<unsigned int>(ImGuiWindowFlags_NoScrollWithMouse);

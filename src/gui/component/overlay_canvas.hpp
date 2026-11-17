@@ -23,6 +23,7 @@
 
 #include <imgui.h> // NOLINT
 
+#include "color_scheme.hpp"
 #include "gui_constants.hpp"
 
 namespace ui {
@@ -57,7 +58,7 @@ struct OverlayPanel {
     const char *id = nullptr;
     ImVec2 size;
     ImVec2 position;
-    float background_alpha = 0.92F;
+    float background_alpha = color_scheme::PANEL_BACKGROUND_ALPHA;
     float border_size = ui::hairline();
 };
 
@@ -67,7 +68,7 @@ struct RelativePanel {
     VerticalAnchor vertical = VerticalAnchor::TOP;
     ImVec2 offset;
     ImVec2 size;
-    float background_alpha = 0.92F;
+    float background_alpha = color_scheme::PANEL_BACKGROUND_ALPHA;
     float border_size = ui::hairline();
 };
 
