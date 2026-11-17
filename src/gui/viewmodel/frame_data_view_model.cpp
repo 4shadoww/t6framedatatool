@@ -24,6 +24,7 @@
 void FrameDataViewModel::on_frame_data(const FrameDataPoint &frame_data) {
     m_model.last_update = std::chrono::steady_clock::now().time_since_epoch().count();
     m_model.frame_data = frame_data;
+    m_model.corrected = false;
 
     const PlayerFrameData &local = frame_data.player_side == PlayerSide::LEFT ? frame_data.p1 : frame_data.p2;
     log_info("local player: P%d, startup frames: %d (%d~%d), hit level: %d, damage: %u, frame advantage: %d, KD: %d",
@@ -43,6 +44,7 @@ void FrameDataViewModel::on_frame_data_correction(const FrameDataPoint &frame_da
 
     m_model.last_update = std::chrono::steady_clock::now().time_since_epoch().count();
     m_model.frame_data = frame_data;
+    m_model.corrected = true;
 }
 
 void FrameDataViewModel::on_damage_dealt(const uint32_t damage, const PlayerSide side) {

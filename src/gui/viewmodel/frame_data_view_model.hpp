@@ -30,6 +30,7 @@ struct FrameDataModel {
     PlayerState p1_status;
     PlayerState p2_status;
     bool game_hooked;
+    bool corrected;
     std::chrono::steady_clock::rep last_update;
 };
 
@@ -84,6 +85,9 @@ public:
     }
     [[nodiscard]] bool is_game_hooked() const {
         return m_model.game_hooked;
+    }
+    [[nodiscard]] bool is_corrected() const {
+        return m_model.corrected;
     }
 
 private:

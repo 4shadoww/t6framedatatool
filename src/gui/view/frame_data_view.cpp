@@ -29,6 +29,7 @@ namespace {
 constexpr float LABEL_COLUMN_WIDTH = ui::em(10.0F);
 constexpr ImVec4 POSITIVE_COLOR = ImVec4(0.35F, 1.0F, 0.55F, 1.0F);
 constexpr ImVec4 NEGATIVE_COLOR = ImVec4(1.0F, 0.35F, 0.35F, 1.0F);
+constexpr ImVec4 CORRECTION_MARKER_COLOR = ImVec4(0.55F, 0.55F, 0.55F, 1.0F);
 
 const PlayerFrameData &player_data(const FrameDataPoint &data, const PlayerSide side) {
     return side == PlayerSide::LEFT ? data.p1 : data.p2;
@@ -120,6 +121,19 @@ void draw_no_frame_data(const FrameDataViewModel &viewModel, const PlayerSide si
     ImGui::PopFont();
 }
 
+void draw_correction_marker() {
+    ImDrawList *const draw_list = ImGui::GetWindowDrawList();
+    const ImVec2 window_pos = ImGui::GetWindowPos();
+    const ImVec2 window_size = ImGui::GetWindowSize();
+    const char *const marker = "*";
+    const ImVec2 text_size = ImGui::CalcTextSize(marker);
+    const float padding_x = ui::em(0.3F);
+
+    draw_list->AddText(ImVec2(window_pos.x + window_size.x - text_size.x - padding_x, window_pos.y),
+                       ImGui::GetColorU32(CORRECTION_MARKER_COLOR),
+                       marker);
+}
+
 void draw_frame_data(const FrameDataViewModel &viewModel, const PlayerSide side) {
     ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
 
@@ -149,6 +163,10 @@ void draw_frame_data(const FrameDataViewModel &viewModel, const PlayerSide side)
 
     draw_label("Distance");
     ImGui::Text("%.2f", viewModel.get_distance());
+
+    if (viewModel.is_corrected()) {
+        draw_correction_marker();
+    }
 
     ImGui::PopFont();
 }
