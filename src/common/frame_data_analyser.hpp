@@ -106,6 +106,8 @@ private:
     static void calculate_connection(const GameFrame *const previous, const GameFrame *const current, const bool p2);
     static void update_throw_damage(const PlayerFrame *const attacker, AttackChain *const chain);
     static void update_throw_damages();
+    static void handle_knock_down(const PlayerFrame *const defender, AttackChain *const chain);
+    static void handle_knock_downs();
     static void handle_connection();
     static void handle_whiff(const PlayerFrame *const attacker, AttackChain *const chain, const bool p2);
     static void handle_whiffs();

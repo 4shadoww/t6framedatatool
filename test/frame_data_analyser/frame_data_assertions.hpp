@@ -41,14 +41,32 @@ ExpectedFrameData event(int p1_startup,
                         int p2_advantage,
                         bool p2_knock_down);
 
+struct ExpectedCorrection {
+    uint32_t game_frame;
+    uint32_t corrected_game_frame;
+    ExpectedFrameData data;
+};
+
+ExpectedCorrection correction(uint32_t game_frame, uint32_t corrected_game_frame, ExpectedFrameData data);
+
 void expect_frame_data_sequence(const std::vector<RecordedFrameDataEvent> &actual,
                                 const std::vector<ExpectedFrameData> &expected);
+
+void expect_frame_data_correction_sequence(const std::vector<RecordedFrameDataEvent> &actual,
+                                           const std::vector<ExpectedCorrection> &expected);
 
 template<typename... T>
 void expect_frame_data_events(const std::vector<RecordedFrameDataEvent> &actual, const T &...events) {
     static_assert((std::is_same_v<std::decay_t<T>, ExpectedFrameData> && ...),
                   "expected events must be ExpectedFrameData");
     expect_frame_data_sequence(actual, {events...});
+}
+
+template<typename... T>
+void expect_frame_data_correction_events(const std::vector<RecordedFrameDataEvent> &actual, const T &...corrections) {
+    static_assert((std::is_same_v<std::decay_t<T>, ExpectedCorrection> && ...),
+                  "expected corrections must be ExpectedCorrection");
+    expect_frame_data_correction_sequence(actual, {corrections...});
 }
 
 #endif

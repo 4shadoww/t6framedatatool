@@ -355,9 +355,12 @@ void FrameDataAnalyser::report_chain(AttackChain *const chain, const bool p2, co
         .p1 = p2 ? defender : attacker,
         .p2 = p2 ? attacker : defender,
         .player_side = m_player_side,
+        .game_frame = m_frame_buffer.head()->game_frame,
     };
 
     chain->reported = true;
+    chain->reported_data = data_point;
+    chain->has_reported_data = true;
     EventBus::dispatch(FrameDataEvent{data_point});
 }
 
@@ -487,6 +490,27 @@ void FrameDataAnalyser::update_throw_damages() {
     update_throw_damage(&current->p2, &m_p2_chain);
 }
 
+void FrameDataAnalyser::handle_knock_down(const PlayerFrame *const defender, AttackChain *const chain) {
+    if (!chain->has_reported_data || !chain->reported || chain->knock_down || chain->first_connection == 0) {
+        return;
+    }
+
+    if (!is_knockdown(defender)) {
+        return;
+    }
+
+    chain->knock_down = true;
+    chain->reported_data.p1.knock_down = true;
+    chain->reported_data.p2.knock_down = true;
+    EventBus::dispatch(FrameDataCorrectionEvent{chain->reported_data});
+}
+
+void FrameDataAnalyser::handle_knock_downs() {
+    const GameFrame *const current = m_frame_buffer.head();
+    handle_knock_down(&current->p2, &m_p1_chain);
+    handle_knock_down(&current->p1, &m_p2_chain);
+}
+
 float FrameDataAnalyser::calculate_distance(const GameFrame *const state) {
     return (float) (std::sqrt(std::pow(state->p1.position.x - state->p2.position.x, 2) +
                               std::pow(state->p1.position.z - state->p2.position.z, 2)) /
@@ -570,6 +594,7 @@ bool FrameDataAnalyser::process_frame(GameFrame state) {
 
     handle_connection();
     update_throw_damages();
+    handle_knock_downs();
     track_chains();
     report_throw_connections();
     handle_whiffs();

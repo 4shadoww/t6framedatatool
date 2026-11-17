@@ -30,13 +30,16 @@ bool ReplayHarness::replay(const std::string &path) {
     m_game_frame = 0;
     m_frame_count = 0;
     m_frame_data_events.clear();
+    m_frame_data_correction_events.clear();
     m_distance_events.clear();
     m_status_events.clear();
 
     EventBus::clear<FrameDataEvent>();
+    EventBus::clear<FrameDataCorrectionEvent>();
     EventBus::clear<DistanceEvent>();
     EventBus::clear<StatusEvent>();
     EventBus::subscribe<FrameDataEvent>(this);
+    EventBus::subscribe<FrameDataCorrectionEvent>(this);
     EventBus::subscribe<DistanceEvent>(this);
     EventBus::subscribe<StatusEvent>(this);
     FrameDataAnalyser::reset();
@@ -63,6 +66,10 @@ const std::vector<RecordedFrameDataEvent> &ReplayHarness::frame_data_events() co
     return m_frame_data_events;
 }
 
+const std::vector<RecordedFrameDataEvent> &ReplayHarness::frame_data_correction_events() const {
+    return m_frame_data_correction_events;
+}
+
 const std::vector<RecordedDistanceEvent> &ReplayHarness::distance_events() const {
     return m_distance_events;
 }
@@ -73,6 +80,10 @@ const std::vector<RecordedStatusEvent> &ReplayHarness::status_events() const {
 
 void ReplayHarness::on_event(const FrameDataEvent &event) {
     m_frame_data_events.push_back({.game_frame = m_game_frame, .data = event.data});
+}
+
+void ReplayHarness::on_event(const FrameDataCorrectionEvent &event) {
+    m_frame_data_correction_events.push_back({.game_frame = m_game_frame, .data = event.data});
 }
 
 void ReplayHarness::on_event(const DistanceEvent &event) {

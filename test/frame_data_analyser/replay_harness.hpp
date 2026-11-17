@@ -47,10 +47,12 @@ public:
 
     [[nodiscard]] uint64_t frame_count() const;
     [[nodiscard]] const std::vector<RecordedFrameDataEvent> &frame_data_events() const;
+    [[nodiscard]] const std::vector<RecordedFrameDataEvent> &frame_data_correction_events() const;
     [[nodiscard]] const std::vector<RecordedDistanceEvent> &distance_events() const;
     [[nodiscard]] const std::vector<RecordedStatusEvent> &status_events() const;
 
     void on_event(const FrameDataEvent &event);
+    void on_event(const FrameDataCorrectionEvent &event);
     void on_event(const DistanceEvent &event);
     void on_event(const StatusEvent &event);
 
@@ -58,6 +60,7 @@ private:
     uint32_t m_game_frame = 0;
     uint64_t m_frame_count = 0;
     std::vector<RecordedFrameDataEvent> m_frame_data_events;
+    std::vector<RecordedFrameDataEvent> m_frame_data_correction_events;
     std::vector<RecordedDistanceEvent> m_distance_events;
     std::vector<RecordedStatusEvent> m_status_events;
 };

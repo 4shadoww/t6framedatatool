@@ -105,6 +105,19 @@ TEST(frame_data_analyser, king_d_3_4_4_hit) {
     EXPECT_EQ(harness.frame_data_events().front().data.p1.damage, 24U);
 }
 
+TEST(frame_data_analyser, king_df_3_4_kd) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_king_df-3-4_kd.t6dump")));
+    expect_frame_data_events(harness.frame_data_events(), event(28, 28U, 35U, -7, false, 0, 0U, 0U, 7, false));
+    EXPECT_EQ(harness.frame_data_events().front().data.p1.damage, 18U);
+
+    expect_frame_data_correction_events(
+        harness.frame_data_correction_events(),
+        correction(528551U, 528550U, event(28, 28U, 35U, -7, true, 0, 0U, 0U, 7, true)));
+    EXPECT_EQ(harness.frame_data_correction_events().front().data.p1.damage, 18U);
+}
+
 TEST(frame_data_analyser, yoshimitsu_db_2_block) {
     ReplayHarness harness;
 

@@ -73,6 +73,8 @@ struct FrameDataPoint {
     PlayerFrameData p2;
     // Local player side
     PlayerSide player_side;
+    // Game frame this data was reported for
+    uint32_t game_frame;
 };
 
 // Attack chain tracked from the moveset structs
@@ -92,6 +94,9 @@ struct AttackChain {
     bool knock_down;
     // Frame data has been emitted for this chain
     bool reported;
+    // Last reported frame data, used for retroactive corrections
+    FrameDataPoint reported_data;
+    bool has_reported_data;
 };
 
 enum class PlayerState : int {

@@ -65,6 +65,15 @@ ExpectedFrameData event(const int p1_startup,
             make_player_frame_data(p2_startup, p2_first_active, p2_last_active, p2_advantage, p2_knock_down)};
 }
 
+ExpectedCorrection
+correction(const uint32_t game_frame, const uint32_t corrected_game_frame, const ExpectedFrameData data) {
+    return {
+        .game_frame = game_frame,
+        .corrected_game_frame = corrected_game_frame,
+        .data = data,
+    };
+}
+
 void expect_frame_data_sequence(const std::vector<RecordedFrameDataEvent> &actual,
                                 const std::vector<ExpectedFrameData> &expected) {
     ASSERT_EQ(actual.size(), expected.size());
@@ -73,5 +82,18 @@ void expect_frame_data_sequence(const std::vector<RecordedFrameDataEvent> &actua
         SCOPED_TRACE(testing::Message() << "event " << i);
         expect_player_frame_data(actual.at(i).data.p1, expected.at(i).p1);
         expect_player_frame_data(actual.at(i).data.p2, expected.at(i).p2);
+    }
+}
+
+void expect_frame_data_correction_sequence(const std::vector<RecordedFrameDataEvent> &actual,
+                                           const std::vector<ExpectedCorrection> &expected) {
+    ASSERT_EQ(actual.size(), expected.size());
+
+    for (std::size_t i = 0; i < expected.size(); i++) {
+        SCOPED_TRACE(testing::Message() << "correction " << i);
+        EXPECT_EQ(actual.at(i).game_frame, expected.at(i).game_frame);
+        EXPECT_EQ(actual.at(i).data.game_frame, expected.at(i).corrected_game_frame);
+        expect_player_frame_data(actual.at(i).data.p1, expected.at(i).data.p1);
+        expect_player_frame_data(actual.at(i).data.p2, expected.at(i).data.p2);
     }
 }

@@ -37,6 +37,7 @@ class FrameDataViewModel {
 public:
     FrameDataViewModel() noexcept {
         EventBus::subscribe<FrameDataEvent>(this);
+        EventBus::subscribe<FrameDataCorrectionEvent>(this);
         EventBus::subscribe<DamageDealtEvent>(this);
         EventBus::subscribe<DistanceEvent>(this);
         EventBus::subscribe<StatusEvent>(this);
@@ -46,6 +47,9 @@ public:
     // Event receiver
     void on_event(const FrameDataEvent &event) {
         on_frame_data(event.data);
+    }
+    void on_event(const FrameDataCorrectionEvent &event) {
+        on_frame_data_correction(event.data);
     }
     void on_event(const DamageDealtEvent &event) {
         on_damage_dealt(event.damage, event.side);
@@ -61,6 +65,7 @@ public:
     }
 
     void on_frame_data(const FrameDataPoint &frame_data);
+    void on_frame_data_correction(const FrameDataPoint &frame_data);
     void on_damage_dealt(uint32_t damage, PlayerSide side);
     void on_distance(const float distance);
     void on_player_status(const StatusEvent &status);

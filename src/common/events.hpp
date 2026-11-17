@@ -26,6 +26,10 @@ struct FrameDataEvent {
     FrameDataPoint data;
 };
 
+struct FrameDataCorrectionEvent {
+    FrameDataPoint data;
+};
+
 struct DamageDealtEvent {
     uint32_t damage;
     PlayerSide side;
