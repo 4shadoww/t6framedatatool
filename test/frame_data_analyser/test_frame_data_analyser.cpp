@@ -31,6 +31,16 @@ TEST(frame_data_analyser, king_3_4_3_reports_knockdown) {
     expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
+TEST(frame_data_analyser, king_3_4_1_kd) {
+    ReplayHarness harness;
+
+    ASSERT_TRUE(harness.replay(test_data("t6_king_3-4_1_kd.t6dump")));
+    expect_frame_data_events(harness.frame_data_events(), event(19, 19U, 20U, -31, false, 0, 0U, 0U, 31, false));
+    expect_frame_data_correction_events(
+        harness.frame_data_correction_events(),
+        correction(161428U, 161404U, event(19, 19U, 20U, -31, true, 0, 0U, 0U, 31, true)));
+}
+
 TEST(frame_data_analyser, alisa_u4_reports_knockdown) {
     ReplayHarness harness;
 
