@@ -20,30 +20,32 @@ Include:
 
 ## Frame data inconsistencies
 
-Frame-data bugs require full frame dump and verbose logs.
+Frame-data bugs require full frame dump, input dump, and verbose logs.
 A report missing any of these items may be closed:
 
-1. **Verbose logs and frame dump**
+1. **Verbose logs, frame dump, and input dump**
 
-   Record the affected sequence with both verbose logging and frame dumping:
+   Record the affected sequence with verbose logging, frame dumping, and input dumping:
 
    ```sh
-   ./t6framedata --verbose --dump-frames path/to/capture.t6dump 2> analyser.log
+   ./t6framedata --verbose --dump-frames path/to/capture.t6dump --dump-input path/to/capture.t6ms 2> analyser.log
    ```
 
    Windows PowerShell:
 
    ```powershell
-   .\t6framedata.exe --verbose --dump-frames path\to\capture.t6dump 2> analyser.log
+   .\t6framedata.exe --verbose --dump-frames path\to\capture.t6dump --dump-input path\to\capture.t6ms 2> analyser.log
    ```
 
    Windows cmd:
 
    ```bat
-   t6framedata.exe --verbose --dump-frames path\to\capture.t6dump 2> analyser.log
+   t6framedata.exe --verbose --dump-frames path\to\capture.t6dump --dump-input path\to\capture.t6ms 2> analyser.log
    ```
 
-   Attach both `analyser.log` and the `.t6dump` file.
+   Attach `analyser.log`, the `.t6dump` file, and the `.t6ms` file.
+
+   The input dump stores the game frame and raw input bits. Its filename does not use situation suffixes.
 
 2. **Move string**
 
