@@ -28,6 +28,7 @@ TEST(frame_data_analyser, king_3_4_3_reports_knockdown) {
 
     // FIXME: advantage does not match CSV 3+4,3 block -5.
     expect_frame_data_events(harness.frame_data_events(), event(22, 22U, 23U, 21, true, 0, 0U, 0U, -21, true));
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, alisa_u4_reports_knockdown) {
@@ -37,6 +38,7 @@ TEST(frame_data_analyser, alisa_u4_reports_knockdown) {
 
     // FIXME: advantage does not match CSV u+4 block -15~-14.
     expect_frame_data_events(harness.frame_data_events(), event(15, 15U, 16U, 12, true, 0, 0U, 0U, -12, true));
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, alisa_des_1_reports_knockdown) {
@@ -48,6 +50,7 @@ TEST(frame_data_analyser, alisa_des_1_reports_knockdown) {
     expect_frame_data_events(harness.frame_data_events(),
                              event(14, 14U, 40U, 19, false, 0, 0U, 0U, -19, false),
                              event(14, 14U, 40U, 23, true, 0, 0U, 0U, -23, true));
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, alisa_des_1_block) {
@@ -55,6 +58,7 @@ TEST(frame_data_analyser, alisa_des_1_block) {
 
     ASSERT_TRUE(harness.replay(test_data("t6_alisa_des_1_block.t6dump")));
     expect_frame_data_events(harness.frame_data_events(), event(15, 14U, 40U, -9, false, 0, 0U, 0U, 9, false));
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, jin_1_hit) {
@@ -62,6 +66,7 @@ TEST(frame_data_analyser, jin_1_hit) {
 
     ASSERT_TRUE(harness.replay(test_data("t6_jin_1_hit.t6dump")));
     expect_frame_data_events(harness.frame_data_events(), event(10, 10U, 10U, 8, false, 0, 0U, 0U, -8, false));
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, jin_1_block) {
@@ -69,6 +74,7 @@ TEST(frame_data_analyser, jin_1_block) {
 
     ASSERT_TRUE(harness.replay(test_data("t6_jin_1_block.t6dump")));
     expect_frame_data_events(harness.frame_data_events(), event(10, 10U, 10U, 1, false, 0, 0U, 0U, -1, false));
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, jin_hellsweep_kd) {
@@ -77,6 +83,7 @@ TEST(frame_data_analyser, jin_hellsweep_kd) {
     ASSERT_TRUE(harness.replay(test_data("t6_jin_f_n_d_df-4_kd.t6dump")));
     // FIXME: advantage does not match CSV block -31.
     expect_frame_data_events(harness.frame_data_events(), event(20, 20U, 21U, -29, true, 0, 0U, 0U, 29, true));
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, jin_hellsweep_block) {
@@ -85,6 +92,7 @@ TEST(frame_data_analyser, jin_hellsweep_block) {
     ASSERT_TRUE(harness.replay(test_data("t6_jin_f_n_d_df-4_block.t6dump")));
 
     expect_frame_data_events(harness.frame_data_events(), event(20, 20U, 21U, -31, false, 0, 0U, 0U, 31, false));
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, king_d_3_4_hit) {
@@ -94,6 +102,7 @@ TEST(frame_data_analyser, king_d_3_4_hit) {
     expect_frame_data_events(harness.frame_data_events(), event(16, 16U, 16U, -13, false, 0, 0U, 0U, 13, false));
     ASSERT_EQ(harness.frame_data_events().size(), 1U);
     EXPECT_EQ(harness.frame_data_events().front().data.p1.damage, 16U);
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, king_d_3_4_4_hit) {
@@ -103,6 +112,7 @@ TEST(frame_data_analyser, king_d_3_4_4_hit) {
     expect_frame_data_events(harness.frame_data_events(), event(16, 16U, 16U, -13, false, 0, 0U, 0U, 13, false));
     ASSERT_EQ(harness.frame_data_events().size(), 1U);
     EXPECT_EQ(harness.frame_data_events().front().data.p1.damage, 24U);
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, king_df_3_4_kd) {
@@ -123,6 +133,7 @@ TEST(frame_data_analyser, yoshimitsu_db_2_block) {
 
     ASSERT_TRUE(harness.replay(test_data("t6_yoshimitsu_db-2_block.t6dump")));
     expect_frame_data_events(harness.frame_data_events(), event(15, 15U, 15U, -5, false, 0, 0U, 0U, 5, false));
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, yoshimitsu_jir_2_kd) {
@@ -131,6 +142,7 @@ TEST(frame_data_analyser, yoshimitsu_jir_2_kd) {
     ASSERT_TRUE(harness.replay(test_data("t6_yoshimitsu_jir-2_kd.t6dump")));
     // FIXME: advantage does not match CSV JIR.2 block -13.
     expect_frame_data_events(harness.frame_data_events(), event(24, 24U, 28U, -31, true, 0, 0U, 0U, 31, true));
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, alisa_ub_3_2_kd) {
@@ -139,8 +151,9 @@ TEST(frame_data_analyser, alisa_ub_3_2_kd) {
     ASSERT_TRUE(harness.replay(test_data("t6_alisa_ub-3_2_kd.t6dump")));
     // FIXME: advantage not validated against CSV.
     expect_frame_data_events(harness.frame_data_events(),
-                             event(20, 20U, 21U, -33, true, 0, 0U, 0U, 33, true),
+                             event(20, 20U, 21U, -33, false, 0, 0U, 0U, 33, false),
                              event(17, 17U, 22U, -42, true, 0, 0U, 0U, 42, true));
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, alisa_ub_3_2_block) {
@@ -151,6 +164,7 @@ TEST(frame_data_analyser, alisa_ub_3_2_block) {
     expect_frame_data_events(harness.frame_data_events(),
                              event(20, 20U, 21U, -8, false, 0, 0U, 0U, 8, false),
                              event(18, 17U, 22U, 0, false, 0, 0U, 0U, 0, false));
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, alisa_des_f_f_1_2_kd) {
@@ -159,6 +173,7 @@ TEST(frame_data_analyser, alisa_des_f_f_1_2_kd) {
     ASSERT_TRUE(harness.replay(test_data("t6_alisa_des_f_f_1-2_kd.t6dump")));
     // FIXME: advantage not validated against CSV.
     expect_frame_data_events(harness.frame_data_events(), event(12, 12U, 30U, -55, true, 0, 0U, 0U, 55, true));
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }
 
 TEST(frame_data_analyser, alisa_des_f_f_1_2_block) {
@@ -167,4 +182,5 @@ TEST(frame_data_analyser, alisa_des_f_f_1_2_block) {
     ASSERT_TRUE(harness.replay(test_data("t6_alisa_des_f_f_1-2_block.t6dump")));
     // FIXME: advantage not validated against CSV.
     expect_frame_data_events(harness.frame_data_events(), event(12, 12U, 30U, -5, false, 0, 0U, 0U, 5, false));
+    expect_frame_data_correction_events(harness.frame_data_correction_events());
 }

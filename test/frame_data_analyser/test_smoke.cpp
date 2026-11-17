@@ -35,4 +35,5 @@ TEST(frame_data_analyser, replay_metadata) {
     EXPECT_EQ(event.data.player_side, PlayerSide::LEFT);
     EXPECT_NEAR(harness.distance_events().front().distance, 0.99F, 0.01F);
     EXPECT_EQ(harness.status_events().front().p1, PlayerState::STANDING);
+    EXPECT_TRUE(harness.frame_data_correction_events().empty());
 }
