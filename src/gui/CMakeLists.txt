@@ -53,6 +53,7 @@ target_link_libraries(${TARGET}
     PRIVATE utils
     PRIVATE memoryreader
     PRIVATE common
+    PRIVATE configuration
     PRIVATE ${LIBS}
 )
 

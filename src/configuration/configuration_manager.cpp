@@ -21,8 +21,12 @@
 
 #include <toml++/toml.hpp> // NOLINT
 
+#include "logging.h"
+#include "platform_configuration.hpp"
+
 namespace {
 
+constexpr const char *DEFAULT_CONFIGURATION_FILE = "config.toml";
 constexpr const char *UI_KEY = "ui";
 constexpr const char *SHOW_COMMAND_HISTORY_KEY = "show_command_history";
 constexpr const char *SHOW_OWN_FRAME_DATA_KEY = "show_own_frame_data";
@@ -65,6 +69,27 @@ bool ConfigurationManager::load(const std::filesystem::path &path, Configuration
     } catch (const toml::parse_error &) {
         return false;
     }
+}
+
+bool ConfigurationManager::load_default(ConfigurationData &configuration) {
+    const std::filesystem::path directory = executable_directory();
+    if (directory.empty()) {
+        log_debug("failed to resolve executable directory");
+        return false;
+    }
+
+    const std::filesystem::path path = directory / DEFAULT_CONFIGURATION_FILE;
+    if (!std::filesystem::exists(path)) {
+        log_debug("configuration file not found: %s", path.string().c_str());
+        return true;
+    }
+
+    if (!load(path, configuration)) {
+        log_warn("failed to load configuration file: %s", path.string().c_str());
+        return false;
+    }
+
+    return true;
 }
 
 bool ConfigurationManager::save(const std::filesystem::path &path, const ConfigurationData &configuration) {

@@ -18,6 +18,7 @@
 #include <iostream>
 
 #include "arg_parser.hpp"
+#include "configuration_manager.hpp"
 #include "event_bus.hpp"
 #include "logging.h"
 
@@ -73,6 +74,16 @@ int main(const int argc, const char *const *const argv) {
         // Early exit
         return 0;
     }
+    ConfigurationData configuration_data;
+    if (config.configuration_path != nullptr) {
+        if (!ConfigurationManager::load(config.configuration_path, configuration_data)) {
+            std::cerr << "failed to load configuration file: " << config.configuration_path << std::endl;
+            return 1;
+        }
+    } else {
+        (void) ConfigurationManager::load_default(configuration_data);
+    }
+
     apply_config(config);
 
     log_info("%s %s", PROGRAM_NAME, VERSION);

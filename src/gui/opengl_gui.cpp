@@ -16,6 +16,7 @@
 */
 
 #include <chrono>
+#include <iostream>
 #include <thread>
 
 #include <glad/gl.h> // NOLINT
@@ -28,6 +29,7 @@
 
 #include "arg_parser.hpp"
 #include "color_scheme.hpp"
+#include "configuration_manager.hpp"
 #include "event_bus.hpp"
 #include "frame_data_analyser.hpp"
 #include "frame_dumper.h"
@@ -291,6 +293,16 @@ int main(const int argc, const char *const *const argv) {
     } else if (result == -1) {
         // Early exit
         return 0;
+    }
+
+    ConfigurationData configuration_data;
+    if (config.configuration_path != nullptr) {
+        if (!ConfigurationManager::load(config.configuration_path, configuration_data)) {
+            std::cerr << "failed to load configuration file: " << config.configuration_path << std::endl;
+            return 1;
+        }
+    } else {
+        (void) ConfigurationManager::load_default(configuration_data);
     }
 
     apply_config(config);

@@ -25,6 +25,7 @@
 class ConfigurationManager {
 public:
     static bool load(const std::filesystem::path &path, ConfigurationData &configuration);
+    static bool load_default(ConfigurationData &configuration);
     static bool save(const std::filesystem::path &path, const ConfigurationData &configuration);
 };
 

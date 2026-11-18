@@ -84,6 +84,12 @@ Arg ArgParser::s_arguments[] = {
         .type = (int) ArgType::VALUE,
         .handler = &arg_dump_input,
     },
+    {
+        .long_form = "--config",
+        .short_form = "-c",
+        .type = (int) ArgType::VALUE,
+        .handler = &arg_configuration,
+    },
 };
 
 int ArgParser::arg_print_help(const char * /*value*/) {
@@ -95,6 +101,7 @@ int ArgParser::arg_print_help(const char * /*value*/) {
                      "  -ps,  --print-structs\t\tprint in game structs\n"
                      "        --dump-frames <path>\tdump frames to a file\n"
                      "        --dump-input <path>\tdump raw input to a file\n"
+                     "  -c,   --config <path>\t\tconfiguration file\n"
                      "\nTekken 6 frame data tool overlay";
 
     std::cout << "usage: " << s_program_name << " [OPTIONS...]\n" << options << std::endl;
@@ -132,6 +139,11 @@ int ArgParser::arg_dump_input(const char *value) {
     return 0;
 }
 
+int ArgParser::arg_configuration(const char *value) {
+    s_configuration->configuration_path = value;
+    return 0;
+}
+
 Configuration ArgParser::create_default_config() {
     return {
         .log_level = LOG_INFO,
@@ -139,6 +151,7 @@ Configuration ArgParser::create_default_config() {
         .game_struct_logging = false,
         .frame_dump_path = nullptr,
         .input_dump_path = nullptr,
+        .configuration_path = nullptr,
     };
 }
 
