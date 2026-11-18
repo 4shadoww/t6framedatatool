@@ -9,6 +9,7 @@ add_subdirectory(refl) # C code
 add_subdirectory(memory_reader) # C code
 add_subdirectory(dispatcher) # C++ headers
 add_subdirectory(common) # C++ code
+add_subdirectory(configuration) # C++ headers
 
 if(GUI)
     add_subdirectory(gui)

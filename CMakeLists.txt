@@ -15,6 +15,7 @@ set(UTILS_LIB_TYPE OBJECT)
 set(REFL_LIB_TYPE OBJECT)
 set(MEMORY_READER_LIB_TYPE OBJECT)
 set(COMMON_LIB_TYPE OBJECT)
+set(CONFIGURATION_LIB_TYPE OBJECT)
 
 # Set global variables
 set(3RDPARTY_LIBS ${PROJECT_SOURCE_DIR}/3rdparty)
@@ -45,6 +46,11 @@ if(GUI)
         mark_includes_as_system(${tgt})
     endforeach()
 endif()
+
+# TOML
+set(tomlplusplus_BUILD_LIB ON)
+add_subdirectory(${3RDPARTY_LIBS}/tomlplusplus tomlplusplus)
+mark_includes_as_system(tomlplusplus_tomlplusplus)
 
 if(DEBUG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
