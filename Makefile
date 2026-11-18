@@ -49,6 +49,12 @@ test_deps:
 	tar -xvf v1.93.0.tar.gz && \
 	mv imgui-1.93.0 imgui
 
+	cd $(3RDPARTY_DIR) && \
+	wget https://github.com/marzer/tomlplusplus/archive/c38c9b922a68fc9772b25d7f606133d3ec4decfd.zip && \
+	rm -rf tomlplusplus-c38c9b922a68fc9772b25d7f606133d3ec4decfd tomlplusplus && \
+	unzip c38c9b922a68fc9772b25d7f606133d3ec4decfd.zip && \
+	mv tomlplusplus-c38c9b922a68fc9772b25d7f606133d3ec4decfd tomlplusplus
+
 configure_cli: fonts
 	cmake -G "Ninja" -S. -B$(BUILD_DIR_RELEASE)
 	# Copy compile commands db to root for lsp
@@ -130,7 +136,7 @@ clean_generated:
 clean: clean_generated
 	rm -rf $(BUILD_DIR)
 
-clean_3rdaprty:
+clean_3rdparty:
 	rm -rf $(3RDPARTY_DIR)
 
 clean_all: clean clean_3rdaprty
