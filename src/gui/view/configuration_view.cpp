@@ -23,6 +23,14 @@
 #include "view/configuration/frame_data_config_view.hpp"
 #include "view/configuration/ui_config_view.hpp"
 
+namespace {
+
+constexpr float CONTENT_PADDING = ui::em(2.0F);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+const ImVec2 content_padding_y = ui::em(0.0F, 0.5F);
+
+} // namespace
+//
 RelativePanel ConfigurationView::panel(const ImVec2 canvas) {
     constexpr float WIDTH_SCALE = 0.8F;
     constexpr float HEIGHT_SCALE = 0.8F;
@@ -47,12 +55,18 @@ void ConfigurationView::draw(const ImVec2 canvas, ConfigurationViewModel &viewMo
 
     if (ImGui::BeginTabBar("##configuration_tabs")) {
         if (ImGui::BeginTabItem("User Interface")) {
+            ImGui::Dummy(content_padding_y);
+            ImGui::Indent(CONTENT_PADDING);
             UiConfigView::draw(viewModel);
+            ImGui::Unindent(CONTENT_PADDING);
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("Frame Data")) {
+            ImGui::Dummy(content_padding_y);
+            ImGui::Indent(CONTENT_PADDING);
             FrameDataConfigView::draw(viewModel);
+            ImGui::Unindent(CONTENT_PADDING);
             ImGui::EndTabItem();
         }
 
