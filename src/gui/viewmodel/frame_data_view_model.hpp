@@ -20,6 +20,7 @@
 
 #include <chrono>
 
+#include "configuration.hpp"
 #include "event_bus.hpp"
 #include "events.hpp"
 #include "frame_data_defs.hpp"
@@ -36,14 +37,7 @@ struct FrameDataModel {
 
 class FrameDataViewModel {
 public:
-    FrameDataViewModel() noexcept {
-        EventBus::subscribe<FrameDataEvent>(this);
-        EventBus::subscribe<FrameDataCorrectionEvent>(this);
-        EventBus::subscribe<DamageDealtEvent>(this);
-        EventBus::subscribe<DistanceEvent>(this);
-        EventBus::subscribe<StatusEvent>(this);
-        EventBus::subscribe<GameHookedEvent>(this);
-    }
+    explicit FrameDataViewModel(ConfigurationData *configuration) noexcept;
 
     // Event receiver
     void on_event(const FrameDataEvent &event) {
@@ -89,8 +83,10 @@ public:
     [[nodiscard]] bool is_corrected() const {
         return m_model.corrected;
     }
+    [[nodiscard]] bool show_frame_data(PlayerSide side) const;
 
 private:
+    ConfigurationData *m_configuration;
     FrameDataModel m_model{};
 };
 

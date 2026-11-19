@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <mutex>
 
+#include "configuration.hpp"
 #include "event_bus.hpp"
 #include "events.hpp"
 #include "frame_data_defs.hpp"
@@ -50,10 +51,7 @@ struct CommandHistorySnapshot {
 
 class CommandHistoryViewModel {
 public:
-    CommandHistoryViewModel() noexcept {
-        EventBus::subscribe<InputEvent>(this);
-        EventBus::subscribe<GameHookedEvent>(this);
-    }
+    explicit CommandHistoryViewModel(ConfigurationData *configuration) noexcept;
 
     void on_event(const InputEvent &event) {
         on_input(event.input);
@@ -66,8 +64,10 @@ public:
     void on_game_hooked();
 
     [[nodiscard]] CommandHistorySnapshot snapshot() const;
+    [[nodiscard]] bool show_command_history() const;
 
 private:
+    ConfigurationData *m_configuration;
     CommandHistoryModel m_model;
     mutable std::mutex m_mutex;
 };

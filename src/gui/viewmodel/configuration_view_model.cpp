@@ -17,6 +17,9 @@
 
 #include "viewmodel/configuration_view_model.hpp"
 
+ConfigurationViewModel::ConfigurationViewModel(ConfigurationData *configuration) noexcept
+    : m_configuration(configuration) {}
+
 void ConfigurationViewModel::set_open(const bool value) {
     m_model.open = value;
 }
@@ -25,20 +28,12 @@ bool ConfigurationViewModel::is_open() const {
     return m_model.open;
 }
 
-void ConfigurationViewModel::set_show_frame_data(const bool value) {
-    m_model.show_frame_data = value;
+ConfigurationData &ConfigurationViewModel::configuration() {
+    return *m_configuration;
 }
 
-bool ConfigurationViewModel::show_frame_data() const {
-    return m_model.show_frame_data;
-}
-
-void ConfigurationViewModel::set_show_command_history(const bool value) {
-    m_model.show_command_history = value;
-}
-
-bool ConfigurationViewModel::show_command_history() const {
-    return m_model.show_command_history;
+const ConfigurationData &ConfigurationViewModel::configuration() const {
+    return *m_configuration;
 }
 
 void ConfigurationViewModel::set_show_hit_level(const bool value) {

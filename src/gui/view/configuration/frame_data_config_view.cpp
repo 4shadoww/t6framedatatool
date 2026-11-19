@@ -19,11 +19,6 @@
 
 #include <imgui.h> // NOLINT
 
-void FrameDataConfigView::draw(ConfigurationViewModel &viewModel) {
-    ImGui::TextUnformatted("Frame data settings");
-
-    bool show_hit_level = viewModel.show_hit_level();
-    if (ImGui::Checkbox("Show hit level", &show_hit_level)) {
-        viewModel.set_show_hit_level(show_hit_level);
-    }
+void FrameDataConfigView::draw(ConfigurationViewModel & /*viewModel*/) {
+    ImGui::TextUnformatted("Frame data");
 }

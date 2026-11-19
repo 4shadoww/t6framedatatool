@@ -188,8 +188,13 @@ RelativePanel FrameDataView::panel(const ImVec2 /*canvas*/, const PlayerSide sid
 }
 
 void FrameDataView::draw(const ImVec2 canvas, const FrameDataViewModel &viewModel) {
-    draw_panel(canvas, viewModel, PlayerSide::LEFT);
-    draw_panel(canvas, viewModel, PlayerSide::RIGHT);
+    if (viewModel.show_frame_data(PlayerSide::LEFT)) {
+        draw_panel(canvas, viewModel, PlayerSide::LEFT);
+    }
+
+    if (viewModel.show_frame_data(PlayerSide::RIGHT)) {
+        draw_panel(canvas, viewModel, PlayerSide::RIGHT);
+    }
 }
 
 void FrameDataView::draw_panel(const ImVec2 canvas, const FrameDataViewModel &viewModel, const PlayerSide side) {

@@ -15,12 +15,12 @@
   along with this program.    If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef GENERAL_CONFIG_VIEW_HPP
-#define GENERAL_CONFIG_VIEW_HPP
+#ifndef UI_CONFIG_VIEW_HPP
+#define UI_CONFIG_VIEW_HPP
 
 #include "viewmodel/configuration_view_model.hpp"
 
-class GeneralConfigView {
+class UiConfigView {
 public:
     static void draw(ConfigurationViewModel &viewModel);
 };

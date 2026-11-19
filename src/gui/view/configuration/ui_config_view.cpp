@@ -15,18 +15,14 @@
   along with this program.    If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "view/configuration/general_config_view.hpp"
+#include "view/configuration/ui_config_view.hpp"
 
 #include <imgui.h> // NOLINT
 
-void GeneralConfigView::draw(ConfigurationViewModel &viewModel) {
-    bool show_frame_data = viewModel.show_frame_data();
-    if (ImGui::Checkbox("Show frame data", &show_frame_data)) {
-        viewModel.set_show_frame_data(show_frame_data);
-    }
+void UiConfigView::draw(ConfigurationViewModel &viewModel) {
+    ConfigurationData &configuration = viewModel.configuration();
 
-    bool show_command_history = viewModel.show_command_history();
-    if (ImGui::Checkbox("Show command history", &show_command_history)) {
-        viewModel.set_show_command_history(show_command_history);
-    }
+    ImGui::Checkbox("Show command history", &configuration.ui.show_command_history);
+    ImGui::Checkbox("Show own frame data", &configuration.ui.show_own_frame_data);
+    ImGui::Checkbox("Show opponent frame data", &configuration.ui.show_opponent_frame_data);
 }

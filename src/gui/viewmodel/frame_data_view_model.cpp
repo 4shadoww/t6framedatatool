@@ -20,6 +20,20 @@
 
 #define RESET_FRAME_DATA_MILLIS 5000
 
+FrameDataViewModel::FrameDataViewModel(ConfigurationData *configuration) noexcept : m_configuration(configuration) {
+    EventBus::subscribe<FrameDataEvent>(this);
+    EventBus::subscribe<FrameDataCorrectionEvent>(this);
+    EventBus::subscribe<DamageDealtEvent>(this);
+    EventBus::subscribe<DistanceEvent>(this);
+    EventBus::subscribe<StatusEvent>(this);
+    EventBus::subscribe<GameHookedEvent>(this);
+}
+
+bool FrameDataViewModel::show_frame_data(const PlayerSide side) const {
+    const ConfigurationData::Ui &ui = m_configuration->ui;
+    return side == m_model.frame_data.player_side ? ui.show_own_frame_data : ui.show_opponent_frame_data;
+}
+
 // Event receiver
 void FrameDataViewModel::on_frame_data(const FrameDataPoint &frame_data) {
     m_model.last_update = std::chrono::steady_clock::now().time_since_epoch().count();

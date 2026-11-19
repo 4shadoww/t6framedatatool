@@ -19,6 +19,16 @@
 
 #include <algorithm>
 
+CommandHistoryViewModel::CommandHistoryViewModel(ConfigurationData *configuration) noexcept
+    : m_configuration(configuration) {
+    EventBus::subscribe<InputEvent>(this);
+    EventBus::subscribe<GameHookedEvent>(this);
+}
+
+bool CommandHistoryViewModel::show_command_history() const {
+    return m_configuration->ui.show_command_history;
+}
+
 void CommandHistoryViewModel::on_input(const InputState input) {
     const std::scoped_lock lock(m_mutex);
     const auto now = std::chrono::steady_clock::now();

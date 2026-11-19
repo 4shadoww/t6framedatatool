@@ -176,6 +176,10 @@ RelativePanel CommandHistoryView::panel(const ImVec2 /*canvas*/) {
 }
 
 void CommandHistoryView::draw(const ImVec2 canvas, const CommandHistoryViewModel &viewModel) {
+    if (!viewModel.show_command_history()) {
+        return;
+    }
+
     OverlayCanvas::begin_panel(panel(canvas), canvas);
 
     ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);

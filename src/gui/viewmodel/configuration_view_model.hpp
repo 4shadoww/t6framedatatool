@@ -18,28 +18,28 @@
 #ifndef CONFIGURATION_VIEW_MODEL_HPP
 #define CONFIGURATION_VIEW_MODEL_HPP
 
+#include "configuration.hpp"
+
 struct ConfigurationModel {
     bool open = false;
-    bool show_frame_data = true;
-    bool show_command_history = true;
     bool show_hit_level = true;
 };
 
 class ConfigurationViewModel {
 public:
+    explicit ConfigurationViewModel(ConfigurationData *configuration) noexcept;
+
     void set_open(bool value);
     [[nodiscard]] bool is_open() const;
 
-    void set_show_frame_data(bool value);
-    [[nodiscard]] bool show_frame_data() const;
-
-    void set_show_command_history(bool value);
-    [[nodiscard]] bool show_command_history() const;
+    [[nodiscard]] ConfigurationData &configuration();
+    [[nodiscard]] const ConfigurationData &configuration() const;
 
     void set_show_hit_level(bool value);
     [[nodiscard]] bool show_hit_level() const;
 
 private:
+    ConfigurationData *m_configuration;
     ConfigurationModel m_model{};
 };
 

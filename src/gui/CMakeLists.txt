@@ -27,7 +27,7 @@ set(SRCS opengl_gui.cpp
          view/configuration_button_view.cpp
          view/configuration_view.cpp
          view/configuration/frame_data_config_view.cpp
-         view/configuration/general_config_view.cpp
+         view/configuration/ui_config_view.cpp
          view/frame_data_view.cpp
          viewmodel/command_history_view_model.cpp
          viewmodel/configuration_view_model.cpp

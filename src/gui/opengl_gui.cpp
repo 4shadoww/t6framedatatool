@@ -64,10 +64,12 @@ public:
     }
 };
 
+ConfigurationData configuration_data;
+
 struct {
-    FrameDataViewModel frame_data;
-    CommandHistoryViewModel command_history;
-    ConfigurationViewModel configuration;
+    FrameDataViewModel frame_data{&configuration_data};
+    CommandHistoryViewModel command_history{&configuration_data};
+    ConfigurationViewModel configuration{&configuration_data};
 } view_models;
 
 GuiEventReceiver gui_event_receiver;
@@ -295,7 +297,6 @@ int main(const int argc, const char *const *const argv) {
         return 0;
     }
 
-    ConfigurationData configuration_data;
     if (config.configuration_path != nullptr) {
         if (!ConfigurationManager::load(config.configuration_path, configuration_data)) {
             std::cerr << "failed to load configuration file: " << config.configuration_path << std::endl;
@@ -304,7 +305,6 @@ int main(const int argc, const char *const *const argv) {
     } else {
         (void) ConfigurationManager::load_default(configuration_data);
     }
-
     apply_config(config);
 
     log_info("%s %s", PROGRAM_NAME, VERSION);

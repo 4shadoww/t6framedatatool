@@ -21,7 +21,7 @@
 
 #include "gui_constants.hpp"
 #include "view/configuration/frame_data_config_view.hpp"
-#include "view/configuration/general_config_view.hpp"
+#include "view/configuration/ui_config_view.hpp"
 
 RelativePanel ConfigurationView::panel(const ImVec2 canvas) {
     constexpr float WIDTH_SCALE = 0.8F;
@@ -46,8 +46,8 @@ void ConfigurationView::draw(const ImVec2 canvas, ConfigurationViewModel &viewMo
     ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
 
     if (ImGui::BeginTabBar("##configuration_tabs")) {
-        if (ImGui::BeginTabItem("General")) {
-            GeneralConfigView::draw(viewModel);
+        if (ImGui::BeginTabItem("User Interface")) {
+            UiConfigView::draw(viewModel);
             ImGui::EndTabItem();
         }
 
