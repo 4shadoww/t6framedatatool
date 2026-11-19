@@ -20,6 +20,8 @@
 
 // Player 1 health
 #define GAME_BASE_ADDRESS 0x300B2C140
+// Player 1 input
+#define P1_INPUT (GAME_BASE_ADDRESS - 154272)
 // Player 1 frames since last action
 #define P1_FRAMES_LAST_ACTION (GAME_BASE_ADDRESS + 124)
 // Plater 1 animation recovery frames
@@ -47,6 +49,9 @@
 // Player 1 moveset info
 #define P1_MOVESET_INFO_PTR (GAME_BASE_ADDRESS + 32)
 
+
+// Player 2 input
+#define P2_INPUT (GAME_BASE_ADDRESS + 2090700)
 // Player 2 frames since last action
 #define P2_FRAMES_LAST_ACTION (GAME_BASE_ADDRESS + 3260)
 // Plater 2 animation recovery frames
@@ -76,8 +81,6 @@
 
 // Current game frame
 #define CURRENT_GAME_FRAME (GAME_BASE_ADDRESS + 270587472)
-// Current input
-#define CURRENT_INPUT (GAME_BASE_ADDRESS - 154272)
 
 // Player side ptr
 #define PLAYER_SIDE_PTR (GAME_BASE_ADDRESS + 915193080)

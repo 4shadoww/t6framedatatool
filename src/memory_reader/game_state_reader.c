@@ -917,7 +917,7 @@ int read_raw_player_input(struct RawPlayerInput *input) {
     }
 
     int32_t value = 0;
-    if (read_4bytes(CURRENT_INPUT, &value) == READ_ERROR) {
+    if (read_4bytes(P1_INPUT, &value) == READ_ERROR) {
         log_debug("readed invalid current input");
         return READ_ERROR;
     }
