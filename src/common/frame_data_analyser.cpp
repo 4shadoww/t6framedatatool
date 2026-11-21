@@ -41,8 +41,9 @@
 
 // Constants
 
-// Run the tool twice as fast as the game to get accurate measurements
-#define TICK_LENGTH 8333333
+// Poll the game frame counter at 1 kHz; the full state is read only when the
+// frame counter changes.
+#define TICK_LENGTH 1000000
 
 // Ten seconds of frames
 #define FRAME_BUFFER_SIZE (size_t) (60 * 10)
@@ -570,6 +571,17 @@ bool FrameDataAnalyser::update_game_state() {
         return false;
     }
 
+    // Discard the snapshot if the game advanced while it was being read
+    uint32_t frame_after = 0;
+    if (current_game_frame(&frame_after) == READ_ERROR) {
+        log_error("failed to read game frame after state");
+        return false;
+    }
+
+    if (frame_after != state.game_frame) {
+        return true;
+    }
+
     int32_t side_val = 0;
     if (player_side(&side_val) == READ_ERROR) {
         log_error("failed to read player side");
@@ -625,28 +637,22 @@ bool FrameDataAnalyser::process_frame(GameFrame state) {
 }
 
 bool FrameDataAnalyser::loop() {
-    // Analyser timing
+    // Cheap poll: only read the game frame counter until it changes
     uint32_t current_frame = 0;
-    const int result = current_game_frame(&current_frame);
-    if (result == READ_ERROR) {
+    if (current_game_frame(&current_frame) == READ_ERROR) {
         log_fatal("failed to read game's current frame number");
         return false;
     }
 
     const GameFrame *const previous = m_frame_buffer.head();
-
-    // Check if the analyser is in sync with the game
-    if (previous->game_frame != current_frame - 1 && previous->game_frame != 0) {
-        const int64_t frames_off = (int64_t) previous->game_frame - (int64_t) current_frame;
-        // Analyser is ahead skip this tick
-        if (frames_off == 0) {
-            return true;
-        }
-
-        log_warn("analyser is off by \"%lld\" frames", frames_off);
+    if (previous != nullptr && previous->game_frame == current_frame) {
+        return true;
     }
 
-    // Analysis logic
+    if (previous != nullptr && current_frame > previous->game_frame + 1) {
+        log_warn("analyser skipped %u frames", current_frame - previous->game_frame - 1);
+    }
+
     if (!update_game_state()) {
         log_fatal("failed to update game's state");
         return false;

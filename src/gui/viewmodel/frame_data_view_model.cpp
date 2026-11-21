@@ -31,7 +31,8 @@ FrameDataViewModel::FrameDataViewModel(ConfigurationData *configuration) noexcep
 
 bool FrameDataViewModel::show_frame_data(const PlayerSide side) const {
     const ConfigurationData::Ui &ui = m_configuration->ui;
-    return side == m_model.frame_data.player_side ? ui.show_own_frame_data : ui.show_opponent_frame_data;
+    const PlayerSide own_side = m_model.in_practice ? PlayerSide::LEFT : m_model.frame_data.player_side;
+    return side == own_side ? ui.show_own_frame_data : ui.show_opponent_frame_data;
 }
 
 // Event receiver
