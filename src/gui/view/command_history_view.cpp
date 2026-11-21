@@ -160,15 +160,15 @@ void draw_input_row(const CommandHistoryEntry &entry, const ImU32 text_color) {
 
 } // namespace
 
-RelativePanel CommandHistoryView::panel(const ImVec2 /*canvas*/) {
+RelativePanel CommandHistoryView::panel(const ImVec2 /*canvas*/, const PlayerSide side) {
     constexpr float SIZE_X = ui::em(6.0F);
     constexpr float SIZE_Y = ui::em(38.0F);
-    constexpr float PADDING_LEFT = ui::em(2.0F);
+    constexpr float PADDING_SIDE = ui::em(2.0F);
     return {
-        .id = "##command_history",
-        .horizontal = HorizontalAnchor::LEFT,
+        .id = side == PlayerSide::LEFT ? "##command_history_p1" : "##command_history_p2",
+        .horizontal = side == PlayerSide::LEFT ? HorizontalAnchor::LEFT : HorizontalAnchor::RIGHT,
         .vertical = VerticalAnchor::CENTER,
-        .offset = {PADDING_LEFT, 0.0F},
+        .offset = {PADDING_SIDE, 0.0F},
         .size = {SIZE_X, SIZE_Y},
         .background_alpha = 0.0F,
         .border_size = 0.0F,
@@ -176,25 +176,27 @@ RelativePanel CommandHistoryView::panel(const ImVec2 /*canvas*/) {
 }
 
 void CommandHistoryView::draw(const ImVec2 canvas, const CommandHistoryViewModel &viewModel) {
-    if (!viewModel.show_command_history()) {
-        return;
-    }
-
-    OverlayCanvas::begin_panel(panel(canvas), canvas);
-
-    ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
-
-    const CommandHistorySnapshot history = viewModel.snapshot();
-    if (history.count == 0) {
-        ImGui::TextDisabled("No history");
-    } else {
-        for (std::size_t i = history.count; i-- > 0;) {
-            const ImU32 text_color = i == history.count - 1 ? color_scheme::TEXT_BRIGHT : color_scheme::TEXT_DIM;
-            draw_input_row(history.entries.at(i), text_color);
+    for (const PlayerSide side : {PlayerSide::LEFT, PlayerSide::RIGHT}) {
+        if (!viewModel.show_command_history(side)) {
+            continue;
         }
+
+        OverlayCanvas::begin_panel(panel(canvas, side), canvas);
+
+        ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
+
+        const CommandHistorySnapshot history = viewModel.snapshot(side);
+        if (history.count == 0) {
+            ImGui::TextDisabled("No history");
+        } else {
+            for (std::size_t i = history.count; i-- > 0;) {
+                const ImU32 text_color = i == history.count - 1 ? color_scheme::TEXT_BRIGHT : color_scheme::TEXT_DIM;
+                draw_input_row(history.entries.at(i), text_color);
+            }
+        }
+
+        ImGui::PopFont();
+
+        OverlayCanvas::end_panel();
     }
-
-    ImGui::PopFont();
-
-    OverlayCanvas::end_panel();
 }

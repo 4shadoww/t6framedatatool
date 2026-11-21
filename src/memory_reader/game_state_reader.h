@@ -108,6 +108,13 @@ int read_game_state(struct GameFrame *state);
  */
 int read_raw_player_input(struct RawPlayerInput *input);
 
+/*
+ * Read player 2 raw input bits
+ * @param input output raw input
+ * @return 0 on success, -1 on error
+ */
+int read_raw_player2_input(struct RawPlayerInput *input);
+
 void set_memory_reader_logging(const bool enabled);
 
 #ifdef __cplusplus

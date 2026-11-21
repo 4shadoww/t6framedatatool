@@ -21,6 +21,7 @@
 struct ConfigurationData {
     struct Ui {
         bool show_command_history = true;
+        bool show_player2_command_history = false;
         bool show_own_frame_data = true;
         bool show_opponent_frame_data = true;
     };

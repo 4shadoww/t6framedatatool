@@ -55,6 +55,7 @@ struct InputState {
     uint32_t raw;
     InputDirection direction;
     uint8_t buttons;
+    PlayerSide side;
 };
 
 struct PlayerFrameData {

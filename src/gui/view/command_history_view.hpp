@@ -26,7 +26,7 @@ public:
     static void draw(const ImVec2 canvas, const CommandHistoryViewModel &viewModel);
 
 private:
-    static RelativePanel panel(const ImVec2 canvas);
+    static RelativePanel panel(const ImVec2 canvas, PlayerSide side);
 };
 
 #endif

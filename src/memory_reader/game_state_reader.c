@@ -910,14 +910,14 @@ uint64_t player_side_address(void) {
     return g_player_side_address;
 }
 
-int read_raw_player_input(struct RawPlayerInput *input) {
+static int read_raw_input(const long long address, struct RawPlayerInput *input) {
     if (input == NULL) {
-        log_error("read_raw_player_input called with no output");
+        log_error("read_raw_input called with no output");
         return READ_ERROR;
     }
 
     int32_t value = 0;
-    if (read_4bytes(P1_INPUT, &value) == READ_ERROR) {
+    if (read_4bytes(address, &value) == READ_ERROR) {
         log_debug("readed invalid current input");
         return READ_ERROR;
     }
@@ -925,6 +925,14 @@ int read_raw_player_input(struct RawPlayerInput *input) {
     input->bits = (uint32_t) value;
 
     return READ_OK;
+}
+
+int read_raw_player_input(struct RawPlayerInput *input) {
+    return read_raw_input(P1_INPUT, input);
+}
+
+int read_raw_player2_input(struct RawPlayerInput *input) {
+    return read_raw_input(P2_INPUT, input);
 }
 
 int read_game_state(struct GameFrame *state) {

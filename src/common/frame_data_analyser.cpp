@@ -532,20 +532,32 @@ void FrameDataAnalyser::handle_status() {
 }
 
 void FrameDataAnalyser::handle_input(const uint32_t game_frame) {
-    RawPlayerInput raw{};
-    if (read_raw_player_input(&raw) != READ_OK) {
-        return;
+    RawPlayerInput p1_raw{};
+    if (read_raw_player_input(&p1_raw) == READ_OK) {
+        const InputState input = {
+            .game_frame = game_frame,
+            .raw = p1_raw.bits,
+            .direction = input_decoding::direction(p1_raw.bits),
+            .buttons = input_decoding::buttons(p1_raw.bits, PlayerSide::LEFT),
+            .side = PlayerSide::LEFT,
+        };
+
+        (void) input_dump_write(input.game_frame, input.raw);
+        EventBus::dispatch(InputEvent{input});
     }
 
-    const InputState input = {
-        .game_frame = game_frame,
-        .raw = raw.bits,
-        .direction = input_decoding::direction(raw.bits),
-        .buttons = input_decoding::buttons(raw.bits),
-    };
+    RawPlayerInput p2_raw{};
+    if (read_raw_player2_input(&p2_raw) == READ_OK) {
+        const InputState input = {
+            .game_frame = game_frame,
+            .raw = p2_raw.bits,
+            .direction = input_decoding::direction(p2_raw.bits),
+            .buttons = input_decoding::buttons(p2_raw.bits, PlayerSide::RIGHT),
+            .side = PlayerSide::RIGHT,
+        };
 
-    (void) input_dump_write(input.game_frame, input.raw);
-    EventBus::dispatch(InputEvent{input});
+        EventBus::dispatch(InputEvent{input});
+    }
 }
 
 bool FrameDataAnalyser::update_game_state() {

@@ -31,6 +31,7 @@
 #include "ring_buffer.hpp"
 
 constexpr std::size_t COMMAND_HISTORY_LIMIT = 25;
+constexpr std::size_t COMMAND_HISTORY_PLAYER_COUNT = 2;
 constexpr uint16_t COMMAND_HISTORY_MAX_FRAMES = 999;
 constexpr auto COMMAND_HISTORY_MAX_AGE = std::chrono::seconds(10);
 
@@ -63,12 +64,12 @@ public:
     void on_input(const InputState input);
     void on_game_hooked();
 
-    [[nodiscard]] CommandHistorySnapshot snapshot() const;
-    [[nodiscard]] bool show_command_history() const;
+    [[nodiscard]] CommandHistorySnapshot snapshot(PlayerSide side) const;
+    [[nodiscard]] bool show_command_history(PlayerSide side) const;
 
 private:
     ConfigurationData *m_configuration;
-    CommandHistoryModel m_model;
+    std::array<CommandHistoryModel, COMMAND_HISTORY_PLAYER_COUNT> m_models{};
     mutable std::mutex m_mutex;
 };
 

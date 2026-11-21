@@ -23,6 +23,7 @@ void UiConfigView::draw(ConfigurationViewModel &viewModel) {
     ConfigurationData &configuration = viewModel.configuration();
 
     ImGui::Checkbox("Show command history", &configuration.ui.show_command_history);
+    ImGui::Checkbox("Show Player 2 command history", &configuration.ui.show_player2_command_history);
     ImGui::Checkbox("Show own frame data", &configuration.ui.show_own_frame_data);
     ImGui::Checkbox("Show opponent frame data", &configuration.ui.show_opponent_frame_data);
 }

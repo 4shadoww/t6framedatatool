@@ -49,6 +49,7 @@ protected:
 TEST_F(TestConfigurationManager, loads_ui_values) {
     write_file("[ui]\n"
                "show_command_history = false\n"
+               "show_player2_command_history = false\n"
                "show_own_frame_data = false\n"
                "show_opponent_frame_data = false\n");
 
@@ -56,6 +57,7 @@ TEST_F(TestConfigurationManager, loads_ui_values) {
 
     ASSERT_TRUE(ConfigurationManager::load(m_path, configuration));
     EXPECT_FALSE(configuration.ui.show_command_history);
+    EXPECT_FALSE(configuration.ui.show_player2_command_history);
     EXPECT_FALSE(configuration.ui.show_own_frame_data);
     EXPECT_FALSE(configuration.ui.show_opponent_frame_data);
 }
@@ -68,6 +70,7 @@ TEST_F(TestConfigurationManager, keeps_defaults_for_missing_fields) {
 
     ASSERT_TRUE(ConfigurationManager::load(m_path, configuration));
     EXPECT_FALSE(configuration.ui.show_command_history);
+    EXPECT_TRUE(configuration.ui.show_player2_command_history);
     EXPECT_TRUE(configuration.ui.show_own_frame_data);
     EXPECT_TRUE(configuration.ui.show_opponent_frame_data);
 }
@@ -79,6 +82,7 @@ TEST_F(TestConfigurationManager, keeps_defaults_for_empty_file) {
 
     ASSERT_TRUE(ConfigurationManager::load(m_path, configuration));
     EXPECT_TRUE(configuration.ui.show_command_history);
+    EXPECT_TRUE(configuration.ui.show_player2_command_history);
     EXPECT_TRUE(configuration.ui.show_own_frame_data);
     EXPECT_TRUE(configuration.ui.show_opponent_frame_data);
 }
@@ -100,6 +104,7 @@ TEST_F(TestConfigurationManager, returns_false_for_invalid_file) {
 TEST_F(TestConfigurationManager, saves_ui_values) {
     ConfigurationData configuration;
     configuration.ui.show_command_history = false;
+    configuration.ui.show_player2_command_history = false;
     configuration.ui.show_own_frame_data = true;
     configuration.ui.show_opponent_frame_data = false;
 
@@ -108,6 +113,7 @@ TEST_F(TestConfigurationManager, saves_ui_values) {
     ConfigurationData loaded;
     ASSERT_TRUE(ConfigurationManager::load(m_path, loaded));
     EXPECT_FALSE(loaded.ui.show_command_history);
+    EXPECT_FALSE(loaded.ui.show_player2_command_history);
     EXPECT_TRUE(loaded.ui.show_own_frame_data);
     EXPECT_FALSE(loaded.ui.show_opponent_frame_data);
 }

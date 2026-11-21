@@ -27,10 +27,16 @@ namespace input_decoding {
 constexpr uint32_t DIRECTION_SHIFT = 20U;
 constexpr uint32_t DIRECTION_MASK = 0xFU;
 
-constexpr uint32_t BUTTON_1_MASK = 0x8000U;
-constexpr uint32_t BUTTON_2_MASK = 0x1000U;
-constexpr uint32_t BUTTON_3_MASK = 0x4000U;
-constexpr uint32_t BUTTON_4_MASK = 0x2000U;
+constexpr uint32_t P1_BUTTON_1_MASK = 0x8000U;
+constexpr uint32_t P1_BUTTON_2_MASK = 0x1000U;
+constexpr uint32_t P1_BUTTON_3_MASK = 0x4000U;
+constexpr uint32_t P1_BUTTON_4_MASK = 0x2000U;
+
+// Player 2 reports buttons in the least significant byte
+constexpr uint32_t P2_BUTTON_1_MASK = 0x0010U;
+constexpr uint32_t P2_BUTTON_2_MASK = 0x0020U;
+constexpr uint32_t P2_BUTTON_3_MASK = 0x0040U;
+constexpr uint32_t P2_BUTTON_4_MASK = 0x0080U;
 
 constexpr uint32_t BUTTON_1 = 1U << 0U;
 constexpr uint32_t BUTTON_2 = 1U << 1U;
@@ -46,8 +52,17 @@ inline InputDirection direction(const uint32_t raw) {
 }
 
 inline uint8_t buttons(const uint32_t raw) {
-    return static_cast<uint8_t>(button(raw, BUTTON_1_MASK, BUTTON_1) | button(raw, BUTTON_2_MASK, BUTTON_2) |
-                                button(raw, BUTTON_3_MASK, BUTTON_3) | button(raw, BUTTON_4_MASK, BUTTON_4));
+    return static_cast<uint8_t>(button(raw, P1_BUTTON_1_MASK, BUTTON_1) | button(raw, P1_BUTTON_2_MASK, BUTTON_2) |
+                                button(raw, P1_BUTTON_3_MASK, BUTTON_3) | button(raw, P1_BUTTON_4_MASK, BUTTON_4));
+}
+
+inline uint8_t buttons(const uint32_t raw, const PlayerSide side) {
+    if (side == PlayerSide::RIGHT) {
+        return static_cast<uint8_t>(button(raw, P2_BUTTON_1_MASK, BUTTON_1) | button(raw, P2_BUTTON_2_MASK, BUTTON_2) |
+                                    button(raw, P2_BUTTON_3_MASK, BUTTON_3) | button(raw, P2_BUTTON_4_MASK, BUTTON_4));
+    }
+
+    return buttons(raw);
 }
 
 } // namespace input_decoding
