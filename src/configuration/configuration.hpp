@@ -18,6 +18,9 @@
 #ifndef CONFIGURATION_HPP
 #define CONFIGURATION_HPP
 
+constexpr float MIN_UI_SCALE = 0.5F;
+constexpr float MAX_UI_SCALE = 1.5F;
+
 struct ConfigurationData {
     struct Ui {
         bool show_command_history = true;
@@ -25,6 +28,7 @@ struct ConfigurationData {
         bool show_own_frame_data = true;
         bool show_opponent_frame_data = true;
         bool show_only_in_practice = false;
+        float scale = 1.0F;
     };
 
     Ui ui;

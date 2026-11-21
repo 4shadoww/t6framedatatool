@@ -17,7 +17,15 @@
 
 #include "view/configuration/ui_config_view.hpp"
 
+#include <cmath>
+
 #include <imgui.h> // NOLINT
+
+namespace {
+
+constexpr float PERCENT_FACTOR = 100.0F;
+
+} // namespace
 
 void UiConfigView::draw(ConfigurationViewModel &viewModel) {
     ConfigurationData &configuration = viewModel.configuration();
@@ -27,4 +35,11 @@ void UiConfigView::draw(ConfigurationViewModel &viewModel) {
     ImGui::Checkbox("Show own frame data", &configuration.ui.show_own_frame_data);
     ImGui::Checkbox("Show opponent frame data", &configuration.ui.show_opponent_frame_data);
     ImGui::Checkbox("Show UI only in practice mode", &configuration.ui.show_only_in_practice);
+
+    int scale_percent = static_cast<int>(std::lround(configuration.ui.scale * PERCENT_FACTOR));
+    const int min_percent = static_cast<int>(MIN_UI_SCALE * PERCENT_FACTOR);
+    const int max_percent = static_cast<int>(MAX_UI_SCALE * PERCENT_FACTOR);
+    if (ImGui::SliderInt("UI scale", &scale_percent, min_percent, max_percent, "%d%%")) {
+        configuration.ui.scale = static_cast<float>(scale_percent) / PERCENT_FACTOR;
+    }
 }

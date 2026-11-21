@@ -22,6 +22,7 @@
 #define ANALYSER_START_INTERVAL 1
 
 constexpr float OVERLAY_FONT_SIZE = 25.0F;
+constexpr float REFERENCE_UI_HEIGHT = 1080.0F;
 constexpr int MAX_WIDTH = static_cast<int>(OVERLAY_FONT_SIZE * 16.0F);
 constexpr int MAX_HEIGTH = static_cast<int>(OVERLAY_FONT_SIZE * 12.0F);
 

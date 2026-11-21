@@ -50,7 +50,7 @@ void draw_gear(ImDrawList *const draw_list, const ImVec2 center, const float rad
 } // namespace
 
 RelativePanel ConfigurationButtonView::panel(const ImVec2 /*canvas*/) {
-    constexpr float SIZE = ui::em(2.0F);
+    const float button_size = ui::em(2.0F);
     constexpr float OFFSET = 0.0F;
 
     return {
@@ -58,7 +58,7 @@ RelativePanel ConfigurationButtonView::panel(const ImVec2 /*canvas*/) {
         .horizontal = HorizontalAnchor::RIGHT,
         .vertical = VerticalAnchor::TOP,
         .offset = {OFFSET, OFFSET},
-        .size = {SIZE, SIZE},
+        .size = {button_size, button_size},
         .border_size = 0.0F,
     };
 }

@@ -28,15 +28,16 @@
 
 namespace ui {
 
-constexpr float em(const float value) {
-    return OVERLAY_FONT_SIZE * value;
+inline float em(const float value) {
+    const ImGuiStyle &style = ImGui::GetStyle();
+    return style.FontSizeBase * style.FontScaleMain * style.FontScaleDpi * value;
 }
 
 inline ImVec2 em(const float x, const float y) {
     return {em(x), em(y)};
 }
 
-constexpr float hairline() {
+inline float hairline() {
     return std::max(1.0F, em(0.04F));
 }
 

@@ -65,6 +65,7 @@ public:
 };
 
 ConfigurationData configuration_data;
+float g_window_scale = 1.0F;
 
 struct {
     FrameDataViewModel frame_data{&configuration_data};
@@ -78,6 +79,8 @@ void setup_style() {
     ImGui::StyleColorsDark();
 
     ImGuiStyle &style = ImGui::GetStyle();
+    style.FontSizeBase = OVERLAY_FONT_SIZE;
+    style.FontScaleMain = configuration_data.ui.scale * g_window_scale;
     style.WindowRounding = ui::em(0.32F);
     style.FrameRounding = ui::em(0.24F);
     style.ChildRounding = ui::em(0.24F);
@@ -222,9 +225,19 @@ void set_mouse_passthrough(GLFWwindow *const window, bool &passthrough, const bo
 
 void gui_loop(GLFWwindow *const window) {
     bool passthrough = true;
+    float applied_scale = configuration_data.ui.scale;
 
     while (glfwWindowShouldClose(window) == 0) {
         const ImVec2 canvas = OverlayCanvas::size();
+        const float window_scale = view_models.frame_data.is_game_hooked() ? canvas.y / REFERENCE_UI_HEIGHT : 1.0F;
+        const float effective_scale = configuration_data.ui.scale * window_scale;
+
+        if (applied_scale != effective_scale) {
+            applied_scale = effective_scale;
+            g_window_scale = window_scale;
+            setup_style();
+        }
+
         double mouse_x = 0.0;
         double mouse_y = 0.0;
         glfwGetCursorPos(window, &mouse_x, &mouse_y);

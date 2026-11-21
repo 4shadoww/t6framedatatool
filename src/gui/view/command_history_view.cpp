@@ -29,6 +29,10 @@
 
 namespace {
 
+constexpr float EDGE_PADDING_FACTOR = 2.0F;
+constexpr float SIZE_X_FACTOR = 6.0F;
+constexpr float SIZE_Y_FACTOR = 38.0F;
+
 void draw_outlined_text(ImDrawList *const draw_list,
                         const ImVec2 position,
                         const ImU32 color,
@@ -160,17 +164,18 @@ void draw_input_row(const CommandHistoryEntry &entry, const ImU32 text_color) {
 
 } // namespace
 
-RelativePanel
-CommandHistoryView::panel(const ImVec2 /*canvas*/, const PlayerSide player, const PlayerSide screen_side) {
-    constexpr float SIZE_X = ui::em(6.0F);
-    constexpr float SIZE_Y = ui::em(38.0F);
-    constexpr float PADDING_SIDE = ui::em(2.0F);
+RelativePanel CommandHistoryView::panel(const ImVec2 canvas, const PlayerSide player, const PlayerSide screen_side) {
+    const float margin = ui::em(EDGE_PADDING_FACTOR);
+    const float available_x = std::max(0.0F, canvas.x - (margin * 2.0F));
+    const float available_y = std::max(0.0F, canvas.y - (margin * 2.0F));
+    const float size_x = std::min(ui::em(SIZE_X_FACTOR), available_x);
+    const float size_y = std::min(ui::em(SIZE_Y_FACTOR), available_y);
     return {
         .id = player == PlayerSide::LEFT ? "##command_history_p1" : "##command_history_p2",
         .horizontal = screen_side == PlayerSide::LEFT ? HorizontalAnchor::LEFT : HorizontalAnchor::RIGHT,
-        .vertical = VerticalAnchor::CENTER,
-        .offset = {PADDING_SIDE, 0.0F},
-        .size = {SIZE_X, SIZE_Y},
+        .vertical = VerticalAnchor::TOP,
+        .offset = {margin, margin},
+        .size = {size_x, size_y},
         .background_alpha = 0.0F,
         .border_size = 0.0F,
     };

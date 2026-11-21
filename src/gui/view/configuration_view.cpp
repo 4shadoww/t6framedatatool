@@ -23,14 +23,6 @@
 #include "view/configuration/frame_data_config_view.hpp"
 #include "view/configuration/ui_config_view.hpp"
 
-namespace {
-
-constexpr float CONTENT_PADDING = ui::em(2.0F);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-const ImVec2 content_padding_y = ui::em(0.0F, 0.5F);
-
-} // namespace
-//
 RelativePanel ConfigurationView::panel(const ImVec2 canvas) {
     constexpr float WIDTH_SCALE = 0.8F;
     constexpr float HEIGHT_SCALE = 0.8F;
@@ -51,42 +43,45 @@ void ConfigurationView::draw(const ImVec2 canvas, ConfigurationViewModel &viewMo
     }
     OverlayCanvas::begin_panel(panel(canvas), canvas);
 
+    const float content_padding = ui::em(2.0F);
+    const ImVec2 content_padding_y = ui::em(0.0F, 0.5F);
+
     ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
 
     if (ImGui::BeginTabBar("##configuration_tabs")) {
         if (ImGui::BeginTabItem("User Interface")) {
             ImGui::Dummy(content_padding_y);
-            ImGui::Indent(CONTENT_PADDING);
+            ImGui::Indent(content_padding);
             UiConfigView::draw(viewModel);
-            ImGui::Unindent(CONTENT_PADDING);
+            ImGui::Unindent(content_padding);
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("Frame Data")) {
             ImGui::Dummy(content_padding_y);
-            ImGui::Indent(CONTENT_PADDING);
+            ImGui::Indent(content_padding);
             FrameDataConfigView::draw(viewModel);
-            ImGui::Unindent(CONTENT_PADDING);
+            ImGui::Unindent(content_padding);
             ImGui::EndTabItem();
         }
 
         ImGui::EndTabBar();
     }
 
-    constexpr float CLOSE_BUTTON_SIZE = ui::em(1.5F);
+    const float close_button_size = ui::em(1.5F);
     const ImVec2 content_max = ImGui::GetWindowContentRegionMax();
-    ImGui::SetCursorPos(ImVec2(content_max.x - CLOSE_BUTTON_SIZE, 0.0F));
-    if (ImGui::Button("X", ImVec2(CLOSE_BUTTON_SIZE, CLOSE_BUTTON_SIZE))) {
+    ImGui::SetCursorPos(ImVec2(content_max.x - close_button_size, 0.0F));
+    if (ImGui::Button("X", ImVec2(close_button_size, close_button_size))) {
         viewModel.set_open(false);
     }
 
-    constexpr float SAVE_BUTTON_WIDTH = ui::em(4.0F);
-    constexpr float SAVE_BUTTON_HEIGHT = ui::em(1.5F);
-    constexpr float SAVE_BUTTON_PADDING = ui::em(1.0F);
+    const float save_button_width = ui::em(4.0F);
+    const float save_button_height = ui::em(1.5F);
+    const float save_button_padding = ui::em(1.0F);
     const ImVec2 content_min = ImGui::GetWindowContentRegionMin();
     ImGui::SetCursorPos(
-        ImVec2(content_min.x + SAVE_BUTTON_PADDING, content_max.y - SAVE_BUTTON_HEIGHT - SAVE_BUTTON_PADDING));
-    if (ImGui::Button("Save", ImVec2(SAVE_BUTTON_WIDTH, SAVE_BUTTON_HEIGHT))) {
+        ImVec2(content_min.x + save_button_padding, content_max.y - save_button_height - save_button_padding));
+    if (ImGui::Button("Save", ImVec2(save_button_width, save_button_height))) {
         (void) viewModel.save();
     }
 

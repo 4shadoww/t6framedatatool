@@ -27,8 +27,6 @@
 
 namespace {
 
-constexpr float LABEL_COLUMN_WIDTH = ui::em(10.0F);
-
 const PlayerFrameData &player_data(const FrameDataPoint &data, const PlayerSide side) {
     return side == PlayerSide::LEFT ? data.p1 : data.p2;
 }
@@ -63,8 +61,9 @@ HitLevelStyle hit_level_style(const HitLevel level) {
 }
 
 void draw_label(const char *const label) {
+    const float label_column_width = ui::em(10.0F);
     ImGui::TextDisabled("%s", label);
-    ImGui::SameLine(LABEL_COLUMN_WIDTH);
+    ImGui::SameLine(label_column_width);
 }
 
 void draw_advantage(const int advantage) {
@@ -172,18 +171,18 @@ void draw_frame_data(const FrameDataViewModel &viewModel, const PlayerSide side)
 } // namespace
 
 RelativePanel FrameDataView::panel(const ImVec2 /*canvas*/, const PlayerSide side) {
-    constexpr float SIZE_X = ui::em(19.0F);
-    constexpr float SIZE_Y = ui::em(8.0F);
+    const float size_x = ui::em(19.0F);
+    const float size_y = ui::em(8.0F);
 
-    constexpr float PADDING_SIDE = ui::em(8.0F);
-    constexpr float PADDING_BOTTOM = ui::em(4.0F);
+    const float padding_side = ui::em(8.0F);
+    const float padding_bottom = ui::em(4.0F);
 
     return {
         .id = side == PlayerSide::LEFT ? "##frame_data_p1" : "##frame_data_p2",
         .horizontal = side == PlayerSide::LEFT ? HorizontalAnchor::LEFT : HorizontalAnchor::RIGHT,
         .vertical = VerticalAnchor::BOTTOM,
-        .offset = {PADDING_SIDE, PADDING_BOTTOM},
-        .size = {SIZE_X, SIZE_Y},
+        .offset = {padding_side, padding_bottom},
+        .size = {size_x, size_y},
     };
 }
 
