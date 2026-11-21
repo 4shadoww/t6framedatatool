@@ -76,6 +76,7 @@ void FrameDataViewModel::on_distance(const float distance) {
 void FrameDataViewModel::on_player_status(const StatusEvent &status) {
     m_model.p1_status = status.p1;
     m_model.p2_status = status.p2;
+    m_model.in_practice = status.in_practice;
 }
 void FrameDataViewModel::on_game_hooked(const bool hooked) {
     m_model.game_hooked = hooked;

@@ -51,7 +51,8 @@ TEST_F(TestConfigurationManager, loads_ui_values) {
                "show_command_history = false\n"
                "show_player2_command_history = false\n"
                "show_own_frame_data = false\n"
-               "show_opponent_frame_data = false\n");
+               "show_opponent_frame_data = false\n"
+               "show_only_in_practice = true\n");
 
     ConfigurationData configuration;
 
@@ -60,6 +61,7 @@ TEST_F(TestConfigurationManager, loads_ui_values) {
     EXPECT_FALSE(configuration.ui.show_player2_command_history);
     EXPECT_FALSE(configuration.ui.show_own_frame_data);
     EXPECT_FALSE(configuration.ui.show_opponent_frame_data);
+    EXPECT_TRUE(configuration.ui.show_only_in_practice);
 }
 
 TEST_F(TestConfigurationManager, keeps_defaults_for_missing_fields) {
@@ -73,6 +75,7 @@ TEST_F(TestConfigurationManager, keeps_defaults_for_missing_fields) {
     EXPECT_FALSE(configuration.ui.show_player2_command_history);
     EXPECT_TRUE(configuration.ui.show_own_frame_data);
     EXPECT_TRUE(configuration.ui.show_opponent_frame_data);
+    EXPECT_FALSE(configuration.ui.show_only_in_practice);
 }
 
 TEST_F(TestConfigurationManager, keeps_defaults_for_empty_file) {
@@ -85,6 +88,7 @@ TEST_F(TestConfigurationManager, keeps_defaults_for_empty_file) {
     EXPECT_FALSE(configuration.ui.show_player2_command_history);
     EXPECT_TRUE(configuration.ui.show_own_frame_data);
     EXPECT_TRUE(configuration.ui.show_opponent_frame_data);
+    EXPECT_FALSE(configuration.ui.show_only_in_practice);
 }
 
 TEST_F(TestConfigurationManager, returns_false_for_missing_file) {
@@ -107,6 +111,7 @@ TEST_F(TestConfigurationManager, saves_ui_values) {
     configuration.ui.show_player2_command_history = false;
     configuration.ui.show_own_frame_data = true;
     configuration.ui.show_opponent_frame_data = false;
+    configuration.ui.show_only_in_practice = true;
 
     ASSERT_TRUE(ConfigurationManager::save(m_path, configuration));
 
@@ -116,6 +121,7 @@ TEST_F(TestConfigurationManager, saves_ui_values) {
     EXPECT_FALSE(loaded.ui.show_player2_command_history);
     EXPECT_TRUE(loaded.ui.show_own_frame_data);
     EXPECT_FALSE(loaded.ui.show_opponent_frame_data);
+    EXPECT_TRUE(loaded.ui.show_only_in_practice);
 }
 
 } // namespace

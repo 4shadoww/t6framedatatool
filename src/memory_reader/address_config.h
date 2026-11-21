@@ -82,6 +82,9 @@
 // Current game frame
 #define CURRENT_GAME_FRAME (GAME_BASE_ADDRESS + 270587472)
 
+// In practice
+#define IN_PRACTICE (GAME_BASE_ADDRESS + 915057476)
+
 // Player side ptr
 #define PLAYER_SIDE_PTR (GAME_BASE_ADDRESS + 915193080)
 #define PLAYER_SIDE_OFFSET 21808

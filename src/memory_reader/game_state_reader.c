@@ -935,6 +935,16 @@ int read_raw_player2_input(struct RawPlayerInput *input) {
     return read_raw_input(P2_INPUT, input);
 }
 
+bool read_in_practice(void) {
+    int32_t value = 0;
+    if (read_4bytes(IN_PRACTICE, &value) == READ_ERROR) {
+        log_debug("failed to read practice state");
+        return false;
+    }
+
+    return value != 0;
+}
+
 int read_game_state(struct GameFrame *state) {
     int32_t value = 0;
     struct PlayerCoordinate coords = {0, 0, 0};

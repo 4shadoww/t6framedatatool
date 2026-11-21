@@ -115,6 +115,12 @@ int read_raw_player_input(struct RawPlayerInput *input);
  */
 int read_raw_player2_input(struct RawPlayerInput *input);
 
+/*
+ * Read whether the game is in practice mode
+ * @return true when in practice, false otherwise or on error
+ */
+bool read_in_practice(void);
+
 void set_memory_reader_logging(const bool enabled);
 
 #ifdef __cplusplus

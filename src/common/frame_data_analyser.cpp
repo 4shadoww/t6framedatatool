@@ -63,6 +63,8 @@ int FrameDataAnalyser::m_last_player_intent = 0;
 
 PlayerSide FrameDataAnalyser::m_player_side = PlayerSide::LEFT;
 
+bool FrameDataAnalyser::m_in_practice = false;
+
 void FrameDataAnalyser::log_frame() {
     const GameFrame *const state = m_frame_buffer.head();
 
@@ -528,6 +530,7 @@ void FrameDataAnalyser::handle_status() {
     EventBus::dispatch(StatusEvent{
         .p1 = static_cast<PlayerState>(current->p1.state),
         .p2 = static_cast<PlayerState>(current->p2.state),
+        .in_practice = m_in_practice,
     });
 }
 
@@ -576,6 +579,8 @@ bool FrameDataAnalyser::update_game_state() {
     if (frame_dump_write(&state, side_val) != READ_OK) {
         return false;
     }
+
+    m_in_practice = read_in_practice();
 
     if (!process_frame(state, side_val)) {
         return false;
@@ -710,6 +715,7 @@ void FrameDataAnalyser::reset() {
     m_logging = false;
     m_last_player_intent = 0;
     m_player_side = PlayerSide::LEFT;
+    m_in_practice = false;
     m_p1_chain = {};
     m_p2_chain = {};
 }

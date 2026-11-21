@@ -71,6 +71,7 @@ private:
     static bool m_logging;
     static int m_last_player_intent;
     static PlayerSide m_player_side;
+    static bool m_in_practice;
 
     // Analysis state
     static AttackChain m_p1_chain;

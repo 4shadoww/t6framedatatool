@@ -101,8 +101,11 @@ void setup_style() {
 
 void draw_overlay() {
     const ImVec2 canvas = OverlayCanvas::size();
-    FrameDataView::draw(canvas, view_models.frame_data);
-    CommandHistoryView::draw(canvas, view_models.command_history);
+    if (!configuration_data.ui.show_only_in_practice || view_models.frame_data.is_in_practice()) {
+        FrameDataView::draw(canvas, view_models.frame_data);
+        CommandHistoryView::draw(canvas, view_models.command_history);
+    }
+
     ConfigurationButtonView::draw(canvas, view_models.configuration);
     ConfigurationView::draw(canvas, view_models.configuration);
 }

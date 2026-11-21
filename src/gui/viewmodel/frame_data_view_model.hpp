@@ -30,6 +30,7 @@ struct FrameDataModel {
     float distance;
     PlayerState p1_status;
     PlayerState p2_status;
+    bool in_practice;
     bool game_hooked;
     bool corrected;
     std::chrono::steady_clock::rep last_update;
@@ -79,6 +80,9 @@ public:
     }
     [[nodiscard]] bool is_game_hooked() const {
         return m_model.game_hooked;
+    }
+    [[nodiscard]] bool is_in_practice() const {
+        return m_model.in_practice;
     }
     [[nodiscard]] bool is_corrected() const {
         return m_model.corrected;

@@ -32,6 +32,7 @@ constexpr const char *SHOW_COMMAND_HISTORY_KEY = "show_command_history";
 constexpr const char *SHOW_PLAYER2_COMMAND_HISTORY_KEY = "show_player2_command_history";
 constexpr const char *SHOW_OWN_FRAME_DATA_KEY = "show_own_frame_data";
 constexpr const char *SHOW_OPPONENT_FRAME_DATA_KEY = "show_opponent_frame_data";
+constexpr const char *SHOW_ONLY_IN_PRACTICE_KEY = "show_only_in_practice";
 
 void load_ui(const toml::table &table, ConfigurationData::Ui &ui) {
     if (const toml::value<bool> *const value = table.get_as<bool>(SHOW_COMMAND_HISTORY_KEY)) {
@@ -49,6 +50,10 @@ void load_ui(const toml::table &table, ConfigurationData::Ui &ui) {
     if (const toml::value<bool> *const value = table.get_as<bool>(SHOW_OPPONENT_FRAME_DATA_KEY)) {
         ui.show_opponent_frame_data = value->get();
     }
+
+    if (const toml::value<bool> *const value = table.get_as<bool>(SHOW_ONLY_IN_PRACTICE_KEY)) {
+        ui.show_only_in_practice = value->get();
+    }
 }
 
 toml::table save_ui(const ConfigurationData::Ui &ui) {
@@ -57,6 +62,7 @@ toml::table save_ui(const ConfigurationData::Ui &ui) {
         {SHOW_PLAYER2_COMMAND_HISTORY_KEY, ui.show_player2_command_history},
         {SHOW_OWN_FRAME_DATA_KEY, ui.show_own_frame_data},
         {SHOW_OPPONENT_FRAME_DATA_KEY, ui.show_opponent_frame_data},
+        {SHOW_ONLY_IN_PRACTICE_KEY, ui.show_only_in_practice},
     };
 }
 
