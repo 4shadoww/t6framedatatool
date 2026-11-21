@@ -160,13 +160,14 @@ void draw_input_row(const CommandHistoryEntry &entry, const ImU32 text_color) {
 
 } // namespace
 
-RelativePanel CommandHistoryView::panel(const ImVec2 /*canvas*/, const PlayerSide side) {
+RelativePanel
+CommandHistoryView::panel(const ImVec2 /*canvas*/, const PlayerSide player, const PlayerSide screen_side) {
     constexpr float SIZE_X = ui::em(6.0F);
     constexpr float SIZE_Y = ui::em(38.0F);
     constexpr float PADDING_SIDE = ui::em(2.0F);
     return {
-        .id = side == PlayerSide::LEFT ? "##command_history_p1" : "##command_history_p2",
-        .horizontal = side == PlayerSide::LEFT ? HorizontalAnchor::LEFT : HorizontalAnchor::RIGHT,
+        .id = player == PlayerSide::LEFT ? "##command_history_p1" : "##command_history_p2",
+        .horizontal = screen_side == PlayerSide::LEFT ? HorizontalAnchor::LEFT : HorizontalAnchor::RIGHT,
         .vertical = VerticalAnchor::CENTER,
         .offset = {PADDING_SIDE, 0.0F},
         .size = {SIZE_X, SIZE_Y},
@@ -176,16 +177,16 @@ RelativePanel CommandHistoryView::panel(const ImVec2 /*canvas*/, const PlayerSid
 }
 
 void CommandHistoryView::draw(const ImVec2 canvas, const CommandHistoryViewModel &viewModel) {
-    for (const PlayerSide side : {PlayerSide::LEFT, PlayerSide::RIGHT}) {
-        if (!viewModel.show_command_history(side)) {
+    for (const PlayerSide player : {PlayerSide::LEFT, PlayerSide::RIGHT}) {
+        if (!viewModel.show_command_history(player)) {
             continue;
         }
 
-        OverlayCanvas::begin_panel(panel(canvas, side), canvas);
+        OverlayCanvas::begin_panel(panel(canvas, player, viewModel.panel_side(player)), canvas);
 
         ImGui::PushFont(nullptr, OVERLAY_FONT_SIZE);
 
-        const CommandHistorySnapshot history = viewModel.snapshot(side);
+        const CommandHistorySnapshot history = viewModel.snapshot(player);
         if (history.count == 0) {
             ImGui::TextDisabled("No history");
         } else {

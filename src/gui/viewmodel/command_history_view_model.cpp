@@ -19,23 +19,42 @@
 
 #include <algorithm>
 
+namespace {
+
+constexpr PlayerSide opposite(const PlayerSide side) {
+    return side == PlayerSide::LEFT ? PlayerSide::RIGHT : PlayerSide::LEFT;
+}
+
+} // namespace
+
 CommandHistoryViewModel::CommandHistoryViewModel(ConfigurationData *configuration) noexcept
     : m_configuration(configuration) {
     EventBus::subscribe<InputEvent>(this);
     EventBus::subscribe<GameHookedEvent>(this);
 }
 
-bool CommandHistoryViewModel::show_command_history(const PlayerSide side) const {
-    if (side == PlayerSide::RIGHT) {
+bool CommandHistoryViewModel::show_command_history(const PlayerSide player) const {
+    if (player == PlayerSide::RIGHT) {
         return m_configuration->ui.show_player2_command_history;
     }
 
     return m_configuration->ui.show_command_history;
 }
 
-void CommandHistoryViewModel::on_input(const InputState input) {
+PlayerSide CommandHistoryViewModel::panel_side(const PlayerSide player) const {
     const std::scoped_lock lock(m_mutex);
 
+    if (player == PlayerSide::LEFT) {
+        return m_own_side;
+    }
+
+    return opposite(m_own_side);
+}
+
+void CommandHistoryViewModel::on_input(const InputState input, const PlayerSide own_side) {
+    const std::scoped_lock lock(m_mutex);
+
+    m_own_side = own_side;
     CommandHistoryModel &model = m_models.at(static_cast<std::size_t>(input.side));
     const auto now = std::chrono::steady_clock::now();
 
@@ -65,10 +84,10 @@ void CommandHistoryViewModel::on_game_hooked() {
     }
 }
 
-CommandHistorySnapshot CommandHistoryViewModel::snapshot(const PlayerSide side) const {
+CommandHistorySnapshot CommandHistoryViewModel::snapshot(const PlayerSide player) const {
     const std::scoped_lock lock(m_mutex);
 
-    const CommandHistoryModel &model = m_models.at(static_cast<std::size_t>(side));
+    const CommandHistoryModel &model = m_models.at(static_cast<std::size_t>(player));
     CommandHistorySnapshot result;
     result.count = model.entries.item_count();
 

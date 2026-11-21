@@ -47,6 +47,8 @@ struct StatusEvent {
 
 struct InputEvent {
     InputState input;
+    // Side the local player is on
+    PlayerSide own_side;
 };
 
 struct GameHookedEvent {};

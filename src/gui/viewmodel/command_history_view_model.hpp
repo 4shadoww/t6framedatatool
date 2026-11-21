@@ -55,21 +55,23 @@ public:
     explicit CommandHistoryViewModel(ConfigurationData *configuration) noexcept;
 
     void on_event(const InputEvent &event) {
-        on_input(event.input);
+        on_input(event.input, event.own_side);
     }
     void on_event(const GameHookedEvent & /*event*/) {
         on_game_hooked();
     }
 
-    void on_input(const InputState input);
+    void on_input(InputState input, PlayerSide own_side);
     void on_game_hooked();
 
-    [[nodiscard]] CommandHistorySnapshot snapshot(PlayerSide side) const;
-    [[nodiscard]] bool show_command_history(PlayerSide side) const;
+    [[nodiscard]] CommandHistorySnapshot snapshot(PlayerSide player) const;
+    [[nodiscard]] PlayerSide panel_side(PlayerSide player) const;
+    [[nodiscard]] bool show_command_history(PlayerSide player) const;
 
 private:
     ConfigurationData *m_configuration;
     std::array<CommandHistoryModel, COMMAND_HISTORY_PLAYER_COUNT> m_models{};
+    PlayerSide m_own_side = PlayerSide::LEFT;
     mutable std::mutex m_mutex;
 };
 
