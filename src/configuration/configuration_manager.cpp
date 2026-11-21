@@ -78,13 +78,12 @@ bool ConfigurationManager::load(const std::filesystem::path &path, Configuration
 }
 
 bool ConfigurationManager::load_default(ConfigurationData &configuration) {
-    const std::filesystem::path directory = executable_directory();
-    if (directory.empty()) {
+    const std::filesystem::path path = default_path();
+    if (path.empty()) {
         log_debug("failed to resolve executable directory");
         return false;
     }
 
-    const std::filesystem::path path = directory / DEFAULT_CONFIGURATION_FILE;
     if (!std::filesystem::exists(path)) {
         log_debug("configuration file not found: %s", path.string().c_str());
         return true;
@@ -96,6 +95,15 @@ bool ConfigurationManager::load_default(ConfigurationData &configuration) {
     }
 
     return true;
+}
+
+std::filesystem::path ConfigurationManager::default_path() {
+    const std::filesystem::path directory = executable_directory();
+    if (directory.empty()) {
+        return {};
+    }
+
+    return directory / DEFAULT_CONFIGURATION_FILE;
 }
 
 bool ConfigurationManager::save(const std::filesystem::path &path, const ConfigurationData &configuration) {

@@ -305,6 +305,9 @@ int main(const int argc, const char *const *const argv) {
     } else {
         (void) ConfigurationManager::load_default(configuration_data);
     }
+    view_models.configuration.set_save_path(config.configuration_path != nullptr
+                                                ? std::filesystem::path(config.configuration_path)
+                                                : ConfigurationManager::default_path());
     apply_config(config);
 
     log_info("%s %s", PROGRAM_NAME, VERSION);

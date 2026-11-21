@@ -18,11 +18,16 @@
 #ifndef CONFIGURATION_VIEW_MODEL_HPP
 #define CONFIGURATION_VIEW_MODEL_HPP
 
+#include <chrono>
+#include <filesystem>
+
 #include "configuration.hpp"
 
 struct ConfigurationModel {
     bool open = false;
     bool show_hit_level = true;
+    bool save_message_active = false;
+    std::chrono::steady_clock::time_point save_message_expires_at;
 };
 
 class ConfigurationViewModel {
@@ -32,6 +37,10 @@ public:
     void set_open(bool value);
     [[nodiscard]] bool is_open() const;
 
+    void set_save_path(std::filesystem::path path);
+    bool save();
+    bool show_saved_message();
+
     [[nodiscard]] ConfigurationData &configuration();
     [[nodiscard]] const ConfigurationData &configuration() const;
 
@@ -40,6 +49,7 @@ public:
 
 private:
     ConfigurationData *m_configuration;
+    std::filesystem::path m_save_path;
     ConfigurationModel m_model{};
 };
 

@@ -80,6 +80,21 @@ void ConfigurationView::draw(const ImVec2 canvas, ConfigurationViewModel &viewMo
         viewModel.set_open(false);
     }
 
+    constexpr float SAVE_BUTTON_WIDTH = ui::em(4.0F);
+    constexpr float SAVE_BUTTON_HEIGHT = ui::em(1.5F);
+    constexpr float SAVE_BUTTON_PADDING = ui::em(1.0F);
+    const ImVec2 content_min = ImGui::GetWindowContentRegionMin();
+    ImGui::SetCursorPos(
+        ImVec2(content_min.x + SAVE_BUTTON_PADDING, content_max.y - SAVE_BUTTON_HEIGHT - SAVE_BUTTON_PADDING));
+    if (ImGui::Button("Save", ImVec2(SAVE_BUTTON_WIDTH, SAVE_BUTTON_HEIGHT))) {
+        (void) viewModel.save();
+    }
+
+    if (viewModel.show_saved_message()) {
+        ImGui::SameLine();
+        ImGui::TextDisabled("Configuration saved");
+    }
+
     ImGui::PopFont();
 
     OverlayCanvas::end_panel();

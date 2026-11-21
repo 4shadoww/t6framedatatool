@@ -70,7 +70,7 @@ TEST_F(TestConfigurationManager, keeps_defaults_for_missing_fields) {
 
     ASSERT_TRUE(ConfigurationManager::load(m_path, configuration));
     EXPECT_FALSE(configuration.ui.show_command_history);
-    EXPECT_TRUE(configuration.ui.show_player2_command_history);
+    EXPECT_FALSE(configuration.ui.show_player2_command_history);
     EXPECT_TRUE(configuration.ui.show_own_frame_data);
     EXPECT_TRUE(configuration.ui.show_opponent_frame_data);
 }
@@ -82,7 +82,7 @@ TEST_F(TestConfigurationManager, keeps_defaults_for_empty_file) {
 
     ASSERT_TRUE(ConfigurationManager::load(m_path, configuration));
     EXPECT_TRUE(configuration.ui.show_command_history);
-    EXPECT_TRUE(configuration.ui.show_player2_command_history);
+    EXPECT_FALSE(configuration.ui.show_player2_command_history);
     EXPECT_TRUE(configuration.ui.show_own_frame_data);
     EXPECT_TRUE(configuration.ui.show_opponent_frame_data);
 }
