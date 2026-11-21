@@ -535,9 +535,6 @@ void FrameDataAnalyser::handle_status() {
 }
 
 void FrameDataAnalyser::handle_input(const uint32_t game_frame) {
-    // Practice always places the local player on the left
-    const PlayerSide own_side = m_in_practice ? PlayerSide::LEFT : m_player_side;
-
     RawPlayerInput p1_raw{};
     if (read_raw_player_input(&p1_raw) == READ_OK) {
         const InputState input = {
@@ -549,7 +546,7 @@ void FrameDataAnalyser::handle_input(const uint32_t game_frame) {
         };
 
         (void) input_dump_write(input.game_frame, input.raw);
-        EventBus::dispatch(InputEvent{.input = input, .own_side = own_side});
+        EventBus::dispatch(InputEvent{.input = input, .own_side = m_player_side});
     }
 
     RawPlayerInput p2_raw{};
@@ -562,7 +559,7 @@ void FrameDataAnalyser::handle_input(const uint32_t game_frame) {
             .side = PlayerSide::RIGHT,
         };
 
-        EventBus::dispatch(InputEvent{.input = input, .own_side = own_side});
+        EventBus::dispatch(InputEvent{.input = input, .own_side = m_player_side});
     }
 }
 
@@ -579,13 +576,16 @@ bool FrameDataAnalyser::update_game_state() {
         return false;
     }
 
-    if (frame_dump_write(&state, side_val) != READ_OK) {
+    m_in_practice = read_in_practice();
+
+    // Practice always places the local player on the left
+    const int32_t effective_side = m_in_practice ? static_cast<int32_t>(PlayerSide::LEFT) : side_val;
+
+    if (frame_dump_write(&state, effective_side) != READ_OK) {
         return false;
     }
 
-    m_in_practice = read_in_practice();
-
-    if (!process_frame(state, side_val)) {
+    if (!process_frame(state, effective_side)) {
         return false;
     }
 
