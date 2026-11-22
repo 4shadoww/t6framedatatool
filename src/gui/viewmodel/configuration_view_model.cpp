@@ -21,6 +21,7 @@
 #include <utility>
 
 #include "configuration_manager.hpp"
+#include "event_bus.hpp"
 
 namespace {
 
@@ -29,7 +30,15 @@ constexpr auto SAVE_MESSAGE_DURATION = std::chrono::seconds(2);
 } // namespace
 
 ConfigurationViewModel::ConfigurationViewModel(ConfigurationData *configuration) noexcept
-    : m_configuration(configuration) {}
+    : m_configuration(configuration) {
+    EventBus::subscribe<KeyEvent>(this);
+}
+
+void ConfigurationViewModel::on_event(const KeyEvent &event) {
+    if (event.pressed && event.key == keybinds::open_config_key()) {
+        set_open(!is_open());
+    }
+}
 
 void ConfigurationViewModel::set_open(const bool value) {
     m_model.open = value;

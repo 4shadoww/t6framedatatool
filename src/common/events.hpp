@@ -21,6 +21,7 @@
 #include <cstdint>
 
 #include "frame_data_defs.hpp"
+#include "input_key.hpp"
 
 struct FrameDataEvent {
     FrameDataPoint data;
@@ -52,5 +53,10 @@ struct InputEvent {
 };
 
 struct GameHookedEvent {};
+
+struct KeyEvent {
+    Key key;
+    bool pressed;
+};
 
 #endif

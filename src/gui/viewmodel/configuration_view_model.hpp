@@ -22,6 +22,7 @@
 #include <filesystem>
 
 #include "configuration.hpp"
+#include "events.hpp"
 
 struct ConfigurationModel {
     bool open = false;
@@ -33,6 +34,8 @@ struct ConfigurationModel {
 class ConfigurationViewModel {
 public:
     explicit ConfigurationViewModel(ConfigurationData *configuration) noexcept;
+
+    void on_event(const KeyEvent &event);
 
     void set_open(bool value);
     [[nodiscard]] bool is_open() const;

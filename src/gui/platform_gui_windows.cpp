@@ -20,6 +20,7 @@
 #include "platform_gui.hpp"
 
 #include <algorithm>
+#include <array>
 #include <string>
 
 #include <windows.h>
@@ -28,7 +29,10 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "GLFW/glfw3native.h"
 
+#include "event_bus.hpp"
+#include "events.hpp"
 #include "gui_constants.hpp"
+#include "input_key.hpp"
 #include "logging.h"
 
 #define GAME_WINDOW_NAME L"tekken 6"
@@ -37,6 +41,7 @@ namespace {
 HWND g_window;
 HWND g_game_window;
 HWINEVENTHOOK g_h_win_event_hook;
+std::array<bool, KEY_COUNT> g_key_down{};
 
 VOID CALLBACK WinEventProc(HWINEVENTHOOK /*hWinEventHook*/,
                            DWORD event,
@@ -144,5 +149,14 @@ void platform_update() {
     while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
+    }
+
+    for (std::size_t i = 0; i < KEY_COUNT; i++) {
+        const int vk = VK_F1 + static_cast<int>(i);
+        const bool down = (static_cast<unsigned short>(GetAsyncKeyState(vk)) & 0x8000U) != 0;
+        if (down != g_key_down.at(i)) {
+            g_key_down.at(i) = down;
+            EventBus::dispatch(KeyEvent{.key = static_cast<Key>(i), .pressed = down});
+        }
     }
 }

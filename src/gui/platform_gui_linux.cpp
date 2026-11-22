@@ -18,6 +18,7 @@
 
 #include "platform_gui.hpp"
 
+#include <array>
 #include <cstring>
 
 #include <GLFW/glfw3.h>
@@ -26,8 +27,12 @@
 
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
+#include <X11/keysym.h>
 
+#include "event_bus.hpp"
+#include "events.hpp"
 #include "gui_constants.hpp"
+#include "input_key.hpp"
 #include "logging.h"
 
 namespace {
@@ -35,6 +40,7 @@ Window g_window;
 Window g_game_window;
 Display *g_display;
 Display *g_event_display;
+std::array<bool, KEY_COUNT> g_key_down{};
 
 char *read_string_property(const Window window, const char *const property_name, unsigned long *const len) {
     const Atom prop = XInternAtom(g_display, property_name, False);
@@ -203,6 +209,11 @@ void platform_find_game_window() {
 }
 
 void platform_update() {
+    if (g_event_display == nullptr) {
+        log_error("no event display");
+        return;
+    }
+
     while (XPending(g_event_display) > 0) {
         XEvent e;
         XNextEvent(g_event_display, &e);
@@ -210,6 +221,25 @@ void platform_update() {
         if (e.type == ConfigureNotify && e.xconfigure.window == g_game_window) {
             const XConfigureEvent xce = e.xconfigure;
             platform_update_ui_bounds(xce.x, xce.y, xce.width, xce.height);
+        }
+    }
+
+    std::array<char, 32> keys{};
+    XQueryKeymap(g_event_display, keys.data());
+
+    for (std::size_t i = 0; i < KEY_COUNT; i++) {
+        const KeySym sym = XK_F1 + static_cast<KeySym>(i);
+        const KeyCode code = XKeysymToKeycode(g_event_display, sym);
+        if (code == 0) {
+            continue;
+        }
+
+        const auto index = static_cast<std::size_t>(code) / 8U;
+        const auto bit = static_cast<unsigned char>(1U << (static_cast<unsigned int>(code) % 8U));
+        const bool down = (static_cast<unsigned char>(keys.at(index)) & bit) != 0;
+        if (down != g_key_down.at(i)) {
+            g_key_down.at(i) = down;
+            EventBus::dispatch(KeyEvent{.key = static_cast<Key>(i), .pressed = down});
         }
     }
 }
