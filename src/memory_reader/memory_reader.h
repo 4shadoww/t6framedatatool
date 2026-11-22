@@ -32,4 +32,12 @@ int read_bytes_raw(const long long address, void *buf, const size_t size);
 int read_4bytes(const long long address, int32_t *value);
 int read_2bytes(const long long address, int16_t *value);
 
+struct ReadRange {
+    long long address;
+    void *out;
+    size_t size;
+};
+
+int read_ranges(const struct ReadRange *ranges, size_t count);
+
 #endif

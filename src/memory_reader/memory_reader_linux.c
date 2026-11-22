@@ -41,6 +41,7 @@
 
 // Constants
 #define READ_BUFFER_LEN 1024
+#define READ_RANGE_MAX 64
 #define RPCS3_NAME "rpcs3"
 
 // UIO variables
@@ -90,6 +91,33 @@ int read_2bytes(const long long address, int16_t *value) {
         return READ_ERROR;
     }
     *value = big16_to_little(g_buf);
+    return READ_OK;
+}
+
+int read_ranges(const struct ReadRange *ranges, const size_t count) {
+    if (ranges == NULL || count == 0 || count > READ_RANGE_MAX) {
+        log_error("invalid range read request");
+        return READ_ERROR;
+    }
+
+    struct iovec local[READ_RANGE_MAX];
+    struct iovec remote[READ_RANGE_MAX];
+    size_t total = 0;
+
+    for (size_t i = 0; i < count; i++) {
+        local[i].iov_base = ranges[i].out;
+        local[i].iov_len = ranges[i].size;
+        remote[i].iov_base = (void *) ranges[i].address; // NOLINT
+        remote[i].iov_len = ranges[i].size;
+        total += ranges[i].size;
+    }
+
+    const ssize_t nread = process_vm_readv(g_pid, local, count, remote, count, 0);
+    if (nread < 0 || (size_t) nread != total) {
+        log_error("failed to read %zu ranges (%lld bytes)", count, (long long) nread);
+        return READ_ERROR;
+    }
+
     return READ_OK;
 }
 

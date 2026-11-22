@@ -40,6 +40,7 @@
 
 // Constants
 #define READ_BUFFER_LEN 1024
+#define READ_RANGE_MAX 64
 #define RPCS3_NAME "rpcs3.exe"
 
 // Win32 API variables
@@ -105,6 +106,22 @@ int read_2bytes(const long long address, int16_t *value) {
         return READ_ERROR;
     }
     *value = big16_to_little(g_buf);
+    return READ_OK;
+}
+
+int read_ranges(const struct ReadRange *ranges, const size_t count) {
+    if (ranges == NULL || count == 0) {
+        log_error("invalid range read request");
+        return READ_ERROR;
+    }
+
+    for (size_t i = 0; i < count; i++) {
+        if (read_bytes_raw(ranges[i].address, ranges[i].out, ranges[i].size) == READ_ERROR) {
+            log_error("failed to read range %zu", i);
+            return READ_ERROR;
+        }
+    }
+
     return READ_OK;
 }
 

@@ -947,7 +947,6 @@ bool read_in_practice(void) {
 
 int read_game_state(struct GameFrame *state) {
     int32_t value = 0;
-    struct PlayerCoordinate coords = {0, 0, 0};
 
     int result = current_game_frame((uint32_t *) &value);
 
@@ -959,61 +958,54 @@ int read_game_state(struct GameFrame *state) {
 
     update_moveset_infos(value);
 
-    result = p1_frames_last_action(&value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p1 last action frames");
-        return READ_ERROR;
-    }
-    state->p1.frames_last_action = value;
+    // Needed because the read is 2 bytes while strucutre holds 1 byte bool
+    int16_t temp_p1_connection = 0;
+    int16_t temp_p2_connection = 0;
 
-    result = p1_connection((int16_t *) &value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p1 last connection frames");
-        return READ_ERROR;
-    }
-    state->p1.connection = (int16_t) value; // NOLINT
+    const struct ReadRange static_ranges[] = {
+        {P1_FRAMES_LAST_ACTION, &state->p1.frames_last_action, sizeof(state->p1.frames_last_action)},
+        {P1_CONNECTION_BOOL, &temp_p1_connection, sizeof(temp_p1_connection)},
+        {P1_RECOVERY_FRAMES, &state->p1.recovery_frames, sizeof(state->p1.recovery_frames)},
+        {P1_INTENT, &state->p1.intent, sizeof(state->p1.intent)},
+        {P1_MOVE, &state->p1.move_id, sizeof(state->p1.move_id)},
+        {P1_STATE, &state->p1.state, sizeof(state->p1.state)},
+        {P1_POSITION, &state->p1.position, sizeof(state->p1.position)},
+        {(long long) g_p1.attack_seq_address, &state->p1.attack_seq, sizeof(state->p1.attack_seq)},
+        {P2_FRAMES_LAST_ACTION, &state->p2.frames_last_action, sizeof(state->p2.frames_last_action)},
+        {P2_CONNECTION_BOOL, &temp_p2_connection, sizeof(temp_p2_connection)},
+        {P2_RECOVERY_FRAMES, &state->p2.recovery_frames, sizeof(state->p2.recovery_frames)},
+        {P2_INTENT, &state->p2.intent, sizeof(state->p2.intent)},
+        {P2_MOVE, &state->p2.move_id, sizeof(state->p2.move_id)},
+        {P2_STATE, &state->p2.state, sizeof(state->p2.state)},
+        {P2_POSITION, &state->p2.position, sizeof(state->p2.position)},
+        {(long long) g_p2.attack_seq_address, &state->p2.attack_seq, sizeof(state->p2.attack_seq)},
+    };
 
-    result = p1_recovery_frames((uint32_t *) &value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p1 recovery frames");
+    if (read_ranges(static_ranges, sizeof(static_ranges) / sizeof(static_ranges[0])) != READ_OK) {
         return READ_ERROR;
     }
-    state->p1.recovery_frames = (uint32_t) value;
 
-    result = p1_intent(&value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p1 intent");
-        return READ_ERROR;
-    }
-    state->p1.intent = value;
+    state->p1.frames_last_action = big32_to_little((char *) &state->p1.frames_last_action);
+    state->p1.connection = (int8_t) big16_to_little((char *) &temp_p1_connection);
+    state->p1.recovery_frames = (uint32_t) big32_to_little((char *) &state->p1.recovery_frames);
+    state->p1.intent = big32_to_little((char *) &state->p1.intent);
+    state->p1.move_id = big32_to_little((char *) &state->p1.move_id);
+    state->p1.state = big32_to_little((char *) &state->p1.state);
+    state->p1.position.x = big32_to_little_float((char *) &state->p1.position.x);
+    state->p1.position.y = big32_to_little_float((char *) &state->p1.position.y);
+    state->p1.position.z = big32_to_little_float((char *) &state->p1.position.z);
+    state->p1.attack_seq = big32_to_little((char *) &state->p1.attack_seq);
 
-    result = p1_move_id(&value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p1 move");
-        return READ_ERROR;
-    }
-    state->p1.move_id = value;
-
-    result = p1_state(&value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p1 state");
-        return READ_ERROR;
-    }
-    state->p1.state = value;
-
-    result = p1_position(&coords);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p1 state");
-        return READ_ERROR;
-    }
-    state->p1.position = coords;
-
-    result = p1_attack_seq(&value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p1 attack seq");
-        return READ_ERROR;
-    }
-    state->p1.attack_seq = value;
+    state->p2.frames_last_action = big32_to_little((char *) &state->p2.frames_last_action);
+    state->p2.connection = (int8_t) big16_to_little((char *) &temp_p2_connection);
+    state->p2.recovery_frames = (uint32_t) big32_to_little((char *) &state->p2.recovery_frames);
+    state->p2.intent = big32_to_little((char *) &state->p2.intent);
+    state->p2.move_id = big32_to_little((char *) &state->p2.move_id);
+    state->p2.state = big32_to_little((char *) &state->p2.state);
+    state->p2.position.x = big32_to_little_float((char *) &state->p2.position.x);
+    state->p2.position.y = big32_to_little_float((char *) &state->p2.position.y);
+    state->p2.position.z = big32_to_little_float((char *) &state->p2.position.z);
+    state->p2.attack_seq = big32_to_little((char *) &state->p2.attack_seq);
 
     result = p1_move_structs(&state->p1, state->game_frame);
     if (result == READ_ERROR) {
@@ -1021,98 +1013,27 @@ int read_game_state(struct GameFrame *state) {
         return READ_ERROR;
     }
 
-    result = read_4bytes(P1_DAMAGE_DEALT, &value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p1 damage dealt");
-        return READ_ERROR;
-    }
-    state->p1.move.damage = (uint32_t) value;
-
-    result = read_4bytes(P1_CUMULATIVE_DAMAGE_DEALT, &value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p1 cumulative damage");
-        return READ_ERROR;
-    }
-    state->p1.throw_damage = (uint32_t) value;
-
-    result = p2_frames_last_action(&value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p2 last action frames");
-        return READ_ERROR;
-    }
-    state->p2.frames_last_action = value;
-
-    result = p2_connection((int16_t *) &value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p2 last connection frames");
-        return READ_ERROR;
-    }
-    state->p2.connection = (int16_t) value; // NOLINT
-
-    result = p2_recovery_frames((uint32_t *) &value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p2 recovery frames");
-        return READ_ERROR;
-    }
-    state->p2.recovery_frames = value;
-
-    result = p2_intent(&value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p2 intent");
-        return READ_ERROR;
-    }
-    state->p2.intent = value;
-
-    result = p2_move_id(&value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p2 move");
-        return READ_ERROR;
-    }
-    state->p2.move_id = value;
-
-    result = p2_state(&value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p2 state");
-        return READ_ERROR;
-    }
-    state->p2.state = value;
-
-    memset(&coords, 0, sizeof(coords)); // NOLINT
-
-    result = p2_position(&coords);
-
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p1 state");
-        return READ_ERROR;
-    }
-    state->p2.position = coords;
-
-    result = p2_attack_seq(&value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p2 attack seq");
-        return READ_ERROR;
-    }
-    state->p2.attack_seq = value;
-
     result = p2_move_structs(&state->p2, state->game_frame);
     if (result == READ_ERROR) {
         log_debug("failed to read p2 move");
         return READ_ERROR;
     }
 
-    result = read_4bytes(P2_DAMAGE_DEALT, &value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p2 damage dealt");
-        return READ_ERROR;
-    }
-    state->p2.move.damage = (uint32_t) value;
+    const struct ReadRange damage_ranges[] = {
+        {P1_DAMAGE_DEALT, &state->p1.move.damage, sizeof(state->p1.move.damage)},
+        {P1_CUMULATIVE_DAMAGE_DEALT, &state->p1.throw_damage, sizeof(state->p1.throw_damage)},
+        {P2_DAMAGE_DEALT, &state->p2.move.damage, sizeof(state->p2.move.damage)},
+        {P2_CUMULATIVE_DAMAGE_DEALT, &state->p2.throw_damage, sizeof(state->p2.throw_damage)},
+    };
 
-    result = read_4bytes(P2_CUMULATIVE_DAMAGE_DEALT, &value);
-    if (result == READ_ERROR) {
-        log_debug("readed invalid p2 cumulative damage");
+    if (read_ranges(damage_ranges, sizeof(damage_ranges) / sizeof(damage_ranges[0])) != READ_OK) {
         return READ_ERROR;
     }
-    state->p2.throw_damage = (uint32_t) value;
+
+    state->p1.move.damage = (uint32_t) big32_to_little((char *) &state->p1.move.damage);
+    state->p1.throw_damage = (uint32_t) big32_to_little((char *) &state->p1.throw_damage);
+    state->p2.move.damage = (uint32_t) big32_to_little((char *) &state->p2.move.damage);
+    state->p2.throw_damage = (uint32_t) big32_to_little((char *) &state->p2.throw_damage);
 
     return 0;
 }
