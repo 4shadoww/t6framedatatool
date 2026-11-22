@@ -85,9 +85,15 @@ void ConfigurationView::draw(const ImVec2 canvas, ConfigurationViewModel &viewMo
         (void) viewModel.save();
     }
 
-    if (viewModel.show_saved_message()) {
-        ImGui::SameLine();
-        ImGui::TextDisabled("Configuration saved");
+    if (viewModel.toast_visible()) {
+        const char *const text = viewModel.toast_message().c_str();
+        const ImVec2 text_size = ImGui::CalcTextSize(text);
+        const ImVec2 window_position = ImGui::GetWindowPos();
+        const ImVec2 window_size = ImGui::GetWindowSize();
+        const ImVec2 text_position(window_position.x + ((window_size.x - text_size.x) * 0.5F),
+                                   window_position.y + ((window_size.y - text_size.y) * 0.5F));
+
+        ImGui::GetWindowDrawList()->AddText(text_position, ImGui::GetColorU32(ImGuiCol_TextDisabled), text);
     }
 
     ImGui::PopFont();

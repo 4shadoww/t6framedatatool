@@ -53,6 +53,7 @@ TEST_F(TestConfigurationManager, loads_ui_values) {
                            "show_own_frame_data = false\n"
                            "show_opponent_frame_data = false\n"
                            "show_only_in_practice = true\n"
+                           "disable_config_button = true\n"
                            "scale = ") +
                std::to_string(MAX_UI_SCALE) + "\n");
 
@@ -64,6 +65,7 @@ TEST_F(TestConfigurationManager, loads_ui_values) {
     EXPECT_FALSE(configuration.ui.show_own_frame_data);
     EXPECT_FALSE(configuration.ui.show_opponent_frame_data);
     EXPECT_TRUE(configuration.ui.show_only_in_practice);
+    EXPECT_TRUE(configuration.ui.disable_config_button);
     EXPECT_FLOAT_EQ(configuration.ui.scale, MAX_UI_SCALE);
 }
 
@@ -79,6 +81,7 @@ TEST_F(TestConfigurationManager, keeps_defaults_for_missing_fields) {
     EXPECT_TRUE(configuration.ui.show_own_frame_data);
     EXPECT_TRUE(configuration.ui.show_opponent_frame_data);
     EXPECT_FALSE(configuration.ui.show_only_in_practice);
+    EXPECT_FALSE(configuration.ui.disable_config_button);
     EXPECT_FLOAT_EQ(configuration.ui.scale, 1.0F);
 }
 
@@ -93,6 +96,7 @@ TEST_F(TestConfigurationManager, keeps_defaults_for_empty_file) {
     EXPECT_TRUE(configuration.ui.show_own_frame_data);
     EXPECT_TRUE(configuration.ui.show_opponent_frame_data);
     EXPECT_FALSE(configuration.ui.show_only_in_practice);
+    EXPECT_FALSE(configuration.ui.disable_config_button);
     EXPECT_FLOAT_EQ(configuration.ui.scale, 1.0F);
 }
 
@@ -117,6 +121,7 @@ TEST_F(TestConfigurationManager, saves_ui_values) {
     configuration.ui.show_own_frame_data = true;
     configuration.ui.show_opponent_frame_data = false;
     configuration.ui.show_only_in_practice = true;
+    configuration.ui.disable_config_button = true;
     configuration.ui.scale = MAX_UI_SCALE;
 
     ASSERT_TRUE(ConfigurationManager::save(m_path, configuration));
@@ -128,6 +133,7 @@ TEST_F(TestConfigurationManager, saves_ui_values) {
     EXPECT_TRUE(loaded.ui.show_own_frame_data);
     EXPECT_FALSE(loaded.ui.show_opponent_frame_data);
     EXPECT_TRUE(loaded.ui.show_only_in_practice);
+    EXPECT_TRUE(loaded.ui.disable_config_button);
     EXPECT_FLOAT_EQ(loaded.ui.scale, MAX_UI_SCALE);
 }
 

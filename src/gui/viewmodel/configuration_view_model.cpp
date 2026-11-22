@@ -25,7 +25,7 @@
 
 namespace {
 
-constexpr auto SAVE_MESSAGE_DURATION = std::chrono::seconds(2);
+constexpr auto TOAST_DURATION = std::chrono::seconds(2);
 
 } // namespace
 
@@ -48,6 +48,14 @@ bool ConfigurationViewModel::is_open() const {
     return m_model.open;
 }
 
+void ConfigurationViewModel::set_disable_config_button(const bool value) {
+    if (value && !m_configuration->ui.disable_config_button) {
+        toast(std::string("Button hidden. ") + key_name(keybinds::open_config_key()) + " opens configuration.");
+    }
+
+    m_configuration->ui.disable_config_button = value;
+}
+
 void ConfigurationViewModel::set_save_path(std::filesystem::path path) {
     m_save_path = std::move(path);
 }
@@ -59,24 +67,33 @@ bool ConfigurationViewModel::save() {
 
     const bool saved = ConfigurationManager::save(m_save_path, *m_configuration);
     if (saved) {
-        m_model.save_message_active = true;
-        m_model.save_message_expires_at = std::chrono::steady_clock::now() + SAVE_MESSAGE_DURATION;
+        toast("Configuration saved");
     }
 
     return saved;
 }
 
-bool ConfigurationViewModel::show_saved_message() {
-    if (!m_model.save_message_active) {
+void ConfigurationViewModel::toast(std::string message) {
+    m_model.toast_text = std::move(message);
+    m_model.toast_active = true;
+    m_model.toast_expires_at = std::chrono::steady_clock::now() + TOAST_DURATION;
+}
+
+bool ConfigurationViewModel::toast_visible() {
+    if (!m_model.toast_active) {
         return false;
     }
 
-    if (std::chrono::steady_clock::now() >= m_model.save_message_expires_at) {
-        m_model.save_message_active = false;
+    if (std::chrono::steady_clock::now() >= m_model.toast_expires_at) {
+        m_model.toast_active = false;
         return false;
     }
 
     return true;
+}
+
+const std::string &ConfigurationViewModel::toast_message() const {
+    return m_model.toast_text;
 }
 
 ConfigurationData &ConfigurationViewModel::configuration() {

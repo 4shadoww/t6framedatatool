@@ -34,6 +34,7 @@ constexpr const char *SHOW_PLAYER2_COMMAND_HISTORY_KEY = "show_player2_command_h
 constexpr const char *SHOW_OWN_FRAME_DATA_KEY = "show_own_frame_data";
 constexpr const char *SHOW_OPPONENT_FRAME_DATA_KEY = "show_opponent_frame_data";
 constexpr const char *SHOW_ONLY_IN_PRACTICE_KEY = "show_only_in_practice";
+constexpr const char *DISABLE_CONFIG_BUTTON_KEY = "disable_config_button";
 constexpr const char *UI_SCALE_KEY = "scale";
 
 void load_ui(const toml::table &table, ConfigurationData::Ui &ui) {
@@ -57,6 +58,10 @@ void load_ui(const toml::table &table, ConfigurationData::Ui &ui) {
         ui.show_only_in_practice = value->get();
     }
 
+    if (const toml::value<bool> *const value = table.get_as<bool>(DISABLE_CONFIG_BUTTON_KEY)) {
+        ui.disable_config_button = value->get();
+    }
+
     if (const toml::node *const node = table.get(UI_SCALE_KEY)) {
         if (const auto value = node->value<double>()) {
             ui.scale = std::clamp(static_cast<float>(*value), MIN_UI_SCALE, MAX_UI_SCALE);
@@ -71,6 +76,7 @@ toml::table save_ui(const ConfigurationData::Ui &ui) {
         {SHOW_OWN_FRAME_DATA_KEY, ui.show_own_frame_data},
         {SHOW_OPPONENT_FRAME_DATA_KEY, ui.show_opponent_frame_data},
         {SHOW_ONLY_IN_PRACTICE_KEY, ui.show_only_in_practice},
+        {DISABLE_CONFIG_BUTTON_KEY, ui.disable_config_button},
         {UI_SCALE_KEY, static_cast<double>(ui.scale)},
     };
 }

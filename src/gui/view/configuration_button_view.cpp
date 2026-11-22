@@ -64,6 +64,10 @@ RelativePanel ConfigurationButtonView::panel(const ImVec2 /*canvas*/) {
 }
 
 void ConfigurationButtonView::draw(const ImVec2 canvas, ConfigurationViewModel &viewModel) {
+    if (viewModel.configuration().ui.disable_config_button) {
+        return;
+    }
+
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0F, 0.0F));
     ImGui::PushStyleColor(ImGuiCol_Button, color_scheme::WINDOW_BACKGROUND);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color_scheme::BUTTON_HOVER);

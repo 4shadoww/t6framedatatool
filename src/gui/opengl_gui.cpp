@@ -242,6 +242,7 @@ void gui_loop(GLFWwindow *const window) {
         double mouse_y = 0.0;
         glfwGetCursorPos(window, &mouse_x, &mouse_y);
         const bool over_button =
+            !configuration_data.ui.disable_config_button &&
             ConfigurationButtonView::contains(canvas, ImVec2(static_cast<float>(mouse_x), static_cast<float>(mouse_y)));
         const bool interactive = view_models.configuration.is_open() || over_button;
         set_mouse_passthrough(window, passthrough, !interactive);

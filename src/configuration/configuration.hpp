@@ -28,6 +28,7 @@ struct ConfigurationData {
         bool show_own_frame_data = true;
         bool show_opponent_frame_data = true;
         bool show_only_in_practice = false;
+        bool disable_config_button = false;
         float scale = 1.0F;
     };
 

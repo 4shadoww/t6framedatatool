@@ -35,6 +35,10 @@ void UiConfigView::draw(ConfigurationViewModel &viewModel) {
     ImGui::Checkbox("Show own frame data", &configuration.ui.show_own_frame_data);
     ImGui::Checkbox("Show opponent frame data", &configuration.ui.show_opponent_frame_data);
     ImGui::Checkbox("Show UI only in practice mode", &configuration.ui.show_only_in_practice);
+    bool disable_config_button = configuration.ui.disable_config_button;
+    if (ImGui::Checkbox("Disable configuration button", &disable_config_button)) {
+        viewModel.set_disable_config_button(disable_config_button);
+    }
 
     int scale_percent = static_cast<int>(std::lround(configuration.ui.scale * PERCENT_FACTOR));
     const int min_percent = static_cast<int>(MIN_UI_SCALE * PERCENT_FACTOR);
