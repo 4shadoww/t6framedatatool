@@ -29,9 +29,11 @@ set(SRCS opengl_gui.cpp
          view/configuration/frame_data_config_view.cpp
          view/configuration/ui_config_view.cpp
          view/frame_data_view.cpp
+         view/move_timeline_view.cpp
          viewmodel/command_history_view_model.cpp
          viewmodel/configuration_view_model.cpp
          viewmodel/frame_data_view_model.cpp
+         viewmodel/move_timeline_view_model.cpp
 )
 set(LIBS glfw glad_gl_core_33 imgui)
 

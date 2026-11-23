@@ -35,6 +35,7 @@ void UiConfigView::draw(ConfigurationViewModel &viewModel) {
     ImGui::Checkbox("Show own frame data", &configuration.ui.show_own_frame_data);
     ImGui::Checkbox("Show opponent frame data", &configuration.ui.show_opponent_frame_data);
     ImGui::Checkbox("Show UI only in practice mode", &configuration.ui.show_only_in_practice);
+    ImGui::Checkbox("Show move timeline", &configuration.ui.show_move_timeline);
     bool disable_config_button = configuration.ui.disable_config_button;
     if (ImGui::Checkbox("Disable configuration button", &disable_config_button)) {
         viewModel.set_disable_config_button(disable_config_button);

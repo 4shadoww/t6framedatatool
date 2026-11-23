@@ -44,6 +44,7 @@ struct StatusEvent {
     PlayerState p1;
     PlayerState p2;
     bool in_practice;
+    uint32_t game_frame;
 };
 
 struct InputEvent {
@@ -58,5 +59,6 @@ struct KeyEvent {
     Key key;
     bool pressed;
 };
+
 
 #endif

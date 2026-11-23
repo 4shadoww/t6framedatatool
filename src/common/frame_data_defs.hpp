@@ -67,6 +67,8 @@ struct PlayerFrameData {
     int frame_advantage;
     bool knock_down;
     bool is_attacker;
+    // Game frame when this player can act again
+    uint32_t free_frame;
 };
 
 struct FrameDataPoint {

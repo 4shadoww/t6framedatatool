@@ -337,6 +337,7 @@ void FrameDataAnalyser::report_chain(AttackChain *const chain, const bool p2, co
         .frame_advantage = frame_advantage,
         .knock_down = chain->knock_down,
         .is_attacker = true,
+        .free_frame = attacker_free,
     };
 
     const struct PlayerFrameData defender = {
@@ -348,6 +349,7 @@ void FrameDataAnalyser::report_chain(AttackChain *const chain, const bool p2, co
         .frame_advantage = -frame_advantage,
         .knock_down = chain->knock_down,
         .is_attacker = false,
+        .free_frame = chain->defender_free,
     };
 
     const struct FrameDataPoint data_point = {
@@ -532,6 +534,7 @@ void FrameDataAnalyser::handle_status() {
         .p1 = static_cast<PlayerState>(current->p1.state),
         .p2 = static_cast<PlayerState>(current->p2.state),
         .in_practice = m_in_practice,
+        .game_frame = current->game_frame,
     });
 }
 

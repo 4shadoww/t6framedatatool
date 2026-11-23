@@ -47,9 +47,11 @@
 #include "view/configuration_button_view.hpp"
 #include "view/configuration_view.hpp"
 #include "view/frame_data_view.hpp"
+#include "view/move_timeline_view.hpp"
 #include "viewmodel/command_history_view_model.hpp"
 #include "viewmodel/configuration_view_model.hpp"
 #include "viewmodel/frame_data_view_model.hpp"
+#include "viewmodel/move_timeline_view_model.hpp"
 
 namespace {
 
@@ -71,6 +73,7 @@ struct {
     FrameDataViewModel frame_data{&configuration_data};
     CommandHistoryViewModel command_history{&configuration_data};
     ConfigurationViewModel configuration{&configuration_data};
+    MoveTimelineViewModel move_timeline;
 } view_models;
 
 GuiEventReceiver gui_event_receiver;
@@ -105,6 +108,10 @@ void setup_style() {
 void draw_overlay() {
     const ImVec2 canvas = OverlayCanvas::size();
     if (!configuration_data.ui.show_only_in_practice || view_models.frame_data.is_in_practice()) {
+        if (configuration_data.ui.show_move_timeline) {
+            MoveTimelineView::draw(canvas, view_models.move_timeline);
+        }
+
         FrameDataView::draw(canvas, view_models.frame_data);
         CommandHistoryView::draw(canvas, view_models.command_history);
     }
